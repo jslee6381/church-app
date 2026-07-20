@@ -1,0 +1,92 @@
+"use client";
+
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+type PendingMemberItem = {
+  id: string;
+  displayName: string;
+  fullName: string;
+  createdAtLabel: string;
+  status: string;
+};
+
+type Props = {
+  initialMembers: PendingMemberItem[];
+};
+
+export function PendingMembersApproval({ initialMembers }: Props) {
+  const [members, setMembers] = useState(initialMembers);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string>("");
+
+  async function approveMember(memberId: string) {
+    setSavingId(memberId);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "active",
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to approve member.");
+      }
+
+      setMembers((current) => current.filter((member) => member.id !== memberId));
+      setFeedback("Member approved.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to approve member.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <p className="section-kicker">Pending Members</p>
+        <CardTitle>Awaiting approval</CardTitle>
+        <CardDescription>Approve newly signed-in members before they can post or access member-only spaces.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3">
+        {members.length === 0 ? (
+          <p className="m-0 text-base leading-7 text-muted-foreground">No members are waiting for approval right now.</p>
+        ) : (
+          members.map((member) => (
+            <div key={member.id} className="rounded-[22px] border border-border/80 bg-white/72 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="m-0 text-lg font-semibold text-foreground">{member.displayName}</p>
+                  <p className="m-0 mt-1 text-sm text-muted-foreground">{member.fullName}</p>
+                  <p className="m-0 mt-1 text-sm text-muted-foreground">Signed in {member.createdAtLabel}</p>
+                </div>
+                <Button
+                  className="min-h-10 rounded-[16px]"
+                  disabled={savingId === member.id}
+                  onClick={() => approveMember(member.id)}
+                  size="sm"
+                  type="button"
+                >
+                  {savingId === member.id ? <LoaderCircle className="size-4 animate-spin" /> : null}
+                  Approve
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+        {feedback ? <p className="m-0 text-sm text-muted-foreground">{feedback}</p> : null}
+      </CardContent>
+    </Card>
+  );
+}

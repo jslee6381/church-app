@@ -1,0 +1,79 @@
+import { NextResponse } from "next/server";
+import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
+import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
+import { ensureChurchRoles } from "@/lib/roles";
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await requireAdminOrLeaderSession();
+    const { id } = await context.params;
+    const { status } = (await request.json()) as { status?: "active" | "inactive" | "invited" };
+
+    if (!status || !["active", "inactive", "invited"].includes(status)) {
+      return NextResponse.json({ error: "A valid member status is required." }, { status: 400 });
+    }
+
+    if (!hasAdminEnvironment()) {
+      return NextResponse.json({
+        success: true,
+        member: {
+          id,
+          status,
+        },
+      });
+    }
+
+    const admin = createAdminClient();
+    let assignedRoleName: string | null = null;
+    const { data, error } = await admin
+      .from("members")
+      .update({ status })
+      .eq("id", id)
+      .eq("church_id", session.member.church_id)
+      .select("id, display_name, full_name, status, created_at")
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json({ error: error?.message ?? "Unable to update member." }, { status: 500 });
+    }
+
+    if (status === "active") {
+      const roleMap = await ensureChurchRoles(session.member.church_id);
+      const { data: existingRoles } = await admin.from("member_roles").select("role_id").eq("member_id", id);
+
+      if (!existingRoles || existingRoles.length === 0) {
+        const memberRoleId = roleMap.get("member");
+
+        if (memberRoleId) {
+          await admin.from("member_roles").insert({
+            member_id: id,
+            role_id: memberRoleId,
+          });
+          assignedRoleName = "member";
+        }
+      }
+    }
+
+    await admin.from("audit_logs").insert({
+      church_id: session.member.church_id,
+      actor_member_id: session.member.id,
+      entity_type: "members",
+      entity_id: id,
+      action: "approve",
+      metadata: {
+        status,
+        assignedRoleName,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      member: {
+        ...data,
+        assignedRoleName,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to update member status." }, { status: 500 });
+  }
+}
