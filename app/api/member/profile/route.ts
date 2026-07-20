@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
+import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
+
+export async function GET() {
+  try {
+    const session = await getAuthenticatedMemberSession();
+
+    if (!session) {
+      return NextResponse.json({
+        authenticated: false,
+      });
+    }
+
+    const roles = await getMemberRoles(session.member.id);
+
+    return NextResponse.json({
+      authenticated: true,
+      member: session.member,
+      roles,
+      canAccessAdmin: roles.includes("admin") || roles.includes("leader"),
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to load profile." }, { status: 500 });
+  }
+}
 
 export async function PATCH(request: Request) {
   try {
