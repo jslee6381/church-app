@@ -34,7 +34,10 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const nextPath = getSafeNextPath(url.searchParams.get("next"));
-  const nextUrl = new URL(nextPath, getAppOrigin(url));
+  const nextUrl = new URL(
+    `/auth/finalize?next=${encodeURIComponent(nextPath)}`,
+    getAppOrigin(url),
+  );
   const response = NextResponse.redirect(nextUrl);
 
   if (code) {

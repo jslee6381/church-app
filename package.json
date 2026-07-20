@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "next build",
+    "build": "NEXT_DISABLE_WEBPACK_CACHE=1 next build",
     "build:static-demo": "node scripts/build-static-demo.mjs",
     "start": "next start",
     "lint": "next lint"
