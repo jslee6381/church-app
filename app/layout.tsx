@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { PostAuthRefresh } from "@/components/auth/post-auth-refresh";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
@@ -26,7 +25,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background font-sans text-foreground antialiased" suppressHydrationWarning>
         <PwaRegistrar />
-        <PostAuthRefresh />
         <SupabaseAuthSync />
         <UiPreferencesSync />
         {children}
