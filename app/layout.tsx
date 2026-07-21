@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
+import { LiveRouteRefresh } from "@/components/navigation/live-route-refresh";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
 import ubfIcon from "@/ubf-icon.png";
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className="bg-background font-sans text-foreground antialiased" suppressHydrationWarning>
         <PwaRegistrar />
         <SupabaseAuthSync />
+        <LiveRouteRefresh />
         <UiPreferencesSync />
         {children}
       </body>
