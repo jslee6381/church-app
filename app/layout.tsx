@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
 import { LiveRouteRefresh } from "@/components/navigation/live-route-refresh";
@@ -30,6 +31,7 @@ export default function RootLayout({
         <LiveRouteRefresh />
         <UiPreferencesSync />
         {children}
+        <Analytics />
       </body>
     </html>
   );
