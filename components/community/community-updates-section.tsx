@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, MoreVertical, SendHorizonal, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
 import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
 const CONTENT_LIMIT = 150;
@@ -18,6 +18,21 @@ type Props = {
   currentMemberPhotoUrl?: string | null;
   submitAccessState: "signed_out" | "pending" | "active";
 };
+
+type EditableCommunityImage =
+  | {
+      id: string;
+      kind: "existing";
+      url: string;
+      name: string;
+    }
+  | {
+      id: string;
+      kind: "new";
+      url: string;
+      name: string;
+      file: File;
+    };
 
 async function compressImageFile(file: File) {
   if (typeof window === "undefined" || !file.type.startsWith("image/")) {
@@ -114,6 +129,8 @@ export function CommunityUpdatesSection({
   const composerRef = useRef<HTMLFormElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lightboxTouchStartXRef = useRef<number | null>(null);
+  const editingImagesRef = useRef<EditableCommunityImage[]>([]);
   const router = useRouter();
   const [updates, setUpdates] = useState(initialUpdates);
   const [selectedReactions, setSelectedReactions] = useState<Record<string, ReactionKind>>(
@@ -131,12 +148,16 @@ export function CommunityUpdatesSection({
   const [savingReactionId, setSavingReactionId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingSummary, setEditingSummary] = useState("");
+  const [editingImages, setEditingImages] = useState<EditableCommunityImage[]>([]);
+  const [isPreparingEditImages, setIsPreparingEditImages] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showSubmitGate, setShowSubmitGate] = useState(false);
   const [isComposerExpanded, setIsComposerExpanded] = useState(false);
   const [openMenuUpdateId, setOpenMenuUpdateId] = useState<string | null>(null);
   const [currentImageIndexes, setCurrentImageIndexes] = useState<Record<string, number>>({});
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
@@ -176,6 +197,75 @@ export function CommunityUpdatesSection({
     return () => window.cancelAnimationFrame(frame);
   }, [isComposerExpanded]);
 
+  useEffect(() => {
+    const nextPreviewUrls = imageFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviewUrls(nextPreviewUrls);
+
+    return () => {
+      nextPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imageFiles]);
+
+  useEffect(() => {
+    editingImagesRef.current = editingImages;
+  }, [editingImages]);
+
+  useEffect(() => {
+    return () => {
+      editingImagesRef.current.forEach((image) => {
+        if (image.kind === "new") {
+          URL.revokeObjectURL(image.url);
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!lightboxState) {
+      document.body.style.removeProperty("overflow");
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setLightboxState(null);
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        setLightboxState((current) =>
+          current
+            ? {
+                ...current,
+                index: current.index === 0 ? current.imageUrls.length - 1 : current.index - 1,
+              }
+            : current,
+        );
+      }
+
+      if (event.key === "ArrowRight") {
+        setLightboxState((current) =>
+          current
+            ? {
+                ...current,
+                index: current.index === current.imageUrls.length - 1 ? 0 : current.index + 1,
+              }
+            : current,
+        );
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightboxState]);
+
   function openComposer() {
     setIsComposerExpanded(true);
   }
@@ -185,6 +275,118 @@ export function CommunityUpdatesSection({
     setSummary("");
     setImageFiles([]);
     setFeedback("");
+  }
+
+  function clearEditState() {
+    editingImages.forEach((image) => {
+      if (image.kind === "new") {
+        URL.revokeObjectURL(image.url);
+      }
+    });
+    setEditingId(null);
+    setEditingSummary("");
+    setEditingImages([]);
+    setIsPreparingEditImages(false);
+  }
+
+  function moveImage(fromIndex: number, toIndex: number) {
+    if (toIndex < 0 || toIndex >= imageFiles.length) {
+      return;
+    }
+
+    setImageFiles((current) => {
+      const next = [...current];
+      const [moved] = next.splice(fromIndex, 1);
+
+      if (!moved) {
+        return current;
+      }
+
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }
+
+  function moveEditImage(fromIndex: number, toIndex: number) {
+    if (toIndex < 0 || toIndex >= editingImages.length) {
+      return;
+    }
+
+    setEditingImages((current) => {
+      const next = [...current];
+      const [moved] = next.splice(fromIndex, 1);
+
+      if (!moved) {
+        return current;
+      }
+
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }
+
+  function removeEditImage(imageId: string) {
+    setEditingImages((current) => {
+      const target = current.find((image) => image.id === imageId);
+
+      if (target?.kind === "new") {
+        URL.revokeObjectURL(target.url);
+      }
+
+      return current.filter((image) => image.id !== imageId);
+    });
+  }
+
+  function openLightbox(imageUrls: string[], index: number) {
+    setLightboxState({ imageUrls, index });
+  }
+
+  function showPreviousLightboxImage() {
+    setLightboxState((current) =>
+      current
+        ? {
+            ...current,
+            index: current.index === 0 ? current.imageUrls.length - 1 : current.index - 1,
+          }
+        : current,
+    );
+  }
+
+  function showNextLightboxImage() {
+    setLightboxState((current) =>
+      current
+        ? {
+            ...current,
+            index: current.index === current.imageUrls.length - 1 ? 0 : current.index + 1,
+          }
+        : current,
+    );
+  }
+
+  function handleLightboxTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    lightboxTouchStartXRef.current = event.touches[0]?.clientX ?? null;
+  }
+
+  function handleLightboxTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    if (lightboxTouchStartXRef.current === null || !lightboxState || lightboxState.imageUrls.length < 2) {
+      lightboxTouchStartXRef.current = null;
+      return;
+    }
+
+    const endX = event.changedTouches[0]?.clientX ?? lightboxTouchStartXRef.current;
+    const deltaX = endX - lightboxTouchStartXRef.current;
+    lightboxTouchStartXRef.current = null;
+
+    if (Math.abs(deltaX) < 36) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      showPreviousLightboxImage();
+      return;
+    }
+
+    showNextLightboxImage();
   }
 
   async function handleImageSelection(event: React.ChangeEvent<HTMLInputElement>) {
@@ -272,6 +474,7 @@ export function CommunityUpdatesSection({
       setImageFiles([]);
       setIsComposerExpanded(false);
       setFeedback(payload.message ?? "Your community update was published.");
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to submit community update.");
     } finally {
@@ -335,10 +538,61 @@ export function CommunityUpdatesSection({
   }
 
   function startEditing(update: CommunityUpdateFeedItem) {
+    editingImagesRef.current.forEach((image) => {
+      if (image.kind === "new") {
+        URL.revokeObjectURL(image.url);
+      }
+    });
     setEditingId(update.id);
     setEditingSummary(getUpdateContent(update));
+    setEditingImages(
+      update.imageUrls.map((imageUrl, index) => ({
+        id: `existing-${update.id}-${index}`,
+        kind: "existing",
+        url: imageUrl,
+        name: `Photo ${index + 1}`,
+      })),
+    );
     setFeedback("");
     setOpenMenuUpdateId(null);
+  }
+
+  async function handleEditImageSelection(event: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(event.target.files ?? []);
+
+    if (selectedFiles.length === 0) {
+      return;
+    }
+
+    const remainingSlots = Math.max(0, MAX_IMAGES - editingImages.length);
+    const nextFiles = selectedFiles.slice(0, remainingSlots);
+
+    if (nextFiles.length === 0) {
+      setFeedback(`You can upload up to ${MAX_IMAGES} images.`);
+      event.target.value = "";
+      return;
+    }
+
+    setIsPreparingEditImages(true);
+    setFeedback("");
+
+    try {
+      const preparedFiles = await Promise.all(nextFiles.map((file) => compressImageFile(file)));
+      const nextImages: EditableCommunityImage[] = preparedFiles.map((file, index) => ({
+        id: `new-${Date.now()}-${index}-${file.name}`,
+        kind: "new",
+        url: URL.createObjectURL(file),
+        name: file.name,
+        file,
+      }));
+
+      setEditingImages((current) => [...current, ...nextImages]);
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to prepare images.");
+    } finally {
+      setIsPreparingEditImages(false);
+      event.target.value = "";
+    }
   }
 
   async function saveEdit(updateId: string) {
@@ -346,14 +600,25 @@ export function CommunityUpdatesSection({
     setFeedback("");
 
     try {
+      const formData = new FormData();
+      formData.set("summary", editingSummary);
+
+      const imageOrder = editingImages.map((image, index) =>
+        image.kind === "existing"
+          ? { kind: "existing", url: image.url, index }
+          : { kind: "new", index, uploadIndex: editingImages.filter((candidate, candidateIndex) => candidate.kind === "new" && candidateIndex <= index).length - 1 },
+      );
+
+      formData.set("imageOrder", JSON.stringify(imageOrder));
+      editingImages.forEach((image) => {
+        if (image.kind === "new") {
+          formData.append("images", image.file, image.file.name);
+        }
+      });
+
       const response = await fetch(`/api/community-updates/${updateId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          summary: editingSummary,
-        }),
+        body: formData,
       });
 
       const payload = await response.json();
@@ -369,14 +634,17 @@ export function CommunityUpdatesSection({
                 ...item,
                 summary: payload.update.summary,
                 body: payload.update.body,
+                imageUrl: payload.update.imageUrls?.[0] ?? null,
+                imageUrls: payload.update.imageUrls ?? [],
                 status: payload.update.status,
               }
             : item,
         ),
       );
-      setEditingId(null);
+      clearEditState();
       setFeedback(payload.message ?? "Your update was published.");
       setOpenMenuUpdateId(null);
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to update community update.");
     } finally {
@@ -405,6 +673,7 @@ export function CommunityUpdatesSection({
       }
       setFeedback(payload.message ?? "Community update deleted.");
       setOpenMenuUpdateId(null);
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to delete community update.");
     } finally {
@@ -514,13 +783,38 @@ export function CommunityUpdatesSection({
               {imageFiles.length > 0 ? (
                 <div className="grid gap-2">
                   <p className="m-0 text-sm text-muted-foreground">{imageFiles.length}/{MAX_IMAGES} selected</p>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {imageFiles.map((file) => (
+                  <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+                    {imageFiles.map((file, index) => (
                       <div
                         key={`${file.name}-${file.size}`}
-                        className="shrink-0 rounded-[14px] border border-border/70 bg-white px-3 py-2 text-sm text-muted-foreground"
+                        className="w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
                       >
-                        {file.name}
+                        <img
+                          alt={`Selected upload ${index + 1}`}
+                          className="block h-28 w-full object-cover"
+                          src={imagePreviewUrls[index]}
+                        />
+                        <div className="grid gap-2 px-3 py-3">
+                          <p className="m-0 truncate text-sm text-muted-foreground">{file.name}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                              disabled={index === 0}
+                              onClick={() => moveImage(index, index - 1)}
+                              type="button"
+                            >
+                              <ChevronLeft className="size-4" />
+                            </button>
+                            <button
+                              className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                              disabled={index === imageFiles.length - 1}
+                              onClick={() => moveImage(index, index + 1)}
+                              type="button"
+                            >
+                              <ChevronRight className="size-4" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -607,12 +901,18 @@ export function CommunityUpdatesSection({
                   onScroll={(event) => handleImageScroll(update.id, event)}
                 >
                   {update.imageUrls.map((imageUrl, index) => (
-                    <img
+                    <button
                       key={`${update.id}-${index}`}
-                      alt={`Community update image ${index + 1}`}
-                      className="block h-auto w-full shrink-0 self-start snap-center"
-                      src={imageUrl}
-                    />
+                      className="block w-full shrink-0 self-start snap-center bg-transparent p-0"
+                      onClick={() => openLightbox(update.imageUrls, index)}
+                      type="button"
+                    >
+                      <img
+                        alt={`Community update image ${index + 1}`}
+                        className="block h-auto w-full"
+                        src={imageUrl}
+                      />
+                    </button>
                   ))}
                 </div>
                 {update.imageUrls.length > 1 ? (
@@ -648,17 +948,77 @@ export function CommunityUpdatesSection({
                       {editingSummary.length}/{CONTENT_LIMIT}
                     </span>
                   </div>
+                  <label className="grid gap-2 text-sm font-medium text-muted-foreground">
+                    Add or remove photos, up to {MAX_IMAGES} images total
+                    <input
+                      multiple
+                      accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                      className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                      onChange={handleEditImageSelection}
+                      type="file"
+                    />
+                  </label>
+                  {editingImages.length > 0 ? (
+                    <div className="grid gap-2">
+                      <p className="m-0 text-sm text-muted-foreground">{editingImages.length}/{MAX_IMAGES} selected</p>
+                      <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
+                        {editingImages.map((image, index) => (
+                          <div
+                            key={image.id}
+                            className="w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
+                          >
+                            <img
+                              alt={`Edit image ${index + 1}`}
+                              className="block h-28 w-full object-cover"
+                              src={image.url}
+                            />
+                            <div className="grid gap-2 px-3 py-3">
+                              <p className="m-0 truncate text-sm text-muted-foreground">{image.name}</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                <button
+                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                                  disabled={index === 0}
+                                  onClick={() => moveEditImage(index, index - 1)}
+                                  type="button"
+                                >
+                                  <ChevronLeft className="size-4" />
+                                </button>
+                                <button
+                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                                  disabled={index === editingImages.length - 1}
+                                  onClick={() => moveEditImage(index, index + 1)}
+                                  type="button"
+                                >
+                                  <ChevronRight className="size-4" />
+                                </button>
+                                <button
+                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground"
+                                  onClick={() => removeEditImage(image.id)}
+                                  type="button"
+                                >
+                                  <X className="size-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {isPreparingEditImages ? (
+                    <p className="m-0 text-sm text-muted-foreground">Preparing photos for upload...</p>
+                  ) : null}
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
-                      onClick={() => setEditingId(null)}
+                      onClick={clearEditState}
                       type="button"
                     >
                       Cancel
                     </button>
                     <button
                       className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-                      disabled={isSavingEdit}
+                      disabled={isSavingEdit || isPreparingEditImages}
                       onClick={() => saveEdit(update.id)}
                       type="button"
                     >
@@ -750,6 +1110,70 @@ export function CommunityUpdatesSection({
           </article>
         ))}
       </div>
+      {lightboxState ? (
+        <div
+          className="fixed inset-0 z-50 bg-black/95"
+          onClick={() => setLightboxState(null)}
+        >
+          <div className="flex min-h-full flex-col justify-center px-3 py-6">
+            <div className="mb-4 flex items-center justify-end">
+              <button
+                aria-label="Close image viewer"
+                className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 text-white"
+                onClick={() => setLightboxState(null)}
+                type="button"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <div
+              className="relative flex flex-1 items-center justify-center"
+              onClick={(event) => event.stopPropagation()}
+              onTouchEnd={handleLightboxTouchEnd}
+              onTouchStart={handleLightboxTouchStart}
+            >
+              {lightboxState.imageUrls.length > 1 ? (
+                <button
+                  aria-label="Previous image"
+                  className="absolute left-0 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                  onClick={showPreviousLightboxImage}
+                  type="button"
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+              ) : null}
+              <img
+                alt={`Expanded community update image ${lightboxState.index + 1}`}
+                className="max-h-[78vh] max-w-full object-contain"
+                src={lightboxState.imageUrls[lightboxState.index]}
+              />
+              {lightboxState.imageUrls.length > 1 ? (
+                <button
+                  aria-label="Next image"
+                  className="absolute right-0 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                  onClick={showNextLightboxImage}
+                  type="button"
+                >
+                  <ChevronRight className="size-5" />
+                </button>
+              ) : null}
+            </div>
+            {lightboxState.imageUrls.length > 1 ? (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                {lightboxState.imageUrls.map((_, index) => (
+                  <span
+                    key={`lightbox-dot-${index}`}
+                    aria-hidden="true"
+                    className={`size-2 rounded-full ${
+                      lightboxState.index === index ? "bg-white" : "bg-white/30"
+                    }`}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

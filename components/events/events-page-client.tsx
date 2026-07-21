@@ -177,6 +177,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         resetForm();
       }
       setFeedback(editingEventId ? "Event updated." : "Event published.");
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to save event.");
     } finally {
@@ -209,6 +210,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       }
       setFeedback(payload.message ?? "Event deleted.");
       setOpenMenuEventId(null);
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to delete event.");
     } finally {
@@ -260,6 +262,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       });
       setFeedback("Event duplicated.");
       setOpenMenuEventId(null);
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to duplicate event.");
     } finally {

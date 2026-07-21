@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 type PrayerFeedItem = {
@@ -38,6 +39,7 @@ export function PrayerPageClient({
   lockedMessage = null,
   canManageAll = false,
 }: PrayerPageClientProps) {
+  const router = useRouter();
   const [requestText, setRequestText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComposerExpanded, setIsComposerExpanded] = useState(false);
@@ -117,6 +119,7 @@ export function PrayerPageClient({
       if (payload.prayerRequest) {
         setFeed((current) => [payload.prayerRequest, ...current]);
       }
+      router.refresh();
       textareaRef.current?.focus();
     } catch (error) {
       setShowSuccess(false);
@@ -187,6 +190,7 @@ export function PrayerPageClient({
       setEditingId(null);
       setShowSuccess(true);
       setOpenMenuPrayerId(null);
+      router.refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to update prayer request.");
     } finally {
@@ -212,6 +216,7 @@ export function PrayerPageClient({
 
       setFeed((current) => current.filter((item) => item.id !== prayerId));
       setOpenMenuPrayerId(null);
+      router.refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to delete prayer request.");
     } finally {

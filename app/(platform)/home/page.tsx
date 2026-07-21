@@ -1,4 +1,5 @@
 import { MemberLocalSync } from "@/components/auth/member-local-sync";
+import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { HomeHeaderActions } from "@/components/home/home-header-actions";
 import { HomeTabbedSections } from "@/components/home/home-tabbed-sections";
 import { getMemberRoles } from "@/lib/auth/authorization";
@@ -43,33 +44,35 @@ export default async function HomePage() {
   const communityGreeting = authSession?.member.status === "active" ? getEasternGreeting() : null;
 
   return (
-    <main className="shell max-w-[560px] py-6">
-      {session ? (
-        <MemberLocalSync
-          member={{
-            id: session.member.id,
-            churchId: session.member.church_id,
-            displayName: session.member.full_name,
-          }}
-        />
-      ) : null}
-      <HomeTabbedSections
-        canManageCommunity={canAccessAdmin}
-        canReact={authSession?.member.status === "active"}
-        communityGreeting={communityGreeting}
-        currentMemberPhotoUrl={currentMemberPhotoUrl}
-        currentMemberName={currentMemberName}
-        events={events}
-        headerAction={(
-          <HomeHeaderActions
-            initialAuthenticated={Boolean(authSession)}
-            initialCanAccessAdmin={canAccessAdmin}
+    <PullToRefresh>
+      <main className="shell max-w-[560px] py-6">
+        {session ? (
+          <MemberLocalSync
+            member={{
+              id: session.member.id,
+              churchId: session.member.church_id,
+              displayName: session.member.full_name,
+            }}
           />
-        )}
-        submitAccessState={!authSession ? "signed_out" : authSession.member.status === "active" ? "active" : "pending"}
-        updates={updates}
-        wordmark={churchWordmark}
-      />
-    </main>
+        ) : null}
+        <HomeTabbedSections
+          canManageCommunity={canAccessAdmin}
+          canReact={authSession?.member.status === "active"}
+          communityGreeting={communityGreeting}
+          currentMemberPhotoUrl={currentMemberPhotoUrl}
+          currentMemberName={currentMemberName}
+          events={events}
+          headerAction={(
+            <HomeHeaderActions
+              initialAuthenticated={Boolean(authSession)}
+              initialCanAccessAdmin={canAccessAdmin}
+            />
+          )}
+          submitAccessState={!authSession ? "signed_out" : authSession.member.status === "active" ? "active" : "pending"}
+          updates={updates}
+          wordmark={churchWordmark}
+        />
+      </main>
+    </PullToRefresh>
   );
 }

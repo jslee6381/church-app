@@ -1,3 +1,4 @@
+import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { PrayerPageClient } from "@/components/prayer/prayer-page-client";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
@@ -111,10 +112,12 @@ export default async function PrayerPage() {
   }
 
   return (
-    <PrayerPageClient
-      canManageAll={canManageAll}
-      initialFeed={initialFeed}
-      memberName={session.member.display_name ?? session.member.full_name}
-    />
+    <PullToRefresh>
+      <PrayerPageClient
+        canManageAll={canManageAll}
+        initialFeed={initialFeed}
+        memberName={session.member.display_name ?? session.member.full_name}
+      />
+    </PullToRefresh>
   );
 }
