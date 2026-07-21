@@ -951,7 +951,7 @@ export function CommunityUpdatesSection({
             {update.imageUrls.length > 0 ? (
               <div>
                 <div
-                  className="overflow-hidden transition-[aspect-ratio] duration-300 ease-out"
+                  className="overflow-hidden"
                   style={{
                     aspectRatio: getPostFrameRatio(update.id) ?? undefined,
                   }}
@@ -963,16 +963,18 @@ export function CommunityUpdatesSection({
                     {update.imageUrls.map((imageUrl, index) => (
                       <button
                         key={`${update.id}-${index}`}
-                        className="flex h-full w-full shrink-0 snap-center items-center justify-center bg-transparent p-0"
+                        className="relative h-full w-full shrink-0 snap-center bg-transparent p-0"
                         onClick={() => openLightbox(update.imageUrls, index)}
                         type="button"
                       >
-                        <img
-                          alt={`Community update image ${index + 1}`}
-                          className="block max-h-full max-w-full object-contain object-center"
-                          onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
-                          src={imageUrl}
-                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img
+                            alt={`Community update image ${index + 1}`}
+                            className="block max-h-full max-w-full object-contain object-center"
+                            onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                            src={imageUrl}
+                          />
+                        </div>
                       </button>
                     ))}
                   </div>
