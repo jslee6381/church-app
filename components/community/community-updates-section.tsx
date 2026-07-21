@@ -460,21 +460,17 @@ export function CommunityUpdatesSection({
     });
   }
 
-  function hasMixedImageDimensions(updateId: string) {
-    const ratios = (updateImageRatios[updateId] ?? []).filter((value): value is number => Number.isFinite(value));
+  function getCurrentImageRatio(updateId: string) {
+    const ratios = updateImageRatios[updateId] ?? [];
+    const currentIndex = currentImageIndexes[updateId] ?? 0;
+    const currentRatio = ratios[currentIndex];
 
-    if (ratios.length < 2) {
-      return false;
+    if (Number.isFinite(currentRatio) && currentRatio > 0) {
+      return currentRatio;
     }
 
-    const hasPortrait = ratios.some((ratio) => ratio < 0.9);
-    const hasLandscape = ratios.some((ratio) => ratio > 1.1);
-
-    if (hasPortrait && hasLandscape) {
-      return true;
-    }
-
-    return Math.max(...ratios) - Math.min(...ratios) > 0.45;
+    const firstKnownRatio = ratios.find((value) => Number.isFinite(value) && value > 0);
+    return firstKnownRatio ?? null;
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -944,32 +940,31 @@ export function CommunityUpdatesSection({
             {update.imageUrls.length > 0 ? (
               <div>
                 <div
-                  className="no-scrollbar flex items-start snap-x snap-mandatory overflow-x-auto"
-                  onScroll={(event) => handleImageScroll(update.id, event)}
+                  className="overflow-hidden transition-[aspect-ratio] duration-300 ease-out"
+                  style={{
+                    aspectRatio: getCurrentImageRatio(update.id) ?? undefined,
+                  }}
                 >
-                  {update.imageUrls.map((imageUrl, index) => (
-                    <button
-                      key={`${update.id}-${index}`}
-                      className={`w-full shrink-0 snap-center bg-transparent p-0 ${
-                        hasMixedImageDimensions(update.id)
-                          ? "flex h-[18rem] items-center justify-center self-stretch"
-                          : "block self-start"
-                      }`}
-                      onClick={() => openLightbox(update.imageUrls, index)}
-                      type="button"
-                    >
-                      <img
-                        alt={`Community update image ${index + 1}`}
-                        className={
-                          hasMixedImageDimensions(update.id)
-                            ? "block max-h-full max-w-full object-contain object-center"
-                            : "block h-auto w-full"
-                        }
-                        onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
-                        src={imageUrl}
-                      />
-                    </button>
-                  ))}
+                  <div
+                    className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto"
+                    onScroll={(event) => handleImageScroll(update.id, event)}
+                  >
+                    {update.imageUrls.map((imageUrl, index) => (
+                      <button
+                        key={`${update.id}-${index}`}
+                        className="flex h-full w-full shrink-0 snap-center items-center justify-center bg-transparent p-0"
+                        onClick={() => openLightbox(update.imageUrls, index)}
+                        type="button"
+                      >
+                        <img
+                          alt={`Community update image ${index + 1}`}
+                          className="block max-h-full max-w-full object-contain object-center"
+                          onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                          src={imageUrl}
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {update.imageUrls.length > 1 ? (
                   <div className="mt-2 flex items-center justify-center gap-1.5">
