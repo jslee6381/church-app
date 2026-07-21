@@ -50,7 +50,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
   }
 
   return (
-    <section className="mb-4 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+    <section className="mb-4">
       {!isEditing ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

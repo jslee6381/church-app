@@ -566,7 +566,7 @@ export function CommunityUpdatesSection({
                   <div className="relative">
                     <button
                       aria-label="Update actions"
-                      className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/70 bg-white text-foreground"
+                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
                       onClick={() =>
                         setOpenMenuUpdateId((current) => (current === update.id ? null : update.id))
                       }

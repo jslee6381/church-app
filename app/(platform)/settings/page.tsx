@@ -66,10 +66,10 @@ export default async function SettingsPage() {
             <DisplayNameEditor initialDisplayName={session.member.display_name ?? session.member.full_name} />
           </div>
           <FontSizeEditor />
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-[16px] border border-border/70 bg-white/70 px-4 py-3">
+          <div className="mt-4 flex items-center justify-between gap-3 px-0 py-1">
             <div>
-              <p className="m-0 text-sm font-semibold text-foreground">Member status</p>
-              <p className="m-0 mt-1 text-sm text-muted-foreground">
+              <p className="ui-text m-0 font-semibold text-foreground">Member status</p>
+              <p className="ui-text m-0 mt-1 text-muted-foreground">
                 {session.member.status === "active" ? "Approved member" : "Awaiting admin approval"}
               </p>
             </div>

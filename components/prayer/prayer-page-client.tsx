@@ -236,50 +236,48 @@ export function PrayerPageClient({
         {feed.map((item) => (
           <article
             key={item.id}
-            className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            className="relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
           >
-            <div className="mb-2 flex items-start justify-between gap-3">
-              {item.isOwner && getStatusLabel(item.status) ? (
+            {canManageItem(item) && editingId !== item.id ? (
+              <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
+                <button
+                  aria-label="Prayer actions"
+                  className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                  onClick={() =>
+                    setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                  }
+                  type="button"
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+                {openMenuPrayerId === item.id ? (
+                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                    <button
+                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                      onClick={() => startEditing(item)}
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                      disabled={deletingId === item.id}
+                      onClick={() => deletePrayer(item.id)}
+                      type="button"
+                    >
+                      {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            {item.isOwner && getStatusLabel(item.status) ? (
+              <div className="mb-3 pr-10">
                 <span className="rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
-              ) : (
-                <div />
-              )}
-              {canManageItem(item) && editingId !== item.id ? (
-                <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="relative -mr-2 -mt-2">
-                  <button
-                    aria-label="Prayer actions"
-                    className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                    onClick={() =>
-                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                    }
-                    type="button"
-                  >
-                    <MoreVertical className="size-4" />
-                  </button>
-                  {openMenuPrayerId === item.id ? (
-                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
-                      <button
-                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                        onClick={() => startEditing(item)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                        disabled={deletingId === item.id}
-                        onClick={() => deletePrayer(item.id)}
-                        type="button"
-                      >
-                        {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             {editingId === item.id ? (
               <div className="space-y-3">
                 <div className="relative">
@@ -312,7 +310,7 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 text-muted-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-10 text-muted-foreground">{item.body}</p>
             )}
             {item.followUp ? (
               <div className="mt-4 rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
@@ -353,15 +351,15 @@ export function PrayerPageClient({
             </div>
           ) : null}
 
-          <form className="rounded-[20px] border border-border/80 bg-white/94 p-2.5 shadow-[0_-10px_28px_rgba(68,52,35,0.08)]" onSubmit={handleSubmit}>
+          <form className="p-0" onSubmit={handleSubmit}>
             {composerEnabled ? (
               <>
-                <div className="flex items-end gap-3">
+                <div className="flex items-center gap-3">
                   <div className="relative flex-1">
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className="min-h-8 h-8 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-[6px] pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="min-h-10 h-10 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-2 pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
                         setRequestText(event.target.value);

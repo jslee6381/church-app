@@ -34,13 +34,13 @@ export function FontSizeEditor() {
   }
 
   return (
-    <section className="mb-4 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+    <section className="mb-4">
       <div>
         <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Text Size</p>
         <p className="ui-text m-0 mt-1 font-semibold text-foreground">Adjust the app text size</p>
       </div>
 
-      <div className="mt-4 rounded-[14px] bg-white/80 px-4 py-5">
+      <div className="mt-4 px-1 py-1">
         <label className="sr-only" htmlFor="text-size-slider">
           Text size
         </label>
