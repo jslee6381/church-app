@@ -68,7 +68,7 @@ export default async function AdminPage() {
     <main className="shell">
       <PageHeader title="" />
 
-      <section className="border-t border-border/70 pt-4">
+      <section className="pt-4">
         <p className="section-kicker">Overview</p>
         <div className="mt-4 grid grid-cols-3 gap-0">
           <div className="px-4 py-2 text-center">

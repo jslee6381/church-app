@@ -7,7 +7,7 @@ import ubfIcon from "@/ubf-icon.png";
 
 export const metadata: Metadata = {
   title: "KOINONIA",
-  description: "A calm, trusted church community hub for New York UBF.",
+  description: "A calm, trusted church community hub for KOINONIA.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: ubfIcon.src,

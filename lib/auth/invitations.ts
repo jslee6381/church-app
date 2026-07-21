@@ -24,7 +24,7 @@ export async function findActiveInvitationByCode(rawCode: string) {
       status: "active",
       expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       code,
-      churchName: "New York UBF",
+      churchName: "KOINONIA",
       isDevelopmentFallback: true,
     };
   }

@@ -36,7 +36,7 @@ function getFallbackUpdates(): CommunityUpdateFeedItem[] {
     imageUrls: post.imageSrcs,
     reactionCounts: { heart: 0, like: 0, pray: 0 },
     selectedReaction: null,
-    authorName: "New York UBF",
+    authorName: "KOINONIA",
     authorPhotoUrl: null,
     isOwner: false,
     status: "approved",

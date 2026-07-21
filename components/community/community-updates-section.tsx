@@ -448,9 +448,12 @@ export function CommunityUpdatesSection({
         {feedback ? <p className="mt-3 m-0 text-sm text-muted-foreground">{feedback}</p> : null}
       </div>
 
-      <div className="space-y-5 pb-4">
-        {updates.map((update) => (
-          <article key={update.id} className="overflow-hidden pb-5 last:pb-0">
+      <div className="pb-4">
+        {updates.map((update, index) => (
+          <article
+            key={update.id}
+            className={`overflow-hidden pb-5 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-5" : ""}`}
+          >
             <div className="px-4 pt-3 pb-3">
               <div className="flex min-h-[36px] items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
