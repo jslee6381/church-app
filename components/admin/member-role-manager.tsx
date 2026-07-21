@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 
 type MemberItem = {
@@ -15,9 +16,11 @@ type MemberItem = {
 type Props = {
   initialMembers: MemberItem[];
   canAssignRoles: boolean;
+  canDeleteMembers: boolean;
 };
 
-export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
+export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMembers }: Props) {
+  const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -44,6 +47,7 @@ export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
         current.map((member) => (member.id === memberId ? { ...member, status } : member)),
       );
       setFeedback("Member status updated.");
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to update member status.");
     } finally {
@@ -73,8 +77,33 @@ export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
         current.map((member) => (member.id === memberId ? { ...member, roleName, status: "active" } : member)),
       );
       setFeedback("Member role updated.");
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to update member role.");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function deleteMember(memberId: string) {
+    setSavingId(memberId);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to delete member.");
+      }
+
+      setMembers((current) => current.filter((member) => member.id !== memberId));
+      setFeedback("Member deleted.");
+      router.refresh();
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to delete member.");
     } finally {
       setSavingId(null);
     }
@@ -116,6 +145,16 @@ export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
                     <option value="member">Member</option>
                     <option value="pending">Pending</option>
                   </select>
+                  {canDeleteMembers && !member.isProtected ? (
+                    <button
+                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-input bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
+                      disabled={savingId === member.id}
+                      onClick={() => deleteMember(member.id)}
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  ) : null}
                   {savingId === member.id ? <LoaderCircle className="size-4 animate-spin text-muted-foreground" /> : null}
                 </div>
               ) : (

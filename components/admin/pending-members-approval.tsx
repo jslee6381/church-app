@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function PendingMembersApproval({ initialMembers }: Props) {
+  const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string>("");
@@ -44,6 +46,7 @@ export function PendingMembersApproval({ initialMembers }: Props) {
 
       setMembers((current) => current.filter((member) => member.id !== memberId));
       setFeedback("Member approved.");
+      router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to approve member.");
     } finally {

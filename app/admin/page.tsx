@@ -94,7 +94,7 @@ export default async function AdminPage() {
 
       <section className="summary-grid">
         <PendingMembersApproval initialMembers={dashboard.pendingMembers} />
-        <MemberRoleManager canAssignRoles={isAdmin} initialMembers={members} />
+        <MemberRoleManager canAssignRoles={isAdmin} canDeleteMembers={isAdmin} initialMembers={members} />
       </section>
     </main>
   );

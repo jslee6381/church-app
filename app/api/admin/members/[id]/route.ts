@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
+import { requireAdminSession, requireAdminOrLeaderSession } from "@/lib/auth/authorization";
 import { isProtectedAdminEmail } from "@/lib/protected-admin";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { ensureChurchRoles } from "@/lib/roles";
@@ -91,5 +91,71 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
   } catch {
     return NextResponse.json({ error: "Unable to update member status." }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await requireAdminSession();
+    const { id } = await context.params;
+
+    if (!hasAdminEnvironment()) {
+      return NextResponse.json({
+        success: true,
+        member: {
+          id,
+        },
+      });
+    }
+
+    const admin = createAdminClient();
+    const { data: targetMember } = await admin
+      .from("members")
+      .select("id, email, church_id")
+      .eq("id", id)
+      .eq("church_id", session.member.church_id)
+      .maybeSingle();
+
+    if (!targetMember) {
+      return NextResponse.json({ error: "Unable to find that member." }, { status: 404 });
+    }
+
+    if (targetMember.id === session.member.id) {
+      return NextResponse.json({ error: "You cannot delete your own admin account." }, { status: 403 });
+    }
+
+    if (isProtectedAdminEmail(targetMember.email)) {
+      return NextResponse.json({ error: "This admin account is protected and cannot be deleted." }, { status: 403 });
+    }
+
+    const { error } = await admin
+      .from("members")
+      .delete()
+      .eq("id", id)
+      .eq("church_id", session.member.church_id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await admin.from("audit_logs").insert({
+      church_id: session.member.church_id,
+      actor_member_id: session.member.id,
+      entity_type: "members",
+      entity_id: id,
+      action: "delete",
+      metadata: {
+        deletedEmail: targetMember.email,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      member: {
+        id,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete member." }, { status: 500 });
   }
 }
