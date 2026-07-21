@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, LoaderCircle, MoreVertical } from "lucide-react";
+import { ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PrayerFeedItem = {
@@ -222,8 +222,8 @@ export function PrayerPageClient({
   return (
     <main className="shell flex min-h-screen max-w-[560px] flex-col pb-40 pt-6">
       <header className="mb-6 space-y-4">
-        <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/home">
-          <ArrowLeft className="size-4" />
+        <Link className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground" href="/home">
+          <ChevronLeft className="size-4" />
           Home
         </Link>
         <div className="space-y-1 text-center">

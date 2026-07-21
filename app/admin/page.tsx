@@ -66,7 +66,7 @@ export default async function AdminPage() {
 
   return (
     <main className="shell">
-      <PageHeader title="Admin Dashboard" />
+      <PageHeader title="" />
 
       <section className="border-t border-border/70 pt-4">
         <p className="section-kicker">Overview</p>
