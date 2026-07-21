@@ -178,7 +178,7 @@ export function MemberRoleManager({
                             Cancel
                           </button>
                           <button
-                            className="inline-flex min-h-[2.35rem] w-full items-center justify-center rounded-[12px] border border-black bg-[#8f1f1f] px-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                            className="inline-flex min-h-10 w-full items-center justify-center rounded-[12px] bg-[#d80000] px-2.5 text-sm font-semibold text-white disabled:opacity-60"
                             disabled={savingId === member.id}
                             onClick={() => deleteMember(member.id)}
                             type="button"
@@ -189,7 +189,7 @@ export function MemberRoleManager({
                       </div>
                     ) : (
                       <button
-                        className="inline-flex min-h-[2.35rem] w-full items-center justify-center rounded-[12px] border border-black bg-[#8f1f1f] px-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                        className="inline-flex min-h-10 w-full items-center justify-center rounded-[12px] bg-[#d80000] px-2.5 text-sm font-semibold text-white disabled:opacity-60"
                         disabled={savingId === member.id}
                         onClick={() => setConfirmDeleteId(member.id)}
                         type="button"
