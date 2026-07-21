@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 
@@ -17,13 +17,28 @@ type Props = {
   initialMembers: MemberItem[];
   canAssignRoles: boolean;
   canDeleteMembers: boolean;
+  onStatusChange?: (memberId: string, status: string) => void;
+  onRoleChange?: (memberId: string, roleName: MemberItem["roleName"]) => void;
+  onDelete?: (memberId: string) => void;
 };
 
-export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMembers }: Props) {
+export function MemberRoleManager({
+  initialMembers,
+  canAssignRoles,
+  canDeleteMembers,
+  onStatusChange,
+  onRoleChange,
+  onDelete,
+}: Props) {
   const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, [initialMembers]);
 
   async function updateStatus(memberId: string, status: "invited") {
     setSavingId(memberId);
@@ -46,6 +61,7 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
       setMembers((current) =>
         current.map((member) => (member.id === memberId ? { ...member, status } : member)),
       );
+      onStatusChange?.(memberId, status);
       setFeedback("Member status updated.");
       router.refresh();
     } catch (error) {
@@ -76,6 +92,7 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
       setMembers((current) =>
         current.map((member) => (member.id === memberId ? { ...member, roleName, status: "active" } : member)),
       );
+      onRoleChange?.(memberId, roleName);
       setFeedback("Member role updated.");
       router.refresh();
     } catch (error) {
@@ -100,6 +117,8 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
       }
 
       setMembers((current) => current.filter((member) => member.id !== memberId));
+      onDelete?.(memberId);
+      setConfirmDeleteId(null);
       setFeedback("Member deleted.");
       router.refresh();
     } catch (error) {
@@ -146,14 +165,38 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
                     <option value="pending">Pending</option>
                   </select>
                   {canDeleteMembers && !member.isProtected ? (
-                    <button
-                      className="inline-flex min-h-10 w-full items-center justify-start rounded-[12px] bg-transparent px-0 text-sm font-semibold text-foreground disabled:opacity-60"
-                      disabled={savingId === member.id}
-                      onClick={() => deleteMember(member.id)}
-                      type="button"
-                    >
-                      Delete
-                    </button>
+                    confirmDeleteId === member.id ? (
+                      <div className="grid gap-2">
+                        <p className="m-0 text-center text-sm font-semibold text-foreground">Are you sure?</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            className="inline-flex min-h-10 w-full items-center justify-center rounded-[12px] border border-input bg-white px-2.5 text-sm font-semibold text-foreground disabled:opacity-60"
+                            disabled={savingId === member.id}
+                            onClick={() => setConfirmDeleteId(null)}
+                            type="button"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="inline-flex min-h-10 w-full items-center justify-center rounded-[12px] border border-black bg-red-500 px-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                            disabled={savingId === member.id}
+                            onClick={() => deleteMember(member.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="inline-flex min-h-10 w-full items-center justify-center rounded-[12px] border border-black bg-red-500 px-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                        disabled={savingId === member.id}
+                        onClick={() => setConfirmDeleteId(member.id)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    )
                   ) : null}
                   {savingId === member.id ? <LoaderCircle className="size-4 animate-spin text-muted-foreground" /> : null}
                 </div>

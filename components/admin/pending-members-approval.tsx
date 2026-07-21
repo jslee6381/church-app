@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,18 @@ type PendingMemberItem = {
 
 type Props = {
   initialMembers: PendingMemberItem[];
+  onApprove?: (memberId: string) => void;
 };
 
-export function PendingMembersApproval({ initialMembers }: Props) {
+export function PendingMembersApproval({ initialMembers, onApprove }: Props) {
   const router = useRouter();
   const [members, setMembers] = useState(initialMembers);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string>("");
+
+  useEffect(() => {
+    setMembers(initialMembers);
+  }, [initialMembers]);
 
   async function approveMember(memberId: string) {
     setSavingId(memberId);
@@ -45,6 +50,7 @@ export function PendingMembersApproval({ initialMembers }: Props) {
       }
 
       setMembers((current) => current.filter((member) => member.id !== memberId));
+      onApprove?.(memberId);
       setFeedback("Member approved.");
       router.refresh();
     } catch (error) {
@@ -52,6 +58,10 @@ export function PendingMembersApproval({ initialMembers }: Props) {
     } finally {
       setSavingId(null);
     }
+  }
+
+  function handleApprove(memberId: string) {
+    void approveMember(memberId);
   }
 
   return (
@@ -74,7 +84,7 @@ export function PendingMembersApproval({ initialMembers }: Props) {
                 <Button
                   className="min-h-10 rounded-[16px]"
                   disabled={savingId === member.id}
-                  onClick={() => approveMember(member.id)}
+                  onClick={() => handleApprove(member.id)}
                   size="sm"
                   type="button"
                 >

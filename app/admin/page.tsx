@@ -1,5 +1,4 @@
-import { MemberRoleManager } from "@/components/admin/member-role-manager";
-import { PendingMembersApproval } from "@/components/admin/pending-members-approval";
+import { MemberManagementPanel } from "@/components/admin/member-management-panel";
 import { PageHeader } from "@/components/page-header";
 import { getAdminDashboardData } from "@/lib/admin/dashboard";
 import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
@@ -93,10 +92,12 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      <section className="summary-grid">
-        <PendingMembersApproval initialMembers={dashboard.pendingMembers} />
-        <MemberRoleManager canAssignRoles={isAdmin} canDeleteMembers={isAdmin} initialMembers={members} />
-      </section>
+      <MemberManagementPanel
+        canAssignRoles={isAdmin}
+        canDeleteMembers={isAdmin}
+        initialMembers={members}
+        initialPendingMembers={dashboard.pendingMembers}
+      />
     </main>
   );
 }
