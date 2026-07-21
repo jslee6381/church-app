@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type PendingMemberItem = {
   id: string;
@@ -53,13 +52,11 @@ export function PendingMembersApproval({ initialMembers }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <section className="border-t border-border/70 pt-4">
+      <div>
         <p className="section-kicker">Pending Members</p>
-        <CardTitle>Awaiting approval</CardTitle>
-        <CardDescription>Approve newly signed-in members before they can post or access member-only spaces.</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3">
+      </div>
+      <div className="mt-4 grid gap-3">
         {members.length === 0 ? (
           <p className="m-0 text-base leading-7 text-muted-foreground">No members are waiting for approval right now.</p>
         ) : (
@@ -86,7 +83,7 @@ export function PendingMembersApproval({ initialMembers }: Props) {
           ))
         )}
         {feedback ? <p className="m-0 text-sm text-muted-foreground">{feedback}</p> : null}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

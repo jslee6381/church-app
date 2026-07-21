@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { LoaderCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type MemberItem = {
   id: string;
@@ -49,13 +48,11 @@ export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <section className="border-t border-border/70 pt-4">
+      <div>
         <p className="section-kicker">Members</p>
-        <CardTitle>Member list and roles</CardTitle>
-        <CardDescription>{canAssignRoles ? "Admins can assign admin, leader, or member access here." : "Leaders can view roles, but only admins can change them."}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3">
+      </div>
+      <div className="mt-4 grid gap-3">
         {members.map((member) => (
           <div key={member.id} className="rounded-[22px] border border-border/80 bg-white/72 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -84,7 +81,7 @@ export function MemberRoleManager({ initialMembers, canAssignRoles }: Props) {
           </div>
         ))}
         {feedback ? <p className="m-0 text-sm text-muted-foreground">{feedback}</p> : null}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

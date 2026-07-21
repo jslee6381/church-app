@@ -1,7 +1,6 @@
 import { MemberRoleManager } from "@/components/admin/member-role-manager";
 import { PendingMembersApproval } from "@/components/admin/pending-members-approval";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAdminDashboardData } from "@/lib/admin/dashboard";
 import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
@@ -67,28 +66,24 @@ export default async function AdminPage() {
 
   return (
     <main className="shell">
-      <PageHeader title="Admin Dashboard" description="Approve members and manage church roles, events, and invitations." />
+      <PageHeader title="Admin Dashboard" />
 
-      <section>
-        <Card>
-          <CardHeader className="pb-3">
-            <p className="section-kicker">Overview</p>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-0 p-0">
-            <div className="px-4 py-5 text-center">
-              <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.memberCount}</p>
-              <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Active members</p>
-            </div>
-            <div className="border-x border-border/80 px-4 py-5 text-center">
-              <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.upcomingEventCount}</p>
-              <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Upcoming events</p>
-            </div>
-            <div className="px-4 py-5 text-center">
-              <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.invitationTokenCount}</p>
-              <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Active invitation tokens</p>
-            </div>
-          </CardContent>
-        </Card>
+      <section className="border-t border-border/70 pt-4">
+        <p className="section-kicker">Overview</p>
+        <div className="mt-4 grid grid-cols-3 gap-0">
+          <div className="px-4 py-2 text-center">
+            <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.activeMemberCount}</p>
+            <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Active members</p>
+          </div>
+          <div className="border-x border-border/80 px-4 py-2 text-center">
+            <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.pendingMemberCount}</p>
+            <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Pending members</p>
+          </div>
+          <div className="px-4 py-2 text-center">
+            <p className="m-0 text-[1.9rem] font-semibold text-foreground">{dashboard.overview.leaderMemberCount}</p>
+            <p className="mt-1 mb-0 text-sm leading-6 text-muted-foreground">Leader members</p>
+          </div>
+        </div>
       </section>
 
       <section className="summary-grid">

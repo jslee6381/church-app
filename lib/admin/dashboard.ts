@@ -5,10 +5,9 @@ import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { formatEventDate, formatEventTime } from "@/lib/events";
 
 export type AdminOverview = {
-  memberCount: number;
-  pendingPrayerCount: number;
-  upcomingEventCount: number;
-  invitationTokenCount: number;
+  activeMemberCount: number;
+  pendingMemberCount: number;
+  leaderMemberCount: number;
 };
 
 export type AdminPrayerItem = {
@@ -55,10 +54,9 @@ export type AdminPendingMemberItem = {
 function getDemoAdminDashboardData() {
   return {
     overview: {
-      memberCount: 48,
-      pendingPrayerCount: 3,
-      upcomingEventCount: sampleEvents.length,
-      invitationTokenCount: 12,
+      activeMemberCount: 48,
+      pendingMemberCount: 1,
+      leaderMemberCount: 1,
     } satisfies AdminOverview,
     members: [
       { id: "demo-admin-1", displayName: "Daniel Kim", role: "Admin", ministry: "Sunday Worship" },
@@ -107,19 +105,12 @@ export async function getAdminDashboardData(churchId: string) {
   const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  const [membersRes, prayersRes, eventsRes, updatesRes, tokensRes, pendingMembersRes] = await Promise.all([
+  const [membersRes, eventsRes, updatesRes, pendingMembersRes] = await Promise.all([
     admin
       .from("members")
       .select("id, display_name, full_name, ministries!left(name), member_roles!left(roles!inner(name))", { count: "exact" })
       .eq("church_id", churchId)
       .eq("status", "active")
-      .limit(6),
-    admin
-      .from("prayer_requests")
-      .select("id, title, created_at, requester_member:members!prayer_requests_requester_member_id_fkey(full_name)", { count: "exact" })
-      .eq("church_id", churchId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
       .limit(6),
     admin
       .from("events")
@@ -135,12 +126,6 @@ export async function getAdminDashboardData(churchId: string) {
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("activity_date", { ascending: false, nullsFirst: false })
       .limit(4),
-    admin
-      .from("invitation_tokens")
-      .select("id", { count: "exact" })
-      .eq("church_id", churchId)
-      .eq("status", "active")
-      .limit(1),
     admin
       .from("members")
       .select("id, display_name, full_name, status, created_at")
@@ -168,13 +153,6 @@ export async function getAdminDashboardData(churchId: string) {
       ministry: ministry?.name ?? null,
     } satisfies AdminMemberItem;
   });
-
-  const pendingPrayerRequests = (prayersRes.data ?? []).map((item) => ({
-    id: item.id,
-    title: item.title ?? "Prayer request",
-    requesterName: (Array.isArray(item.requester_member) ? item.requester_member[0] : item.requester_member)?.full_name ?? "Unknown member",
-    createdAtLabel: formatEasternMonthDay(item.created_at),
-  })) satisfies AdminPrayerItem[];
 
   const upcomingEvents =
     (eventsRes.data ?? []).length > 0
@@ -224,16 +202,16 @@ export async function getAdminDashboardData(churchId: string) {
     status: member.status,
   })) satisfies AdminPendingMemberItem[];
 
+  const leaderMemberCount = members.filter((member) => member.role === "Leader").length;
+
   return {
     overview: {
-      memberCount: membersRes.count ?? members.length,
-      pendingPrayerCount: prayersRes.count ?? pendingPrayerRequests.length,
-      upcomingEventCount: eventsRes.count ?? upcomingEvents.length,
-      invitationTokenCount: tokensRes.count ?? 0,
+      activeMemberCount: membersRes.count ?? members.length,
+      pendingMemberCount: pendingMembers.length,
+      leaderMemberCount,
     } satisfies AdminOverview,
     members,
     pendingMembers,
-    pendingPrayerRequests,
     upcomingEvents,
     latestCommunityUpdates,
   };

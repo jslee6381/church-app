@@ -36,7 +36,7 @@ export default async function SettingsPage() {
     <main className="shell max-w-[560px] py-6">
       <div className="mb-5">
         <Link
-          className="inline-flex min-h-11 items-center gap-2 rounded-[16px] border border-border/80 bg-white/80 px-4 text-sm font-semibold text-foreground transition hover:bg-white"
+          className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground"
           href="/home"
         >
           <ChevronLeft className="size-4" />
