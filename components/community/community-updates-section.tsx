@@ -11,7 +11,6 @@ const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 10;
 const MAX_IMAGE_DIMENSION = 1800;
 const JPEG_QUALITY = 0.82;
-const MIXED_FRAME_MIN_RATIO = 0.92;
 
 type Props = {
   canManage: boolean;
@@ -116,6 +115,27 @@ function LikeReactionIcon({ active }: { active: boolean }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function ExpandImageIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M9 3H3v6M15 3h6v6M3 15v6h6M21 15v6h-6"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
+      />
+      <path
+        d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.9"
       />
     </svg>
   );
@@ -476,21 +496,13 @@ export function CommunityUpdatesSection({
 
   function getPostFrameRatio(updateId: string) {
     const ratios = updateImageRatios[updateId] ?? [];
-    const knownRatios = ratios.filter((value): value is number => Number.isFinite(value) && value > 0);
+    const firstRatio = ratios[0];
 
-    if (knownRatios.length === 0) {
+    if (!Number.isFinite(firstRatio) || firstRatio <= 0) {
       return null;
     }
 
-    const hasPortraitImage = knownRatios.some((value) => value < 1);
-    const hasLandscapeImage = knownRatios.some((value) => value > 1);
-
-    if (hasPortraitImage && hasLandscapeImage) {
-      const averageRatio = knownRatios.reduce((total, value) => total + value, 0) / knownRatios.length;
-      return Math.max(averageRatio, MIXED_FRAME_MIN_RATIO);
-    }
-
-    return Math.min(...knownRatios);
+    return firstRatio;
   }
 
   function shouldUseFramedCarousel(update: CommunityUpdateFeedItem) {
@@ -989,6 +1001,9 @@ export function CommunityUpdatesSection({
                               src={imageUrl}
                             />
                           </div>
+                          <span className="pointer-events-none absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-[2px]">
+                            <ExpandImageIcon />
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -997,7 +1012,7 @@ export function CommunityUpdatesSection({
                   update.imageUrls.map((imageUrl, index) => (
                     <button
                       key={`${update.id}-${index}`}
-                      className="block w-full bg-transparent p-0"
+                      className="relative block w-full bg-transparent p-0"
                       onClick={() => openLightbox(update.imageUrls, index)}
                       type="button"
                     >
@@ -1007,6 +1022,9 @@ export function CommunityUpdatesSection({
                         onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
                         src={imageUrl}
                       />
+                      <span className="pointer-events-none absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-[2px]">
+                        <ExpandImageIcon />
+                      </span>
                     </button>
                   ))
                 )}
