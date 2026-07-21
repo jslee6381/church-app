@@ -494,17 +494,6 @@ export function CommunityUpdatesSection({
     });
   }
 
-  function getPostFrameRatio(updateId: string) {
-    const ratios = updateImageRatios[updateId] ?? [];
-    const firstRatio = ratios[0];
-
-    if (!Number.isFinite(firstRatio) || firstRatio <= 0) {
-      return null;
-    }
-
-    return firstRatio;
-  }
-
   function shouldUseFramedCarousel(update: CommunityUpdateFeedItem) {
     return update.imageUrls.length > 1;
   }
@@ -976,14 +965,16 @@ export function CommunityUpdatesSection({
             {update.imageUrls.length > 0 ? (
               <div>
                 {shouldUseFramedCarousel(update) ? (
-                  <div
-                    className="overflow-hidden"
-                    style={{
-                      aspectRatio: getPostFrameRatio(update.id) ?? "3 / 4",
-                    }}
-                  >
+                  <div className="relative overflow-hidden">
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="pointer-events-none block w-full opacity-0 select-none"
+                      onLoad={(event) => handleFeedImageLoad(update.id, 0, event)}
+                      src={update.imageUrls[0]}
+                    />
                     <div
-                      className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto"
+                      className="no-scrollbar absolute inset-0 flex h-full snap-x snap-mandatory overflow-x-auto"
                       onScroll={(event) => handleImageScroll(update.id, event)}
                     >
                       {update.imageUrls.map((imageUrl, index) => (
@@ -996,7 +987,7 @@ export function CommunityUpdatesSection({
                           <div className="absolute inset-0 flex items-center justify-center">
                             <img
                               alt={`Community update image ${index + 1}`}
-                              className="block max-h-full max-w-full object-contain object-center"
+                              className="block h-full w-full object-contain object-center"
                               onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
                               src={imageUrl}
                             />
