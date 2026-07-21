@@ -530,9 +530,56 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                         </form>
                       ) : (
                         <>
-                          <h2 className="ui-text m-0 font-sans font-semibold leading-tight text-foreground">
-                            {event.title}
-                          </h2>
+                          <div className="flex items-start justify-between gap-3">
+                            <h2 className="ui-text m-0 min-w-0 font-sans font-semibold leading-tight text-foreground">
+                              {event.title}
+                            </h2>
+                            {canManage ? (
+                              UUID_PATTERN.test(event.id) ? (
+                                <div className="relative -mr-2 -mt-2 shrink-0">
+                                  <button
+                                    aria-label="Event actions"
+                                    className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                                    onClick={() =>
+                                      setOpenMenuEventId((current) => (current === event.id ? null : event.id))
+                                    }
+                                    type="button"
+                                  >
+                                    <MoreVertical className="size-4" />
+                                  </button>
+                                  {openMenuEventId === event.id ? (
+                                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                                      <button
+                                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                                        onClick={() => beginEdit(event)}
+                                        type="button"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                                        disabled={isDuplicatingId === event.id}
+                                        onClick={() => duplicateEvent(event)}
+                                        type="button"
+                                      >
+                                        {isDuplicatingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Duplicate"}
+                                      </button>
+                                      <button
+                                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                                        disabled={isDeletingId === event.id}
+                                        onClick={() => deleteEvent(event.id)}
+                                        type="button"
+                                      >
+                                        {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                                      </button>
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : (
+                                <p className="m-0 shrink-0 text-sm text-muted-foreground">Built-in service schedule</p>
+                              )
+                            ) : null}
+                          </div>
                           <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
                             <CalendarDays className="size-4 text-primary" />
                             <span>
@@ -552,53 +599,6 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                     </>
                   )}
 
-                  {canManage && editingEventId !== event.id ? (
-                    <div className="relative mt-4 flex justify-end">
-                      {UUID_PATTERN.test(event.id) ? (
-                        <div className="relative">
-                          <button
-                            aria-label="Event actions"
-                            className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/80 bg-white text-foreground"
-                            onClick={() =>
-                              setOpenMenuEventId((current) => (current === event.id ? null : event.id))
-                            }
-                            type="button"
-                          >
-                            <MoreVertical className="size-4" />
-                          </button>
-                          {openMenuEventId === event.id ? (
-                            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
-                              <button
-                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                                onClick={() => beginEdit(event)}
-                                type="button"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                                disabled={isDuplicatingId === event.id}
-                                onClick={() => duplicateEvent(event)}
-                                type="button"
-                              >
-                                {isDuplicatingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Duplicate"}
-                              </button>
-                              <button
-                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                                disabled={isDeletingId === event.id}
-                                onClick={() => deleteEvent(event.id)}
-                                type="button"
-                              >
-                                {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <p className="m-0 text-sm text-muted-foreground">Built-in service schedule</p>
-                      )}
-                    </div>
-                  ) : null}
                 </div>
               </div>
               {event.variant !== "service-pair" && event.variant !== "united-service" && (event.posterSrc || event.imageUrl) ? (

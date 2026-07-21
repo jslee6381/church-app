@@ -239,16 +239,50 @@ export function PrayerPageClient({
             className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
           >
             <div className="mb-2 flex items-start justify-between gap-3">
-              <div />
               {item.isOwner && getStatusLabel(item.status) ? (
                 <span className="rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
+              ) : (
+                <div />
+              )}
+              {canManageItem(item) && editingId !== item.id ? (
+                <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="relative -mr-2 -mt-2">
+                  <button
+                    aria-label="Prayer actions"
+                    className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                    onClick={() =>
+                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                    }
+                    type="button"
+                  >
+                    <MoreVertical className="size-4" />
+                  </button>
+                  {openMenuPrayerId === item.id ? (
+                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <button
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                        onClick={() => startEditing(item)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                        disabled={deletingId === item.id}
+                        onClick={() => deletePrayer(item.id)}
+                        type="button"
+                      >
+                        {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               ) : null}
             </div>
             {editingId === item.id ? (
               <div className="space-y-3">
-                <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="relative">
+                <div className="relative">
                   <textarea
                     className="min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
@@ -299,41 +333,6 @@ export function PrayerPageClient({
                 ))}
               </div>
             ) : null}
-            {canManageItem(item) && editingId !== item.id ? (
-              <div className="relative mt-4 flex justify-end">
-                <div className="relative">
-                  <button
-                    aria-label="Prayer actions"
-                    className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/70 bg-white text-foreground"
-                    onClick={() =>
-                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                    }
-                    type="button"
-                  >
-                    <MoreVertical className="size-4" />
-                  </button>
-                  {openMenuPrayerId === item.id ? (
-                    <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
-                      <button
-                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                        onClick={() => startEditing(item)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                        disabled={deletingId === item.id}
-                        onClick={() => deletePrayer(item.id)}
-                        type="button"
-                      >
-                        {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
           </article>
         ))}
       </section>
@@ -362,7 +361,7 @@ export function PrayerPageClient({
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className="min-h-8 h-8 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-[6px] pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="min-h-8 h-8 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-[6px] pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
                         setRequestText(event.target.value);
@@ -373,7 +372,7 @@ export function PrayerPageClient({
                       rows={1}
                       value={requestText}
                     />
-                    <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                       {requestText.length}/{CONTENT_LIMIT}
                     </span>
                   </div>

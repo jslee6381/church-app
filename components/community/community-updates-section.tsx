@@ -575,7 +575,7 @@ export function CommunityUpdatesSection({
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuUpdateId === update.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <div className="absolute bottom-[calc(100%+0.5rem)] right-0 z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(update)}
