@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
 import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
@@ -158,6 +159,7 @@ export function CommunityUpdatesSection({
   const [currentImageIndexes, setCurrentImageIndexes] = useState<Record<string, number>>({});
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
@@ -183,6 +185,10 @@ export function CommunityUpdatesSection({
     window.setTimeout(scrollComposerIntoView, 220);
     window.setTimeout(scrollComposerIntoView, 420);
   }
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!isComposerExpanded) {
@@ -903,13 +909,13 @@ export function CommunityUpdatesSection({
                   {update.imageUrls.map((imageUrl, index) => (
                     <button
                       key={`${update.id}-${index}`}
-                      className="block w-full shrink-0 self-start snap-center bg-transparent p-0"
+                      className="flex h-[18rem] w-full shrink-0 snap-center items-center justify-center bg-transparent p-0"
                       onClick={() => openLightbox(update.imageUrls, index)}
                       type="button"
                     >
                       <img
                         alt={`Community update image ${index + 1}`}
-                        className="block h-auto w-full"
+                        className="block max-h-full max-w-full object-contain object-center"
                         src={imageUrl}
                       />
                     </button>
@@ -1110,70 +1116,73 @@ export function CommunityUpdatesSection({
           </article>
         ))}
       </div>
-      {lightboxState ? (
-        <div
-          className="fixed inset-0 z-50 bg-black/95"
-          onClick={() => setLightboxState(null)}
-        >
-          <div className="flex min-h-full flex-col justify-center px-3 py-6">
-            <div className="mb-4 flex items-center justify-end">
-              <button
-                aria-label="Close image viewer"
-                className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 text-white"
-                onClick={() => setLightboxState(null)}
-                type="button"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
+      {isClient && lightboxState
+        ? createPortal(
             <div
-              className="relative flex flex-1 items-center justify-center"
-              onClick={(event) => event.stopPropagation()}
-              onTouchEnd={handleLightboxTouchEnd}
-              onTouchStart={handleLightboxTouchStart}
+              className="fixed inset-0 z-[100] bg-black/95"
+              onClick={() => setLightboxState(null)}
             >
-              {lightboxState.imageUrls.length > 1 ? (
+              <div className="absolute right-3 top-3 z-20">
                 <button
-                  aria-label="Previous image"
-                  className="absolute left-0 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
-                  onClick={showPreviousLightboxImage}
+                  aria-label="Close image viewer"
+                  className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 text-white"
+                  onClick={() => setLightboxState(null)}
                   type="button"
                 >
-                  <ChevronLeft className="size-5" />
+                  <X className="size-5" />
                 </button>
-              ) : null}
-              <img
-                alt={`Expanded community update image ${lightboxState.index + 1}`}
-                className="max-h-[78vh] max-w-full object-contain"
-                src={lightboxState.imageUrls[lightboxState.index]}
-              />
-              {lightboxState.imageUrls.length > 1 ? (
-                <button
-                  aria-label="Next image"
-                  className="absolute right-0 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
-                  onClick={showNextLightboxImage}
-                  type="button"
-                >
-                  <ChevronRight className="size-5" />
-                </button>
-              ) : null}
-            </div>
-            {lightboxState.imageUrls.length > 1 ? (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                {lightboxState.imageUrls.map((_, index) => (
-                  <span
-                    key={`lightbox-dot-${index}`}
-                    aria-hidden="true"
-                    className={`size-2 rounded-full ${
-                      lightboxState.index === index ? "bg-white" : "bg-white/30"
-                    }`}
-                  />
-                ))}
               </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+              <div
+                className="relative flex h-screen w-screen items-center justify-center px-3 py-16"
+                onClick={(event) => event.stopPropagation()}
+                onTouchEnd={handleLightboxTouchEnd}
+                onTouchStart={handleLightboxTouchStart}
+              >
+                {lightboxState.imageUrls.length > 1 ? (
+                  <button
+                    aria-label="Previous image"
+                    className="absolute left-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    onClick={showPreviousLightboxImage}
+                    type="button"
+                  >
+                    <ChevronLeft className="size-5" />
+                  </button>
+                ) : null}
+                <div className="flex h-full w-full items-center justify-center">
+                  <img
+                    alt={`Expanded community update image ${lightboxState.index + 1}`}
+                    className="block max-h-full max-w-full object-contain object-center"
+                    src={lightboxState.imageUrls[lightboxState.index]}
+                  />
+                </div>
+                {lightboxState.imageUrls.length > 1 ? (
+                  <button
+                    aria-label="Next image"
+                    className="absolute right-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    onClick={showNextLightboxImage}
+                    type="button"
+                  >
+                    <ChevronRight className="size-5" />
+                  </button>
+                ) : null}
+                {lightboxState.imageUrls.length > 1 ? (
+                  <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center justify-center gap-2">
+                    {lightboxState.imageUrls.map((_, index) => (
+                      <span
+                        key={`lightbox-dot-${index}`}
+                        aria-hidden="true"
+                        className={`size-2 rounded-full ${
+                          lightboxState.index === index ? "bg-white" : "bg-white/30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
