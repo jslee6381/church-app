@@ -4,6 +4,7 @@ import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
 import ubfIcon from "@/ubf-icon.png";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "KOINONIA",
@@ -28,6 +29,7 @@ export default function RootLayout({
         <SupabaseAuthSync />
         <UiPreferencesSync />
         {children}
+        <Analytics />
       </body>
     </html>
   );
