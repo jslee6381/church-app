@@ -51,6 +51,7 @@ export default async function HomePage() {
         />
       ) : null}
       <HomeTabbedSections
+        canManageCommunity={canAccessAdmin}
         canReact={authSession?.member.status === "active"}
         currentMemberPhotoUrl={currentMemberPhotoUrl}
         events={events}

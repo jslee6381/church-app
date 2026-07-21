@@ -10,6 +10,7 @@ const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 5;
 
 type Props = {
+  canManage: boolean;
   initialUpdates: CommunityUpdateFeedItem[];
   canReact: boolean;
   currentMemberPhotoUrl?: string | null;
@@ -45,6 +46,7 @@ function LikeReactionIcon({ active }: { active: boolean }) {
 }
 
 export function CommunityUpdatesSection({
+  canManage,
   initialUpdates,
   canReact,
   currentMemberPhotoUrl = null,
@@ -555,15 +557,34 @@ export function CommunityUpdatesSection({
                     </div>
                   </div>
                 ) : null}
-                {editingId !== update.id && update.isOwner && getStatusLabel(update.status) ? (
+                {editingId !== update.id && (update.isOwner || canManage) && getStatusLabel(update.status) ? (
                   <span className="rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                     {getStatusLabel(update.status)}
                   </span>
                 ) : null}
               </div>
               <div className="relative flex items-center gap-2">
-                {update.isOwner && editingId !== update.id ? (
+                {(update.isOwner || canManage) && editingId !== update.id ? (
                   <div className="relative">
+                    {openMenuUpdateId === update.id ? (
+                      <div className="absolute right-[calc(100%+0.5rem)] top-1/2 z-20 flex -translate-y-1/2 items-center gap-2">
+                        <button
+                          className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                          onClick={() => startEditing(update)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
+                          disabled={deletingId === update.id}
+                          onClick={() => deleteUpdate(update.id)}
+                          type="button"
+                        >
+                          {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                        </button>
+                      </div>
+                    ) : null}
                     <button
                       aria-label="Update actions"
                       className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
@@ -574,25 +595,6 @@ export function CommunityUpdatesSection({
                     >
                       <MoreVertical className="size-4" />
                     </button>
-                    {openMenuUpdateId === update.id ? (
-                      <div className="absolute bottom-[calc(100%+0.5rem)] right-0 z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                          onClick={() => startEditing(update)}
-                          type="button"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                          disabled={deletingId === update.id}
-                          onClick={() => deleteUpdate(update.id)}
-                          type="button"
-                        >
-                          {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                        </button>
-                      </div>
-                    ) : null}
                   </div>
                 ) : null}
               </div>

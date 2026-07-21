@@ -40,6 +40,7 @@ export function PrayerPageClient({
 }: PrayerPageClientProps) {
   const [requestText, setRequestText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isComposerExpanded, setIsComposerExpanded] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [feed, setFeed] = useState(initialFeed);
@@ -111,6 +112,7 @@ export function PrayerPageClient({
       }
 
       setRequestText("");
+      setIsComposerExpanded(false);
       setShowSuccess(true);
       if (payload.prayerRequest) {
         setFeed((current) => [payload.prayerRequest, ...current]);
@@ -354,31 +356,59 @@ export function PrayerPageClient({
           <form className="p-0" onSubmit={handleSubmit}>
             {composerEnabled ? (
               <>
-                <div className="flex items-center gap-3">
+                <div className="grid gap-3">
                   <div className="relative flex-1">
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className="min-h-10 h-10 w-full resize-none rounded-[16px] border border-transparent bg-white px-4 py-2 pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className={`w-full resize-none rounded-[16px] border border-transparent bg-white px-4 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] ${
+                        isComposerExpanded ? "min-h-[110px] py-3 pb-8" : "h-10 min-h-10 py-2"
+                      }`}
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
                         setRequestText(event.target.value);
                         if (showSuccess) setShowSuccess(false);
                         if (errorMessage) setErrorMessage("");
                       }}
+                      onFocus={() => setIsComposerExpanded(true)}
                       placeholder="Share a prayer request..."
                       rows={1}
                       value={requestText}
                     />
-                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    <span
+                      className={`pointer-events-none absolute right-4 text-xs text-muted-foreground ${
+                        isComposerExpanded ? "bottom-3" : "top-1/2 -translate-y-1/2"
+                      }`}
+                    >
                       {requestText.length}/{CONTENT_LIMIT}
                     </span>
                   </div>
 
-                  {requestText.trim() ? (
-                    <Button className="min-h-10 rounded-[16px] px-5" disabled={isSubmitting} size="sm" type="submit">
-                      {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : "Send"}
-                    </Button>
+                  {isComposerExpanded ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        className="min-h-11 rounded-[16px]"
+                        onClick={() => {
+                          setIsComposerExpanded(false);
+                          setRequestText("");
+                          setErrorMessage("");
+                          setShowSuccess(false);
+                        }}
+                        size="sm"
+                        type="button"
+                        variant="secondary"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="min-h-11 rounded-[16px]"
+                        disabled={isSubmitting || !requestText.trim()}
+                        size="sm"
+                        type="submit"
+                      >
+                        {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : "Post"}
+                      </Button>
+                    </div>
                   ) : null}
                 </div>
               </>

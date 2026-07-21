@@ -29,6 +29,7 @@ const quickActions = [
 ];
 
 type Props = {
+  canManageCommunity: boolean;
   canReact: boolean;
   currentMemberPhotoUrl?: string | null;
   events: EventListItem[];
@@ -43,6 +44,7 @@ type Props = {
 };
 
 export function HomeTabbedSections({
+  canManageCommunity,
   canReact,
   currentMemberPhotoUrl,
   events,
@@ -142,6 +144,7 @@ export function HomeTabbedSections({
       ) : (
         <section className="fade-up mt-3 -mx-4">
           <CommunityUpdatesSection
+            canManage={canManageCommunity}
             canReact={canReact}
             currentMemberPhotoUrl={currentMemberPhotoUrl}
             initialUpdates={updates}
