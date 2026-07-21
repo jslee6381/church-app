@@ -32,6 +32,7 @@ async function getMemberManagementData(churchId: string) {
     .from("members")
     .select("id, display_name, full_name, email, status, member_roles!left(roles!inner(name))")
     .eq("church_id", churchId)
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   return (data ?? []).map((member: {

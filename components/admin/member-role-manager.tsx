@@ -117,14 +117,14 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
       <div className="mt-4 grid gap-3">
         {members.map((member) => (
           <div key={member.id} className="rounded-[22px] border border-border/80 bg-white/72 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="m-0 text-lg font-semibold text-foreground">{member.displayName}</p>
                 {member.email ? <p className="m-0 mt-1 text-sm text-muted-foreground">{member.email}</p> : null}
                 <p className="m-0 mt-1 text-sm text-muted-foreground">Status: {member.status === "invited" ? "pending" : member.status}</p>
               </div>
               {canAssignRoles ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-end gap-2">
                   <select
                     className="min-h-11 rounded-[14px] border border-input bg-white px-3"
                     value={member.status === "invited" ? "pending" : member.roleName}
