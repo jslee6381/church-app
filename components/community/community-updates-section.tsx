@@ -953,7 +953,7 @@ export function CommunityUpdatesSection({
                 <div
                   className="overflow-hidden"
                   style={{
-                    aspectRatio: getPostFrameRatio(update.id) ?? undefined,
+                    aspectRatio: getPostFrameRatio(update.id) ?? "3 / 4",
                   }}
                 >
                   <div
