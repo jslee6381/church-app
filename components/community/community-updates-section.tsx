@@ -157,7 +157,7 @@ export function CommunityUpdatesSection({
       setSummary("");
       setImageFiles([]);
       setIsComposerExpanded(false);
-      setFeedback(payload.message ?? "Your community update has been submitted for approval.");
+      setFeedback(payload.message ?? "Your community update was published.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to submit community update.");
     } finally {
@@ -261,7 +261,7 @@ export function CommunityUpdatesSection({
         ),
       );
       setEditingId(null);
-      setFeedback(payload.message ?? "Your update was saved and sent for approval.");
+      setFeedback(payload.message ?? "Your update was published.");
       setOpenMenuUpdateId(null);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to update community update.");
@@ -300,8 +300,6 @@ export function CommunityUpdatesSection({
 
   function getStatusLabel(status: CommunityUpdateFeedItem["status"]) {
     switch (status) {
-      case "pending":
-        return "Pending review";
       case "rejected":
         return "Needs changes";
       case "archived":
@@ -500,21 +498,21 @@ export function CommunityUpdatesSection({
                       {editingSummary.length}/{CONTENT_LIMIT}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <button
-                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                      onClick={() => setEditingId(null)}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                       disabled={isSavingEdit}
                       onClick={() => saveEdit(update.id)}
                       type="button"
                     >
                       {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Save"}
-                    </button>
-                    <button
-                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
-                      onClick={() => setEditingId(null)}
-                      type="button"
-                    >
-                      Cancel
                     </button>
                   </div>
                 </div>

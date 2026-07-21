@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole, getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { uploadPublicImage } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
@@ -36,8 +35,6 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const summary = normalizeText(String(formData.get("summary") ?? ""));
-    const roles = await getMemberRoles(session.member.id);
-    const canBypassApproval = canSelfApproveByRole(roles);
     const imageEntries = formData.getAll("images").filter((value): value is File => value instanceof File && value.size > 0);
     const legacyImage = formData.get("image");
     const images = imageEntries.length > 0 ? imageEntries : legacyImage instanceof File && legacyImage.size > 0 ? [legacyImage] : [];
@@ -55,7 +52,7 @@ export async function POST(request: Request) {
     if (!hasAdminEnvironment()) {
       return NextResponse.json({
         success: true,
-        message: canBypassApproval ? "Your community update was published." : "Your community update has been submitted for approval.",
+        message: "Your community update was published.",
       });
     }
 
@@ -74,11 +71,11 @@ export async function POST(request: Request) {
         body: summary,
         image_url: imageUrls[0] ?? null,
         activity_date: getCurrentActivityDate(),
-        status: canBypassApproval ? "approved" : "pending",
+        status: "approved",
         visibility: "members",
-        approved_by_member_id: canBypassApproval ? session.member.id : null,
-        approved_at: canBypassApproval ? new Date().toISOString() : null,
-        published_at: canBypassApproval ? new Date().toISOString() : null,
+        approved_by_member_id: session.member.id,
+        approved_at: new Date().toISOString(),
+        published_at: new Date().toISOString(),
       })
       .select("id")
       .single();
@@ -107,14 +104,14 @@ export async function POST(request: Request) {
       entity_type: "community_updates",
       action: "create",
       metadata: {
-        status: canBypassApproval ? "approved" : "pending",
+        status: "approved",
         imageCount: imageUrls.length,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: canBypassApproval ? "Your community update was published." : "Your community update has been submitted for approval.",
+      message: "Your community update was published.",
     });
   } catch {
     return NextResponse.json({ error: "Unable to submit community update." }, { status: 500 });

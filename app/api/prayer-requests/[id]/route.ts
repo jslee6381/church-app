@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole, getMemberRoles } from "@/lib/auth/authorization";
+import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -21,7 +21,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { requestText } = (await request.json()) as { requestText?: string };
     const normalizedText = normalizePrayerText(requestText ?? "");
     const roles = await getMemberRoles(session.member.id);
-    const canBypassApproval = canSelfApproveByRole(roles);
     const canManageAll = roles.includes("admin") || roles.includes("leader");
 
     if (normalizedText.length > CONTENT_LIMIT) {
@@ -34,7 +33,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         prayerRequest: {
           id,
           body: normalizedText,
-          status: canBypassApproval ? "approved" : "pending",
+          status: "approved",
         },
       });
     }
@@ -60,9 +59,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       .update({
         title: null,
         request_text: normalizedText,
-        status: canBypassApproval ? "approved" : "pending",
-        approved_at: canBypassApproval ? new Date().toISOString() : null,
-        approved_by_member_id: canBypassApproval ? session.member.id : null,
+        status: "approved",
+        approved_at: new Date().toISOString(),
+        approved_by_member_id: session.member.id,
         archived_at: null,
       })
       .eq("id", id)

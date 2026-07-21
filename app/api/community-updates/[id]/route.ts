@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole, getMemberRoles } from "@/lib/auth/authorization";
+import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -21,7 +21,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { summary } = (await request.json()) as { summary?: string };
     const normalizedSummary = normalizeText(summary ?? "");
     const roles = await getMemberRoles(session.member.id);
-    const canBypassApproval = canSelfApproveByRole(roles);
+    const canManageAll = roles.includes("admin") || roles.includes("leader");
 
     if (normalizedSummary.length > CONTENT_LIMIT) {
       return NextResponse.json({ error: `Please keep the content under ${CONTENT_LIMIT} characters.` }, { status: 400 });
@@ -30,12 +30,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!hasAdminEnvironment()) {
       return NextResponse.json({
         success: true,
-        message: canBypassApproval ? "Your update was published." : "Your update was saved and sent for approval.",
+        message: "Your update was published.",
         update: {
           id,
           summary: normalizedSummary,
           body: normalizedSummary,
-          status: canBypassApproval ? "approved" : "pending",
+          status: "approved",
         },
       });
     }
@@ -52,7 +52,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Community update not found." }, { status: 404 });
     }
 
-    if (existing.author_member_id !== session.member.id) {
+    if (!canManageAll && existing.author_member_id !== session.member.id) {
       return NextResponse.json({ error: "You can only edit your own community updates." }, { status: 403 });
     }
 
@@ -62,10 +62,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         title: null,
         summary: normalizedSummary,
         body: normalizedSummary,
-        status: canBypassApproval ? "approved" : "pending",
-        approved_at: canBypassApproval ? new Date().toISOString() : null,
-        approved_by_member_id: canBypassApproval ? session.member.id : null,
-        published_at: canBypassApproval ? new Date().toISOString() : null,
+        status: "approved",
+        approved_at: new Date().toISOString(),
+        approved_by_member_id: session.member.id,
+        published_at: new Date().toISOString(),
       })
       .eq("id", id)
       .select("id, title, summary, body, status")
@@ -77,7 +77,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     return NextResponse.json({
       success: true,
-      message: canBypassApproval ? "Your update was published." : "Your update was saved and sent for approval.",
+      message: "Your update was published.",
       update: data,
     });
   } catch {
@@ -94,6 +94,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     }
 
     const { id } = await params;
+    const roles = await getMemberRoles(session.member.id);
+    const canManageAll = roles.includes("admin") || roles.includes("leader");
 
     if (!hasAdminEnvironment()) {
       return NextResponse.json({
@@ -114,7 +116,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Community update not found." }, { status: 404 });
     }
 
-    if (existing.author_member_id !== session.member.id) {
+    if (!canManageAll && existing.author_member_id !== session.member.id) {
       return NextResponse.json({ error: "You can only delete your own community updates." }, { status: 403 });
     }
 

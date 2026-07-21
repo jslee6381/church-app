@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole, getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -23,9 +22,6 @@ export async function POST(request: Request) {
 
     const { requestText } = (await request.json()) as { requestText?: string };
     const normalizedText = normalizePrayerText(requestText ?? "");
-    const roles = await getMemberRoles(session.member.id);
-    const canBypassApproval = canSelfApproveByRole(roles);
-
     if (normalizedText.length > CONTENT_LIMIT) {
       return NextResponse.json({ error: `Please keep the content under ${CONTENT_LIMIT} characters.` }, { status: 400 });
     }
@@ -33,7 +29,7 @@ export async function POST(request: Request) {
     if (!hasAdminEnvironment()) {
       return NextResponse.json({
         success: true,
-        message: canBypassApproval ? "Your prayer request was published." : "Your prayer request has been submitted for review.",
+        message: "Your prayer request was published.",
         demo: true,
       });
     }
@@ -44,11 +40,11 @@ export async function POST(request: Request) {
       requester_member_id: session.member.id,
       title: null,
       request_text: normalizedText,
-      status: canBypassApproval ? "approved" : "pending",
+      status: "approved",
       visibility: "public",
-      approved_by_member_id: canBypassApproval ? session.member.id : null,
-      approved_at: canBypassApproval ? new Date().toISOString() : null,
-      published_at: canBypassApproval ? new Date().toISOString() : null,
+      approved_by_member_id: session.member.id,
+      approved_at: new Date().toISOString(),
+      published_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -61,17 +57,17 @@ export async function POST(request: Request) {
       entity_type: "prayer_requests",
       action: "create",
       metadata: {
-        status: canBypassApproval ? "approved" : "pending",
+        status: "approved",
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: canBypassApproval ? "Your prayer request was published." : "Your prayer request has been submitted for review.",
+      message: "Your prayer request was published.",
       prayerRequest: {
         id: crypto.randomUUID(),
         body: normalizedText,
-        status: canBypassApproval ? "approved" : "pending",
+        status: "approved",
         isOwner: true,
       },
     });

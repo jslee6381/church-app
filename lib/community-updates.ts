@@ -44,13 +44,15 @@ function getFallbackUpdates(): CommunityUpdateFeedItem[] {
 }
 
 export async function getCommunityUpdateFeed(churchId?: string | null, memberId?: string | null) {
+  void memberId;
+
   if (!hasAdminEnvironment() || !churchId) {
     return getFallbackUpdates();
   }
 
   try {
     const admin = createAdminClient();
-    const { data: approvedUpdates, error: approvedError } = await admin
+    const { data, error: approvedError } = await admin
       .from("community_updates")
       .select("id, title, summary, body, image_url, activity_date, published_at, author_member_id, status, author_member:members!community_updates_author_member_id_fkey(display_name, full_name)")
       .eq("church_id", churchId)
@@ -63,47 +65,12 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
       return getFallbackUpdates();
     }
 
-    let ownUpdates:
-      | {
-          id: string;
-          title: string | null;
-          summary: string | null;
-          body: string | null;
-          image_url: string | null;
-          activity_date: string | null;
-          published_at: string | null;
-          author_member_id: string | null;
-          status: "pending" | "approved" | "rejected" | "archived";
-          author_member:
-            | { display_name: string | null; full_name: string | null }
-            | { display_name: string | null; full_name: string | null }[]
-            | null;
-        }[]
-      | null = null;
-
-    if (memberId) {
-      const { data } = await admin
-        .from("community_updates")
-        .select("id, title, summary, body, image_url, activity_date, published_at, author_member_id, status, author_member:members!community_updates_author_member_id_fkey(display_name, full_name)")
-        .eq("church_id", churchId)
-        .eq("author_member_id", memberId)
-        .order("activity_date", { ascending: false, nullsFirst: false })
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .limit(12);
-
-      ownUpdates = data;
-    }
-
-    const combinedUpdates = [...(approvedUpdates ?? []), ...(ownUpdates ?? [])].filter(
-      (update, index, current) => current.findIndex((candidate) => candidate.id === update.id) === index,
-    );
-
-    if (combinedUpdates.length === 0) {
+    if (!data || data.length === 0) {
       return [];
     }
 
-    const ids = combinedUpdates.map((update) => update.id);
-    const authorIds = combinedUpdates
+    const ids = data.map((update) => update.id);
+    const authorIds = data
       .map((update) => update.author_member_id)
       .filter((value): value is string => Boolean(value));
     const { data: reactions } = await admin
@@ -131,7 +98,7 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
       }),
     );
 
-    return combinedUpdates.map((update) => {
+    return data.map((update) => {
       const author = Array.isArray(update.author_member) ? update.author_member[0] : update.author_member;
       const reactionRows = (reactions ?? []).filter((reaction) => reaction.community_update_id === update.id);
       const reactionCounts: Record<ReactionKind, number> = { heart: 0, like: 0, pray: 0 };

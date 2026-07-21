@@ -20,6 +20,8 @@ type PrayerFeedItem = {
 };
 
 async function getApprovedPrayerFeed(churchId?: string, memberId?: string): Promise<PrayerFeedItem[]> {
+  void memberId;
+
   if (!churchId || !hasAdminEnvironment()) {
     return [
       {
@@ -37,7 +39,7 @@ async function getApprovedPrayerFeed(churchId?: string, memberId?: string): Prom
 
   try {
     const admin = createAdminClient();
-    const { data: approvedData, error } = await admin
+    const { data, error } = await admin
       .from("prayer_requests")
       .select("id, title, request_text, requester_member_id, status")
       .eq("church_id", churchId)
@@ -51,44 +53,18 @@ async function getApprovedPrayerFeed(churchId?: string, memberId?: string): Prom
       throw new Error(error?.message ?? "Unable to fetch prayer feed.");
     }
 
-    let ownData:
-      | {
-          id: string;
-          title: string | null;
-          request_text: string;
-          requester_member_id: string | null;
-          status: "pending" | "approved" | "rejected" | "archived";
-        }[]
-      | null = null;
-
-    if (memberId) {
-      const { data } = await admin
-        .from("prayer_requests")
-        .select("id, title, request_text, requester_member_id, status")
-        .eq("church_id", churchId)
-        .eq("requester_member_id", memberId)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      ownData = data;
-    }
-
-    const combinedData = [...(approvedData ?? []), ...(ownData ?? [])].filter(
-      (item, index, current) => current.findIndex((candidate) => candidate.id === item.id) === index,
-    );
-
-    if (combinedData.length === 0) {
+    if (!data || data.length === 0) {
       return [];
     }
 
-    const prayerIds = combinedData.map((item) => item.id);
+    const prayerIds = data.map((item) => item.id);
     const { data: followUpRows } = await admin
       .from("prayer_request_follow_ups")
       .select("id, prayer_request_id, message, created_at, author_member:members!prayer_request_follow_ups_author_member_id_fkey(display_name, full_name)")
       .in("prayer_request_id", prayerIds)
       .order("created_at", { ascending: true });
 
-    return combinedData.map((item) => ({
+    return data.map((item) => ({
       id: item.id,
       body: item.request_text,
       status: item.status,
