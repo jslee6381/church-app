@@ -142,6 +142,15 @@ select {
   line-height: var(--ui-text-line-height);
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .hero,
 .spotlight,
 .summary-card,
