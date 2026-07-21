@@ -159,7 +159,7 @@ export function HomeTabbedSections({
       ) : (
         <section className="fade-up mt-3 -mx-4">
           {communityGreeting && currentMemberName ? (
-            <div className="px-7 pb-3">
+            <div className="px-4 pb-3">
               <p className="ui-text m-0 font-semibold text-foreground">
                 {communityGreeting} {currentMemberName}!
               </p>
