@@ -1,12 +1,11 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 export function LiveRouteRefresh() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const lastRefreshAtRef = useRef(0);
 
   function refreshIfNeeded() {
@@ -22,7 +21,7 @@ export function LiveRouteRefresh() {
 
   useEffect(() => {
     refreshIfNeeded();
-  }, [pathname, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function handleFocus() {

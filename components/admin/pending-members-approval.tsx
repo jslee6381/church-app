@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 type PendingMemberItem = {
   id: string;
   displayName: string;
-  fullName: string;
+  email: string | null;
   createdAtLabel: string;
   status: string;
 };
@@ -68,7 +68,7 @@ export function PendingMembersApproval({ initialMembers }: Props) {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="m-0 text-lg font-semibold text-foreground">{member.displayName}</p>
-                  <p className="m-0 mt-1 text-sm text-muted-foreground">{member.fullName}</p>
+                  {member.email ? <p className="m-0 mt-1 text-sm text-muted-foreground">{member.email}</p> : null}
                   <p className="m-0 mt-1 text-sm text-muted-foreground">Signed in {member.createdAtLabel}</p>
                 </div>
                 <Button

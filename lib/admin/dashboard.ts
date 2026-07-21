@@ -46,7 +46,7 @@ export type AdminMemberItem = {
 export type AdminPendingMemberItem = {
   id: string;
   displayName: string;
-  fullName: string;
+  email: string | null;
   createdAtLabel: string;
   status: string;
 };
@@ -67,7 +67,7 @@ function getDemoAdminDashboardData() {
       {
         id: "demo-pending-member-1",
         displayName: "Grace Visitor",
-        fullName: "Grace Visitor",
+        email: "grace.visitor@example.com",
         createdAtLabel: "Jul 19",
         status: "invited",
       },
@@ -128,7 +128,7 @@ export async function getAdminDashboardData(churchId: string) {
       .limit(4),
     admin
       .from("members")
-      .select("id, display_name, full_name, status, created_at")
+      .select("id, display_name, full_name, email, status, created_at")
       .eq("church_id", churchId)
       .eq("status", "invited")
       .order("created_at", { ascending: false })
@@ -197,7 +197,7 @@ export async function getAdminDashboardData(churchId: string) {
   const pendingMembers = (pendingMembersRes.data ?? []).map((member) => ({
     id: member.id,
     displayName: member.display_name ?? member.full_name,
-    fullName: member.full_name,
+    email: member.email ?? null,
     createdAtLabel: formatEasternMonthDay(member.created_at),
     status: member.status,
   })) satisfies AdminPendingMemberItem[];
