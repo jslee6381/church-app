@@ -113,7 +113,10 @@ export async function POST(request: Request) {
       success: true,
       message: "Your community update was published.",
     });
-  } catch {
-    return NextResponse.json({ error: "Unable to submit community update." }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to submit community update." },
+      { status: 500 },
+    );
   }
 }

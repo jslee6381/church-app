@@ -415,7 +415,7 @@ export function CommunityUpdatesSection({
                 Photos optional, up to {MAX_IMAGES} images, JPG/PNG/WEBP up to 8 MB each
                 <input
                   multiple
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                   className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                   onChange={(event) => setImageFiles(Array.from(event.target.files ?? []).slice(0, MAX_IMAGES))}
                   onFocus={keepComposerVisible}
