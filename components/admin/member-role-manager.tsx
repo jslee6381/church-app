@@ -124,9 +124,9 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
                 <p className="m-0 mt-1 text-sm text-muted-foreground">Status: {member.status === "invited" ? "pending" : member.status}</p>
               </div>
               {canAssignRoles ? (
-                <div className="flex flex-col items-end gap-2">
+                <div className="grid w-[9.5rem] gap-2">
                   <select
-                    className="min-h-11 rounded-[14px] border border-input bg-white px-3"
+                    className="min-h-11 w-full rounded-[14px] border border-input bg-white px-3"
                     value={member.status === "invited" ? "pending" : member.roleName}
                     disabled={savingId === member.id || member.isProtected}
                     onChange={(event) => {
@@ -147,7 +147,7 @@ export function MemberRoleManager({ initialMembers, canAssignRoles, canDeleteMem
                   </select>
                   {canDeleteMembers && !member.isProtected ? (
                     <button
-                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-input bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
+                      className="inline-flex min-h-10 w-full items-center justify-center rounded-[14px] border border-input bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
                       disabled={savingId === member.id}
                       onClick={() => deleteMember(member.id)}
                       type="button"
