@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
-import { uploadPublicImage } from "@/lib/storage";
+import { removePublicImage, uploadPublicImage } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
@@ -55,6 +55,60 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unable to upload profile photo." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    const session = await getAuthenticatedMemberSession();
+
+    if (!session) {
+      return NextResponse.json({ error: "Please sign in first." }, { status: 401 });
+    }
+
+    if (!hasAdminEnvironment()) {
+      return NextResponse.json({
+        success: true,
+        photoUrl: null,
+      });
+    }
+
+    const admin = createAdminClient();
+    const { data: existingProfile, error: profileError } = await admin
+      .from("profiles")
+      .select("profile_photo_url")
+      .eq("member_id", session.member.id)
+      .maybeSingle();
+
+    if (profileError) {
+      return NextResponse.json({ error: profileError.message }, { status: 500 });
+    }
+
+    await removePublicImage(existingProfile?.profile_photo_url);
+
+    const { error } = await admin.from("profiles").upsert(
+      {
+        member_id: session.member.id,
+        profile_photo_url: null,
+      },
+      {
+        onConflict: "member_id",
+      },
+    );
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      photoUrl: null,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unable to remove profile photo." },
       { status: 500 },
     );
   }

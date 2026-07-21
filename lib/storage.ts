@@ -50,3 +50,30 @@ export async function uploadPublicImage(file: File, folder: "community-updates" 
 
   return data.publicUrl;
 }
+
+export async function removePublicImage(publicUrl: string | null | undefined) {
+  if (!publicUrl) {
+    return;
+  }
+
+  const marker = `/storage/v1/object/public/${COMMUNITY_IMAGE_BUCKET}/`;
+  const markerIndex = publicUrl.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return;
+  }
+
+  const encodedPath = publicUrl.slice(markerIndex + marker.length);
+  const filePath = decodeURIComponent(encodedPath.split("?")[0] ?? "");
+
+  if (!filePath) {
+    return;
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.storage.from(COMMUNITY_IMAGE_BUCKET).remove([filePath]);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}

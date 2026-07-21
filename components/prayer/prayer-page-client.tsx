@@ -247,9 +247,7 @@ export function PrayerPageClient({
           <ArrowLeft className="size-4" />
           Home
         </Link>
-        <h1 className="ui-text max-w-[24rem] font-sans font-semibold text-foreground">Pray together and share what is on your heart</h1>
         <div className="space-y-1 text-center">
-          {memberName ? <p className="m-0 text-sm font-medium text-muted-foreground">Signed in as {memberName}</p> : null}
           <p className="ui-text m-0 text-muted-foreground">
             &ldquo;If one part suffers, every part suffers with it; if one part is honored, every part rejoices with it.&rdquo;
           </p>
@@ -391,20 +389,25 @@ export function PrayerPageClient({
             {composerEnabled ? (
               <>
                 <div className="flex items-end gap-3">
-                  <textarea
-                    ref={textareaRef}
-                    autoComplete="off"
-                    className="min-h-12 h-12 flex-1 resize-none rounded-[18px] border border-transparent bg-secondary/42 px-4 py-[11px] text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
-                    maxLength={CONTENT_LIMIT}
-                    onChange={(event) => {
-                      setRequestText(event.target.value);
-                      if (showSuccess) setShowSuccess(false);
-                      if (errorMessage) setErrorMessage("");
-                    }}
-                    placeholder="Share a prayer request..."
-                    rows={1}
-                    value={requestText}
-                  />
+                  <div className="relative flex-1">
+                    <textarea
+                      ref={textareaRef}
+                      autoComplete="off"
+                      className="min-h-12 h-12 w-full resize-none rounded-[18px] border border-transparent bg-secondary/42 px-4 py-[11px] pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      maxLength={CONTENT_LIMIT}
+                      onChange={(event) => {
+                        setRequestText(event.target.value);
+                        if (showSuccess) setShowSuccess(false);
+                        if (errorMessage) setErrorMessage("");
+                      }}
+                      placeholder="Share a prayer request..."
+                      rows={1}
+                      value={requestText}
+                    />
+                    <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                      {requestText.length}/{CONTENT_LIMIT}
+                    </span>
+                  </div>
 
                   {requestText.trim() ? (
                     <Button className="min-h-12 rounded-[18px] px-5" disabled={isSubmitting} size="sm" type="submit">
@@ -412,7 +415,6 @@ export function PrayerPageClient({
                     </Button>
                   ) : null}
                 </div>
-                <p className="m-0 mt-2 text-right text-xs text-muted-foreground">{requestText.length}/{CONTENT_LIMIT}</p>
               </>
             ) : (
               <div className="rounded-[18px] bg-secondary/42 px-4 py-3 text-sm leading-6 text-muted-foreground">

@@ -85,9 +85,8 @@ export function HomeHeaderActions({
   if (!state.authenticated) {
     return (
       <GoogleSignInButton
-        className="size-9 min-h-9 rounded-[14px] border-0 bg-transparent px-0 shadow-none hover:bg-transparent hover:shadow-none"
+        className="min-h-9 rounded-[14px] border-0 bg-transparent pr-3 pl-0 text-sm shadow-none hover:bg-transparent hover:shadow-none"
         compact
-        iconOnly
         label="Sign in"
         nextPath="/home"
         variant="secondary"

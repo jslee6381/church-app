@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LoaderCircle, RotateCcw, Upload, Users } from "lucide-react";
+import { LoaderCircle, RotateCcw, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -42,6 +42,7 @@ function getCoverRect(
 }
 
 export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [photoUrl, setPhotoUrl] = useState(initialPhotoUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [draftPreviewUrl, setDraftPreviewUrl] = useState<string | null>(null);
@@ -50,6 +51,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [feedback, setFeedback] = useState("");
   const dragStateRef = useRef<{
     pointerId: number;
@@ -198,36 +200,71 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
     }
   }
 
+  async function handleRemovePhoto() {
+    setIsRemoving(true);
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/member/profile-photo", {
+        method: "DELETE",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to remove profile photo.");
+      }
+
+      setPhotoUrl(null);
+      setSelectedFile(null);
+      setDraftPreviewUrl(null);
+      setZoom(1);
+      setPanX(0);
+      setPanY(0);
+      setFeedback("Profile photo removed.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to remove profile photo.");
+    } finally {
+      setIsRemoving(false);
+    }
+  }
+
   return (
     <section className="mb-4 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
       <div className="flex flex-wrap items-center gap-4">
-        {photoUrl ? (
-          <img alt={`${displayName} profile`} className="size-16 rounded-full object-cover" src={photoUrl} />
-        ) : (
-          <div className="inline-flex size-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
-            <Users className="size-7" />
-          </div>
-        )}
+        <button
+          aria-label="Choose profile photo"
+          className="rounded-full border-0 bg-transparent p-0"
+          onClick={() => fileInputRef.current?.click()}
+          type="button"
+        >
+          {photoUrl ? (
+            <img alt={`${displayName} profile`} className="size-16 rounded-full object-cover" src={photoUrl} />
+          ) : (
+            <div className="inline-flex size-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
+              <Users className="size-7" />
+            </div>
+          )}
+        </button>
         <div>
           <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Profile Photo</p>
+          <p className="ui-text m-0 mt-1 text-muted-foreground">Tap the circle to choose a photo</p>
         </div>
       </div>
 
       <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
-        <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-          JPG, PNG, or WEBP up to 8 MB
-          <input
-            accept="image/jpeg,image/png,image/webp"
-            className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-            onChange={(event) => {
-              setSelectedFile(event.target.files?.[0] ?? null);
-              setZoom(1);
-              setPanX(0);
-              setPanY(0);
-            }}
-            type="file"
-          />
-        </label>
+        <input
+          accept="image/jpeg,image/png,image/webp"
+          className="sr-only"
+          onChange={(event) => {
+            setSelectedFile(event.target.files?.[0] ?? null);
+            setZoom(1);
+            setPanX(0);
+            setPanY(0);
+          }}
+          ref={fileInputRef}
+          type="file"
+        />
+        <p className="ui-text m-0 text-muted-foreground">JPG, PNG, or WEBP up to 8 MB</p>
         {draftPreviewUrl && previewRect ? (
           <div className="grid gap-4 rounded-[16px] border border-border/70 bg-white/72 p-4">
             <div className="flex justify-center">
@@ -340,10 +377,47 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
             </div>
           </div>
         ) : null}
-        <Button className="min-h-11 rounded-[16px]" disabled={isSaving} size="sm" type="submit">
-          {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <Upload className="size-4" />}
-          Upload photo
-        </Button>
+        {selectedFile ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              className="min-h-11 rounded-[16px]"
+              disabled={isSaving || isRemoving}
+              onClick={() => {
+                setSelectedFile(null);
+                setDraftPreviewUrl(null);
+                setZoom(1);
+                setPanX(0);
+                setPanY(0);
+                setFeedback("");
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+            <Button className="min-h-11 rounded-[16px]" disabled={isSaving || isRemoving} size="sm" type="submit">
+              {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
+              Upload photo
+            </Button>
+          </div>
+        ) : null}
+        {photoUrl ? (
+          <Button
+            className="min-h-11 rounded-[16px]"
+            disabled={isSaving || isRemoving}
+            onClick={handleRemovePhoto}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            {isRemoving ? <LoaderCircle className="size-4 animate-spin" /> : null}
+            Remove current photo
+          </Button>
+        ) : null}
       </form>
 
       {feedback ? <p className="mb-0 mt-3 text-sm text-muted-foreground">{feedback}</p> : null}
