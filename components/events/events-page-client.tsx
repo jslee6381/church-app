@@ -419,7 +419,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatWeekday(event.startsAt)}</p>
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 overflow-hidden">
                   {event.variant === "service-pair" && event.services ? (
                     <>
                       <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
@@ -456,10 +456,10 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   ) : (
                     <>
                       {editingEventId === event.id ? (
-                        <form className="grid gap-3" onSubmit={handleSubmit}>
+                        <form className="grid min-w-0 max-w-full gap-3 overflow-hidden" onSubmit={handleSubmit}>
                           <div className="relative">
                             <input
-                              className="min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
+                              className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
                               maxLength={TITLE_LIMIT}
                               onChange={(event) => setTitle(event.target.value)}
                               placeholder="Event title"
@@ -471,7 +471,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           </div>
                           <div className="relative">
                             <textarea
-                              className="min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                              className="min-h-[110px] w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
                               maxLength={CONTENT_LIMIT}
                               onChange={(event) => setSummary(event.target.value)}
                               placeholder="Short description"
@@ -482,18 +482,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             </span>
                           </div>
                           <input
-                            className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                            className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
                             onChange={(event) => setLocationName(event.target.value)}
                             placeholder="Location"
                             value={locationName}
                           />
                           <input
-                            className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                            className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
                             onChange={(event) => setStartsAt(event.target.value)}
                             type="datetime-local"
                             value={startsAt}
                           />
-                          <label className="inline-flex min-h-12 items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
+                          <label className="inline-flex min-h-12 w-full min-w-0 max-w-full items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
                             <input
                               checked={isLiveStream}
                               className="size-4 accent-[var(--primary)]"
@@ -502,16 +502,16 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             />
                             Live Stream
                           </label>
-                          <label className="grid gap-2 text-sm font-medium text-muted-foreground">
+                          <label className="grid w-full min-w-0 max-w-full gap-2 text-sm font-medium text-muted-foreground">
                             Event image optional, JPG/PNG/WEBP up to 8 MB
                             <input
                               accept="image/jpeg,image/png,image/webp"
-                              className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                              className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                               onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
                               type="file"
                             />
                           </label>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             <button
                               className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
                               disabled={isSaving}

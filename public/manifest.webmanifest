@@ -3,7 +3,7 @@
   "short_name": "New York UBF",
   "description": "A calm church community web app for announcements, prayer, events, and connection.",
   "display": "standalone",
-  "background_color": "#f6f0e6",
+  "background_color": "#f6f4e1",
   "theme_color": "#1d5c4f",
   "start_url": "/",
   "lang": "en",

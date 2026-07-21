@@ -95,15 +95,17 @@ export function HomeTabbedSections({
 
       {activeTab === "home" ? (
         <div className="space-y-8">
-          <section className="fade-up -mt-px overflow-hidden">
-            <img
-              alt="KOINONIA"
-              className="mx-auto block h-auto w-full max-w-[420px] align-top"
-              draggable="false"
-              height={wordmark.height}
-              src={wordmark.src}
-              width={wordmark.width}
-            />
+          <section className="-mt-px overflow-hidden">
+            <div className="flex justify-center">
+              <img
+                alt="KOINONIA"
+                className="block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] scale-[1.01] align-top"
+                draggable="false"
+                height={wordmark.height}
+                src={wordmark.src}
+                width={wordmark.width}
+              />
+            </div>
           </section>
 
           <section className="fade-up mt-8 -mx-4">
