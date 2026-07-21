@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
@@ -31,6 +32,8 @@ const quickActions = [
 type Props = {
   canManageCommunity: boolean;
   canReact: boolean;
+  communityGreeting?: string | null;
+  currentMemberName?: string | null;
   currentMemberPhotoUrl?: string | null;
   events: EventListItem[];
   headerAction?: ReactNode;
@@ -46,6 +49,8 @@ type Props = {
 export function HomeTabbedSections({
   canManageCommunity,
   canReact,
+  communityGreeting,
+  currentMemberName,
   currentMemberPhotoUrl,
   events,
   headerAction,
@@ -53,7 +58,17 @@ export function HomeTabbedSections({
   updates,
   wordmark,
 }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"home" | "community">("home");
+
+  function openCommunityTab() {
+    if (submitAccessState !== "active") {
+      router.push("/access-required?context=community-feed&next=%2Fhome");
+      return;
+    }
+
+    setActiveTab("community");
+  }
 
   return (
     <div className="mt-2">
@@ -79,7 +94,7 @@ export function HomeTabbedSections({
                     ? "bg-background text-black"
                     : "bg-background text-muted-foreground"
                 }`}
-                onClick={() => setActiveTab("community")}
+                onClick={openCommunityTab}
                 style={{ fontWeight: 700 }}
                 type="button"
               >
@@ -143,6 +158,13 @@ export function HomeTabbedSections({
         </div>
       ) : (
         <section className="fade-up mt-3 -mx-4">
+          {communityGreeting && currentMemberName ? (
+            <div className="px-7 pb-3">
+              <p className="ui-text m-0 font-semibold text-foreground">
+                {communityGreeting} {currentMemberName}!
+              </p>
+            </div>
+          ) : null}
           <CommunityUpdatesSection
             canManage={canManageCommunity}
             canReact={canReact}

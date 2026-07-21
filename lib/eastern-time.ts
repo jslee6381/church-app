@@ -31,3 +31,23 @@ export function formatEasternLongDate(value: string) {
     year: "numeric",
   }).format(toEasternDate(value));
 }
+
+export function getEasternGreeting(date = new Date()) {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: EASTERN_TIME_ZONE,
+      hour: "numeric",
+      hour12: false,
+    }).format(date),
+  );
+
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 18) {
+    return "Good afternoon";
+  }
+
+  return "Good evening";
+}

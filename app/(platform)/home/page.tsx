@@ -6,6 +6,7 @@ import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
 import { getCommunityUpdateFeed } from "@/lib/community-updates";
+import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import churchWordmark from "@/aaa.png";
@@ -38,6 +39,8 @@ export default async function HomePage() {
   const updates = await getCommunityUpdateFeed(churchId, authSession?.member.id ?? null);
   const events = await getUpcomingEvents(churchId);
   const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
+  const currentMemberName = authSession?.member.display_name ?? authSession?.member.full_name ?? null;
+  const communityGreeting = authSession?.member.status === "active" ? getEasternGreeting() : null;
 
   return (
     <main className="shell max-w-[560px] py-6">
@@ -53,7 +56,9 @@ export default async function HomePage() {
       <HomeTabbedSections
         canManageCommunity={canAccessAdmin}
         canReact={authSession?.member.status === "active"}
+        communityGreeting={communityGreeting}
         currentMemberPhotoUrl={currentMemberPhotoUrl}
+        currentMemberName={currentMemberName}
         events={events}
         headerAction={(
           <HomeHeaderActions

@@ -452,9 +452,9 @@ export function CommunityUpdatesSection({
         {updates.map((update, index) => (
           <article
             key={update.id}
-            className={`overflow-hidden pb-5 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-5" : ""}`}
+            className={`overflow-hidden pb-2 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-2" : ""}`}
           >
-            <div className="px-4 pt-3 pb-3">
+            <div className="px-4 pt-1 pb-2">
               <div className="flex min-h-[36px] items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {update.authorPhotoUrl ? (
@@ -487,7 +487,7 @@ export function CommunityUpdatesSection({
                 </div>
               </div>
             ) : null}
-            <div className="px-4 pt-4">
+            <div className="px-4 pt-3">
               {editingId === update.id ? (
                 <div className="grid gap-3">
                   <div className="relative">
@@ -525,7 +525,7 @@ export function CommunityUpdatesSection({
                 </>
               )}
             </div>
-            <div className="mt-4 flex items-center justify-between gap-3 px-2">
+            <div className="mt-2 flex items-center justify-between gap-3 px-2">
               <div className="flex items-center gap-2">
                 {update.status === "approved" ? (
                   <div className="flex items-center gap-2">

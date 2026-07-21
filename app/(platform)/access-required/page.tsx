@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 type SearchParams = Promise<{
@@ -39,7 +39,7 @@ export default async function AccessRequiredPage({ searchParams }: { searchParam
     <main className="shell max-w-[560px] py-6">
       <header className="mb-5">
         <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/home">
-          <ArrowLeft className="size-4" />
+          <ChevronLeft className="size-4" />
           Home
         </Link>
       </header>
