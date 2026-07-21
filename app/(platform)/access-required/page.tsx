@@ -4,6 +4,7 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 type SearchParams = Promise<{
   context?: string;
+  mode?: string;
   next?: string;
 }>;
 
@@ -15,13 +16,21 @@ function getSafeNextPath(next?: string) {
   return next;
 }
 
-function getCopy(context?: string) {
+function getCopy(context?: string, mode?: string) {
   const areaLabel =
     context === "prayer"
       ? "Prayer"
       : context === "community-feed"
         ? "Community Feed"
         : "Member Access";
+
+  if (mode === "pending") {
+    return {
+      kicker: areaLabel,
+      title: "Your member approval is still pending",
+      body: "You are signed in, but a church admin still needs to approve your access before you can use this member-only area.",
+    };
+  }
 
   return {
     kicker: areaLabel,
@@ -33,7 +42,8 @@ function getCopy(context?: string) {
 export default async function AccessRequiredPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const nextPath = getSafeNextPath(params.next);
-  const copy = getCopy(params.context);
+  const copy = getCopy(params.context, params.mode);
+  const isPending = params.mode === "pending";
 
   return (
     <main className="shell max-w-[560px] py-6">
@@ -49,7 +59,16 @@ export default async function AccessRequiredPage({ searchParams }: { searchParam
         <h1 className="ui-text mb-3 mt-3 font-sans font-semibold leading-tight text-foreground">{copy.title}</h1>
         {copy.body ? <p className="ui-text m-0 text-muted-foreground">{copy.body}</p> : null}
         <div className="mt-5">
-          <GoogleSignInButton nextPath={nextPath} />
+          {isPending ? (
+            <Link
+              className="inline-flex min-h-12 items-center justify-center rounded-[18px] border border-border/80 bg-white/80 px-5 text-sm font-semibold text-foreground transition hover:bg-white"
+              href="/settings"
+            >
+              Open Settings
+            </Link>
+          ) : (
+            <GoogleSignInButton nextPath={nextPath} />
+          )}
         </div>
       </section>
     </main>

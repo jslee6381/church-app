@@ -62,6 +62,11 @@ export function HomeTabbedSections({
   const [activeTab, setActiveTab] = useState<"home" | "community">("home");
 
   function openCommunityTab() {
+    if (submitAccessState === "pending") {
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+      return;
+    }
+
     if (submitAccessState !== "active") {
       router.push("/access-required?context=community-feed&next=%2Fhome");
       return;

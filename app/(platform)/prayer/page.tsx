@@ -2,7 +2,6 @@ import { PrayerPageClient } from "@/components/prayer/prayer-page-client";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 type PrayerFeedItem = {
@@ -108,36 +107,7 @@ export default async function PrayerPage() {
   }
 
   if (session.member.status !== "active") {
-    return (
-      <>
-        <main className="shell max-w-[560px] py-6">
-          <section className="mb-5 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-6 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
-            <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Awaiting Approval</p>
-            <h1 className="mb-3 mt-3 font-sans text-[1.6rem] leading-tight text-foreground">
-              You are signed in. A church admin still needs to approve your member access.
-            </h1>
-            <p className="m-0 text-[1rem] leading-7 text-muted-foreground">
-              You can read the public prayer feed while you wait. If you want to update the name shown to the church, use Settings.
-            </p>
-            <div className="mt-5">
-              <Link
-                className="inline-flex min-h-11 items-center rounded-[16px] border border-border/80 bg-white/80 px-4 text-sm font-semibold text-foreground transition hover:bg-white"
-                href="/settings"
-              >
-                Open Settings
-              </Link>
-            </div>
-          </section>
-        </main>
-        <PrayerPageClient
-          canManageAll={canManageAll}
-          composerEnabled={false}
-          initialFeed={initialFeed}
-          lockedMessage="Your member access is still awaiting admin approval. You can read the public feed while you wait."
-          memberName={session.member.display_name ?? session.member.full_name}
-        />
-      </>
-    );
+    redirect("/access-required?mode=pending&context=prayer&next=%2Fprayer");
   }
 
   return (

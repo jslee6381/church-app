@@ -3,6 +3,7 @@ import { PendingMembersApproval } from "@/components/admin/pending-members-appro
 import { PageHeader } from "@/components/page-header";
 import { getAdminDashboardData } from "@/lib/admin/dashboard";
 import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
+import { isProtectedAdminEmail } from "@/lib/protected-admin";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,8 @@ export const revalidate = 0;
 type MemberManagementItem = {
   id: string;
   displayName: string;
+  email: string | null;
+  isProtected: boolean;
   status: string;
   roleName: "admin" | "leader" | "member";
 };
@@ -18,16 +21,16 @@ type MemberManagementItem = {
 async function getMemberManagementData(churchId: string) {
   if (!hasAdminEnvironment()) {
     return [
-      { id: "demo-admin", displayName: "Admin User", status: "active", roleName: "admin" },
-      { id: "demo-leader", displayName: "Grace Lee", status: "active", roleName: "leader" },
-      { id: "demo-member", displayName: "Esther Park", status: "active", roleName: "member" },
+      { id: "demo-admin", displayName: "Joseph Lee", email: "leejs6381@gmail.com", isProtected: true, status: "active", roleName: "admin" },
+      { id: "demo-leader", displayName: "Grace Lee", email: null, isProtected: false, status: "active", roleName: "leader" },
+      { id: "demo-member", displayName: "Esther Park", email: null, isProtected: false, status: "active", roleName: "member" },
     ] satisfies MemberManagementItem[];
   }
 
   const admin = createAdminClient();
   const { data } = await admin
     .from("members")
-    .select("id, display_name, full_name, status, member_roles!left(roles!inner(name))")
+    .select("id, display_name, full_name, email, status, member_roles!left(roles!inner(name))")
     .eq("church_id", churchId)
     .order("created_at", { ascending: false });
 
@@ -35,6 +38,7 @@ async function getMemberManagementData(churchId: string) {
     id: string;
     display_name: string | null;
     full_name: string;
+    email: string | null;
     status: string;
     member_roles?: unknown;
   }) => {
@@ -49,8 +53,10 @@ async function getMemberManagementData(churchId: string) {
     return {
       id: member.id,
       displayName: member.display_name ?? member.full_name,
+      email: member.email,
+      isProtected: isProtectedAdminEmail(member.email),
       status: member.status,
-      roleName: roleNames.includes("admin") ? "admin" : roleNames.includes("leader") ? "leader" : "member",
+      roleName: isProtectedAdminEmail(member.email) ? "admin" : roleNames.includes("admin") ? "admin" : roleNames.includes("leader") ? "leader" : "member",
     } satisfies MemberManagementItem;
   });
 }

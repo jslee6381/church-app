@@ -8,7 +8,7 @@ function normalizeText(value: string) {
 }
 
 const CONTENT_LIMIT = 150;
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 10;
 
 function getCurrentActivityDate() {
   const formatter = new Intl.DateTimeFormat("en-CA", {

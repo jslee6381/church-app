@@ -7,7 +7,7 @@ import { LoaderCircle, MoreVertical, SendHorizonal, Users } from "lucide-react";
 import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
 const CONTENT_LIMIT = 150;
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 10;
 
 type Props = {
   canManage: boolean;
@@ -76,6 +76,7 @@ export function CommunityUpdatesSection({
   const [showSubmitGate, setShowSubmitGate] = useState(false);
   const [isComposerExpanded, setIsComposerExpanded] = useState(false);
   const [openMenuUpdateId, setOpenMenuUpdateId] = useState<string | null>(null);
+  const [currentImageIndexes, setCurrentImageIndexes] = useState<Record<string, number>>({});
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
@@ -119,6 +120,25 @@ export function CommunityUpdatesSection({
     setIsComposerExpanded(true);
   }
 
+  function handleImageScroll(updateId: string, event: React.UIEvent<HTMLDivElement>) {
+    const container = event.currentTarget;
+    const width = container.clientWidth;
+
+    if (!width) {
+      return;
+    }
+
+    const nextIndex = Math.round(container.scrollLeft / width);
+    setCurrentImageIndexes((current) =>
+      current[updateId] === nextIndex
+        ? current
+        : {
+            ...current,
+            [updateId]: nextIndex,
+          },
+    );
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -128,6 +148,11 @@ export function CommunityUpdatesSection({
     }
 
     if (submitAccessState !== "active") {
+      if (submitAccessState === "pending") {
+        router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+        return;
+      }
+
       setShowSubmitGate(true);
       setFeedback("");
       return;
@@ -387,7 +412,7 @@ export function CommunityUpdatesSection({
             {isComposerExpanded ? (
               <>
               <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                Photos optional, JPG/PNG/WEBP up to 8 MB each
+                Photos optional, up to {MAX_IMAGES} images, JPG/PNG/WEBP up to 8 MB each
                 <input
                   multiple
                   accept="image/jpeg,image/png,image/webp"
@@ -475,7 +500,10 @@ export function CommunityUpdatesSection({
             </div>
             {update.imageUrls.length > 0 ? (
               <div>
-                <div className="flex snap-x snap-mandatory overflow-x-auto">
+                <div
+                  className="flex snap-x snap-mandatory overflow-x-auto"
+                  onScroll={(event) => handleImageScroll(update.id, event)}
+                >
                   {update.imageUrls.map((imageUrl, index) => (
                     <img
                       key={`${update.id}-${index}`}
@@ -485,9 +513,26 @@ export function CommunityUpdatesSection({
                     />
                   ))}
                 </div>
+                {update.imageUrls.length > 1 ? (
+                  <div className="mt-2 flex items-center justify-center gap-1.5">
+                    {update.imageUrls.map((_, imageIndex) => {
+                      const isActive = (currentImageIndexes[update.id] ?? 0) === imageIndex;
+
+                      return (
+                        <span
+                          key={`${update.id}-dot-${imageIndex}`}
+                          aria-hidden="true"
+                          className={`size-1.5 rounded-full transition ${
+                            isActive ? "bg-foreground" : "bg-border"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             ) : null}
-            <div className="px-4 pt-3">
+            <div className={`px-4 ${update.imageUrls.length > 1 ? "pt-2" : "pt-3"}`}>
               {editingId === update.id ? (
                 <div className="grid gap-3">
                   <div className="relative">

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole } from "@/lib/auth/authorization";
 import { requireAdminSession } from "@/lib/auth/authorization";
+import { isProtectedAdminEmail } from "@/lib/protected-admin";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { ensureChurchRoles, normalizeRoleName } from "@/lib/roles";
 
@@ -26,6 +26,21 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     }
 
     const admin = createAdminClient();
+    const { data: targetMember } = await admin
+      .from("members")
+      .select("id, email")
+      .eq("id", id)
+      .eq("church_id", session.member.church_id)
+      .maybeSingle();
+
+    if (!targetMember) {
+      return NextResponse.json({ error: "Unable to find that member." }, { status: 404 });
+    }
+
+    if (isProtectedAdminEmail(targetMember.email)) {
+      return NextResponse.json({ error: "This admin account is protected and cannot be changed." }, { status: 403 });
+    }
+
     const roleMap = await ensureChurchRoles(session.member.church_id);
     const roleId = roleMap.get(roleName);
 
@@ -44,13 +59,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (canSelfApproveByRole([roleName])) {
-      await admin
-        .from("members")
-        .update({ status: "active" })
-        .eq("id", id)
-        .eq("church_id", session.member.church_id);
-    }
+    await admin
+      .from("members")
+      .update({ status: "active" })
+      .eq("id", id)
+      .eq("church_id", session.member.church_id);
 
     await admin.from("audit_logs").insert({
       church_id: session.member.church_id,
