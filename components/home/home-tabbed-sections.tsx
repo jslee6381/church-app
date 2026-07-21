@@ -161,7 +161,7 @@ export function HomeTabbedSections({
           {communityGreeting && currentMemberName ? (
             <div className="px-4 pb-3">
               <p className="ui-text m-0 font-semibold text-foreground">
-                {communityGreeting} {currentMemberName}!
+                {communityGreeting}, {currentMemberName}
               </p>
             </div>
           ) : null}

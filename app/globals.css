@@ -134,7 +134,7 @@ select {
 .shell {
   width: min(100%, 1024px);
   margin: 0 auto;
-  padding: 20px 16px 80px;
+  padding: 8px 16px 80px;
 }
 
 .ui-text {
@@ -520,7 +520,7 @@ h2 {
 
 @media (max-width: 680px) {
   .shell {
-    padding: 14px 14px 72px;
+    padding: 6px 14px 72px;
   }
 
   .hero,
