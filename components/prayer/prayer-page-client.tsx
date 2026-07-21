@@ -359,7 +359,7 @@ export function PrayerPageClient({
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className="min-h-10 h-10 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-2 pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="min-h-10 h-10 w-full resize-none rounded-[16px] border border-transparent bg-white px-4 py-2 pr-16 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
                         setRequestText(event.target.value);

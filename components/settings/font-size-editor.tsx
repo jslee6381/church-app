@@ -34,7 +34,7 @@ export function FontSizeEditor() {
   }
 
   return (
-    <section className="mb-4">
+    <section className="mb-4 border-t border-border/70 pt-4">
       <div>
         <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Text Size</p>
         <p className="ui-text m-0 mt-1 font-semibold text-foreground">Adjust the app text size</p>

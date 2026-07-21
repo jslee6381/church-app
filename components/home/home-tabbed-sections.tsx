@@ -95,7 +95,7 @@ export function HomeTabbedSections({
 
       {activeTab === "home" ? (
         <div className="space-y-8">
-          <section className="fade-up">
+          <section className="fade-up -mt-px overflow-hidden">
             <img
               alt="KOINONIA"
               className="mx-auto block h-auto w-full max-w-[420px] align-top"

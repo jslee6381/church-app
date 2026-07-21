@@ -50,7 +50,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
   }
 
   return (
-    <section className="mb-4">
+    <section className="mb-4 border-t border-border/70 pt-4">
       {!isEditing ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
