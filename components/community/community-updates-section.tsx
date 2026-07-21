@@ -11,6 +11,7 @@ const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 10;
 const MAX_IMAGE_DIMENSION = 1800;
 const JPEG_QUALITY = 0.82;
+const MIXED_FRAME_MIN_RATIO = 0.92;
 
 type Props = {
   canManage: boolean;
@@ -481,7 +482,19 @@ export function CommunityUpdatesSection({
       return null;
     }
 
+    const hasPortraitImage = knownRatios.some((value) => value < 1);
+    const hasLandscapeImage = knownRatios.some((value) => value > 1);
+
+    if (hasPortraitImage && hasLandscapeImage) {
+      const averageRatio = knownRatios.reduce((total, value) => total + value, 0) / knownRatios.length;
+      return Math.max(averageRatio, MIXED_FRAME_MIN_RATIO);
+    }
+
     return Math.min(...knownRatios);
+  }
+
+  function shouldUseFramedCarousel(update: CommunityUpdateFeedItem) {
+    return update.imageUrls.length > 1;
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -950,35 +963,53 @@ export function CommunityUpdatesSection({
             </div>
             {update.imageUrls.length > 0 ? (
               <div>
-                <div
-                  className="overflow-hidden"
-                  style={{
-                    aspectRatio: getPostFrameRatio(update.id) ?? "3 / 4",
-                  }}
-                >
+                {shouldUseFramedCarousel(update) ? (
                   <div
-                    className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto"
-                    onScroll={(event) => handleImageScroll(update.id, event)}
+                    className="overflow-hidden"
+                    style={{
+                      aspectRatio: getPostFrameRatio(update.id) ?? "3 / 4",
+                    }}
                   >
-                    {update.imageUrls.map((imageUrl, index) => (
-                      <button
-                        key={`${update.id}-${index}`}
-                        className="relative h-full w-full shrink-0 snap-center bg-transparent p-0"
-                        onClick={() => openLightbox(update.imageUrls, index)}
-                        type="button"
-                      >
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <img
-                            alt={`Community update image ${index + 1}`}
-                            className="block max-h-full max-w-full object-contain object-center"
-                            onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
-                            src={imageUrl}
-                          />
-                        </div>
-                      </button>
-                    ))}
+                    <div
+                      className="no-scrollbar flex h-full snap-x snap-mandatory overflow-x-auto"
+                      onScroll={(event) => handleImageScroll(update.id, event)}
+                    >
+                      {update.imageUrls.map((imageUrl, index) => (
+                        <button
+                          key={`${update.id}-${index}`}
+                          className="relative h-full w-full shrink-0 snap-center bg-transparent p-0"
+                          onClick={() => openLightbox(update.imageUrls, index)}
+                          type="button"
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <img
+                              alt={`Community update image ${index + 1}`}
+                              className="block max-h-full max-w-full object-contain object-center"
+                              onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                              src={imageUrl}
+                            />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  update.imageUrls.map((imageUrl, index) => (
+                    <button
+                      key={`${update.id}-${index}`}
+                      className="block w-full bg-transparent p-0"
+                      onClick={() => openLightbox(update.imageUrls, index)}
+                      type="button"
+                    >
+                      <img
+                        alt={`Community update image ${index + 1}`}
+                        className="block h-auto w-full"
+                        onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                        src={imageUrl}
+                      />
+                    </button>
+                  ))
+                )}
                 {update.imageUrls.length > 1 ? (
                   <div className="mt-2 flex items-center justify-center gap-1.5">
                     {update.imageUrls.map((_, imageIndex) => {
