@@ -157,6 +157,7 @@ export function CommunityUpdatesSection({
   const [isComposerExpanded, setIsComposerExpanded] = useState(false);
   const [openMenuUpdateId, setOpenMenuUpdateId] = useState<string | null>(null);
   const [currentImageIndexes, setCurrentImageIndexes] = useState<Record<string, number>>({});
+  const [updateImageRatios, setUpdateImageRatios] = useState<Record<string, number[]>>({});
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -434,6 +435,46 @@ export function CommunityUpdatesSection({
             [updateId]: nextIndex,
           },
     );
+  }
+
+  function handleFeedImageLoad(updateId: string, imageIndex: number, event: React.SyntheticEvent<HTMLImageElement>) {
+    const image = event.currentTarget;
+    const ratio = image.naturalWidth > 0 && image.naturalHeight > 0 ? image.naturalWidth / image.naturalHeight : 1;
+
+    setUpdateImageRatios((current) => {
+      const next = [...(current[updateId] ?? [])];
+      next[imageIndex] = ratio;
+
+      const unchanged =
+        next.length === (current[updateId] ?? []).length &&
+        next.every((value, index) => value === (current[updateId] ?? [])[index]);
+
+      if (unchanged) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [updateId]: next,
+      };
+    });
+  }
+
+  function hasMixedImageDimensions(updateId: string) {
+    const ratios = (updateImageRatios[updateId] ?? []).filter((value): value is number => Number.isFinite(value));
+
+    if (ratios.length < 2) {
+      return false;
+    }
+
+    const hasPortrait = ratios.some((ratio) => ratio < 0.9);
+    const hasLandscape = ratios.some((ratio) => ratio > 1.1);
+
+    if (hasPortrait && hasLandscape) {
+      return true;
+    }
+
+    return Math.max(...ratios) - Math.min(...ratios) > 0.45;
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -909,13 +950,22 @@ export function CommunityUpdatesSection({
                   {update.imageUrls.map((imageUrl, index) => (
                     <button
                       key={`${update.id}-${index}`}
-                      className="flex h-[18rem] w-full shrink-0 snap-center items-center justify-center bg-transparent p-0"
+                      className={`w-full shrink-0 snap-center bg-transparent p-0 ${
+                        hasMixedImageDimensions(update.id)
+                          ? "flex h-[18rem] items-center justify-center self-stretch"
+                          : "block self-start"
+                      }`}
                       onClick={() => openLightbox(update.imageUrls, index)}
                       type="button"
                     >
                       <img
                         alt={`Community update image ${index + 1}`}
-                        className="block max-h-full max-w-full object-contain object-center"
+                        className={
+                          hasMixedImageDimensions(update.id)
+                            ? "block max-h-full max-w-full object-contain object-center"
+                            : "block h-auto w-full"
+                        }
+                        onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
                         src={imageUrl}
                       />
                     </button>
