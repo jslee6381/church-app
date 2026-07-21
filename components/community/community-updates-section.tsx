@@ -8,6 +8,8 @@ import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-upda
 
 const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 10;
+const MAX_IMAGE_DIMENSION = 1800;
+const JPEG_QUALITY = 0.82;
 
 type Props = {
   canManage: boolean;
@@ -16,6 +18,63 @@ type Props = {
   currentMemberPhotoUrl?: string | null;
   submitAccessState: "signed_out" | "pending" | "active";
 };
+
+async function compressImageFile(file: File) {
+  if (typeof window === "undefined" || !file.type.startsWith("image/")) {
+    return file;
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new window.Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error(`Unable to read ${file.name}.`));
+      element.src = objectUrl;
+    });
+
+    const { width, height } = image;
+
+    if (!width || !height) {
+      return file;
+    }
+
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(width, height));
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return file;
+    }
+
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY);
+    });
+
+    if (!blob) {
+      return file;
+    }
+
+    const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", {
+      type: "image/jpeg",
+      lastModified: file.lastModified,
+    });
+
+    return compressedFile.size < file.size ? compressedFile : file;
+  } catch {
+    return file;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 function HeartReactionIcon({ active }: { active: boolean }) {
   return (
@@ -66,6 +125,7 @@ export function CommunityUpdatesSection({
   );
   const [summary, setSummary] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [isPreparingImages, setIsPreparingImages] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string>("");
   const [savingReactionId, setSavingReactionId] = useState<string | null>(null);
@@ -120,6 +180,35 @@ export function CommunityUpdatesSection({
     setIsComposerExpanded(true);
   }
 
+  function cancelComposer() {
+    setIsComposerExpanded(false);
+    setSummary("");
+    setImageFiles([]);
+    setFeedback("");
+  }
+
+  async function handleImageSelection(event: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(event.target.files ?? []).slice(0, MAX_IMAGES);
+
+    if (selectedFiles.length === 0) {
+      setImageFiles([]);
+      return;
+    }
+
+    setIsPreparingImages(true);
+    setFeedback("");
+
+    try {
+      const preparedFiles = await Promise.all(selectedFiles.map((file) => compressImageFile(file)));
+      setImageFiles(preparedFiles);
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to prepare images.");
+    } finally {
+      setIsPreparingImages(false);
+      event.target.value = "";
+    }
+  }
+
   function handleImageScroll(updateId: string, event: React.UIEvent<HTMLDivElement>) {
     const container = event.currentTarget;
     const width = container.clientWidth;
@@ -166,7 +255,7 @@ export function CommunityUpdatesSection({
       const formData = new FormData();
       formData.set("summary", summary);
 
-      imageFiles.forEach((file) => formData.append("images", file));
+      imageFiles.forEach((file) => formData.append("images", file, file.name));
 
       const response = await fetch("/api/community-updates", {
         method: "POST",
@@ -417,7 +506,7 @@ export function CommunityUpdatesSection({
                   multiple
                   accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
                   className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                  onChange={(event) => setImageFiles(Array.from(event.target.files ?? []).slice(0, MAX_IMAGES))}
+                  onChange={handleImageSelection}
                   onFocus={keepComposerVisible}
                   type="file"
                 />
@@ -437,14 +526,27 @@ export function CommunityUpdatesSection({
                   </div>
                 </div>
               ) : null}
-              <button
-                className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
-                disabled={isSubmitting}
-                ref={submitButtonRef}
-                type="submit"
-              >
-                {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : "Post"}
-              </button>
+              {isPreparingImages ? (
+                <p className="m-0 text-sm text-muted-foreground">Preparing photos for upload...</p>
+              ) : null}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  className="inline-flex min-h-12 items-center justify-center rounded-[16px] border border-input bg-white px-5 text-base font-semibold text-foreground disabled:opacity-60"
+                  disabled={isSubmitting || isPreparingImages}
+                  onClick={cancelComposer}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+                  disabled={isSubmitting || isPreparingImages}
+                  ref={submitButtonRef}
+                  type="submit"
+                >
+                  {isSubmitting || isPreparingImages ? <LoaderCircle className="size-5 animate-spin" /> : "Post"}
+                </button>
+              </div>
               </>
             ) : null}
           </div>
@@ -501,14 +603,14 @@ export function CommunityUpdatesSection({
             {update.imageUrls.length > 0 ? (
               <div>
                 <div
-                  className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
+                  className="no-scrollbar flex items-start snap-x snap-mandatory overflow-x-auto"
                   onScroll={(event) => handleImageScroll(update.id, event)}
                 >
                   {update.imageUrls.map((imageUrl, index) => (
                     <img
                       key={`${update.id}-${index}`}
                       alt={`Community update image ${index + 1}`}
-                      className="block w-full shrink-0 snap-center"
+                      className="block h-auto w-full shrink-0 self-start snap-center"
                       src={imageUrl}
                     />
                   ))}
