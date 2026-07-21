@@ -58,7 +58,7 @@ export function HomeTabbedSections({
       <div className="-mx-4 mb-4">
         <div className="px-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center bg-white/72 shadow-none">
+            <div className="flex min-w-0 items-center bg-transparent shadow-none">
               <button
                 className={`ui-text min-h-11 px-4 transition ${
                   activeTab === "home"
@@ -98,7 +98,7 @@ export function HomeTabbedSections({
           <section className="fade-up">
             <img
               alt="KOINONIA"
-              className="mx-auto block h-auto w-full max-w-[420px]"
+              className="mx-auto block h-auto w-full max-w-[420px] align-top"
               draggable="false"
               height={wordmark.height}
               src={wordmark.src}

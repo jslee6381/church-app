@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { ArrowLeft, LoaderCircle, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PrayerFeedItem = {
@@ -47,9 +47,9 @@ export function PrayerPageClient({
   const [editingText, setEditingText] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [followUpDrafts, setFollowUpDrafts] = useState<Record<string, string>>({});
-  const [savingFollowUpId, setSavingFollowUpId] = useState<string | null>(null);
+  const [openMenuPrayerId, setOpenMenuPrayerId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const menuAreaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -63,6 +63,24 @@ export function PrayerPageClient({
   useEffect(() => {
     setFeed(initialFeed);
   }, [initialFeed]);
+
+  useEffect(() => {
+    if (!openMenuPrayerId) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuAreaRef.current?.contains(event.target as Node)) {
+        setOpenMenuPrayerId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [openMenuPrayerId]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,6 +142,7 @@ export function PrayerPageClient({
     setEditingText(item.body);
     setErrorMessage("");
     setShowSuccess(false);
+    setOpenMenuPrayerId(null);
   }
 
   function canManageItem(item: PrayerFeedItem) {
@@ -165,6 +184,7 @@ export function PrayerPageClient({
       );
       setEditingId(null);
       setShowSuccess(true);
+      setOpenMenuPrayerId(null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to update prayer request.");
     } finally {
@@ -189,54 +209,11 @@ export function PrayerPageClient({
       }
 
       setFeed((current) => current.filter((item) => item.id !== prayerId));
+      setOpenMenuPrayerId(null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to delete prayer request.");
     } finally {
       setDeletingId(null);
-    }
-  }
-
-  async function submitFollowUp(prayerId: string) {
-    const message = (followUpDrafts[prayerId] ?? "").trim();
-
-    if (!message) {
-      return;
-    }
-
-    setSavingFollowUpId(prayerId);
-    setErrorMessage("");
-    setShowSuccess(false);
-
-    try {
-      const response = await fetch(`/api/prayer-requests/${prayerId}/follow-ups`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to add follow-up.");
-      }
-
-      setFeed((current) =>
-        current.map((item) =>
-          item.id === prayerId
-            ? {
-                ...item,
-                followUps: [...(item.followUps ?? []), payload.followUp],
-              }
-            : item,
-        ),
-      );
-      setFollowUpDrafts((current) => ({ ...current, [prayerId]: "" }));
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to add follow-up.");
-    } finally {
-      setSavingFollowUpId(null);
     }
   }
 
@@ -271,7 +248,7 @@ export function PrayerPageClient({
             </div>
             {editingId === item.id ? (
               <div className="space-y-3">
-                <div className="relative">
+                <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="relative">
                   <textarea
                     className="min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
@@ -323,53 +300,45 @@ export function PrayerPageClient({
               </div>
             ) : null}
             {canManageItem(item) && editingId !== item.id ? (
-              <div className="mt-4 flex gap-2">
-                <button
-                  className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-3 text-sm font-semibold text-foreground"
-                  onClick={() => startEditing(item)}
-                  type="button"
-                >
-                  Edit
-                </button>
-                <button
-                  className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
-                  disabled={deletingId === item.id}
-                  onClick={() => deletePrayer(item.id)}
-                  type="button"
-                >
-                  {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                </button>
-              </div>
-            ) : null}
-            {item.isOwner ? (
-              <div className="mt-4 space-y-2">
+              <div className="relative mt-4 flex justify-end">
                 <div className="relative">
-                  <textarea
-                    className="min-h-[92px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
-                    maxLength={CONTENT_LIMIT}
-                    onChange={(event) => setFollowUpDrafts((current) => ({ ...current, [item.id]: event.target.value }))}
-                    placeholder="Share a follow-up update..."
-                    value={followUpDrafts[item.id] ?? ""}
-                  />
-                  <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
-                    {(followUpDrafts[item.id] ?? "").length}/{CONTENT_LIMIT}
-                  </span>
+                  <button
+                    aria-label="Prayer actions"
+                    className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/70 bg-white text-foreground"
+                    onClick={() =>
+                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                    }
+                    type="button"
+                  >
+                    <MoreVertical className="size-4" />
+                  </button>
+                  {openMenuPrayerId === item.id ? (
+                    <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <button
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                        onClick={() => startEditing(item)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                        disabled={deletingId === item.id}
+                        onClick={() => deletePrayer(item.id)}
+                        type="button"
+                      >
+                        {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
-                <button
-                  className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
-                  disabled={savingFollowUpId === item.id || !(followUpDrafts[item.id] ?? "").trim()}
-                  onClick={() => submitFollowUp(item.id)}
-                  type="button"
-                >
-                  {savingFollowUpId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Add follow-up"}
-                </button>
               </div>
             ) : null}
           </article>
         ))}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border/80 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+14px)] pt-3 backdrop-blur-2xl">
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+14px)] pt-3 backdrop-blur-2xl">
         <div className="mx-auto w-full max-w-[560px]">
           {showSuccess ? (
             <div className="mb-3 rounded-[18px] border border-accent bg-accent/70 px-4 py-3 text-base leading-7 text-accent-foreground shadow-sm">
@@ -385,7 +354,7 @@ export function PrayerPageClient({
             </div>
           ) : null}
 
-          <form className="rounded-[24px] border border-border/80 bg-white/94 p-3 shadow-[0_-10px_28px_rgba(68,52,35,0.08)]" onSubmit={handleSubmit}>
+          <form className="rounded-[20px] border border-border/80 bg-white/94 p-2.5 shadow-[0_-10px_28px_rgba(68,52,35,0.08)]" onSubmit={handleSubmit}>
             {composerEnabled ? (
               <>
                 <div className="flex items-end gap-3">
@@ -393,7 +362,7 @@ export function PrayerPageClient({
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className="min-h-12 h-12 w-full resize-none rounded-[18px] border border-transparent bg-secondary/42 px-4 py-[11px] pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="min-h-8 h-8 w-full resize-none rounded-[16px] border border-transparent bg-secondary/42 px-4 py-[6px] pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
                         setRequestText(event.target.value);
@@ -410,7 +379,7 @@ export function PrayerPageClient({
                   </div>
 
                   {requestText.trim() ? (
-                    <Button className="min-h-12 rounded-[18px] px-5" disabled={isSubmitting} size="sm" type="submit">
+                    <Button className="min-h-10 rounded-[16px] px-5" disabled={isSubmitting} size="sm" type="submit">
                       {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : "Send"}
                     </Button>
                   ) : null}

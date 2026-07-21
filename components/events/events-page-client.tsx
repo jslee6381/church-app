@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CalendarDays, LoaderCircle, MapPin, Plus } from "lucide-react";
+import { CalendarDays, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { EventListItem } from "@/lib/events";
 
@@ -64,6 +64,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const [isDuplicatingId, setIsDuplicatingId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [openMenuEventId, setOpenMenuEventId] = useState<string | null>(null);
 
   const hasSampleEvents = events.some((event) => !UUID_PATTERN.test(event.id));
 
@@ -117,6 +118,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setIsLiveStream(Boolean(event.isLiveStream));
     setImageFile(null);
     setFeedback("");
+    setOpenMenuEventId(null);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -201,6 +203,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         resetForm();
       }
       setFeedback(payload.message ?? "Event deleted.");
+      setOpenMenuEventId(null);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to delete event.");
     } finally {
@@ -251,6 +254,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         return [...current.slice(0, sourceIndex + 1), duplicatedEvent, ...current.slice(sourceIndex + 1)];
       });
       setFeedback("Event duplicated.");
+      setOpenMenuEventId(null);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to duplicate event.");
     } finally {
@@ -549,33 +553,47 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   )}
 
                   {canManage && editingEventId !== event.id ? (
-                    <div className="mt-4 flex gap-2">
+                    <div className="relative mt-4 flex justify-end">
                       {UUID_PATTERN.test(event.id) ? (
-                        <>
+                        <div className="relative">
                           <button
-                            className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
-                            onClick={() => beginEdit(event)}
+                            aria-label="Event actions"
+                            className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/80 bg-white text-foreground"
+                            onClick={() =>
+                              setOpenMenuEventId((current) => (current === event.id ? null : event.id))
+                            }
                             type="button"
                           >
-                            Edit
+                            <MoreVertical className="size-4" />
                           </button>
-                          <button
-                            className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
-                            disabled={isDuplicatingId === event.id}
-                            onClick={() => duplicateEvent(event)}
-                            type="button"
-                          >
-                            {isDuplicatingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Duplicate"}
-                          </button>
-                          <button
-                            className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
-                            disabled={isDeletingId === event.id}
-                            onClick={() => deleteEvent(event.id)}
-                            type="button"
-                          >
-                            {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                          </button>
-                        </>
+                          {openMenuEventId === event.id ? (
+                            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                                onClick={() => beginEdit(event)}
+                                type="button"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                                disabled={isDuplicatingId === event.id}
+                                onClick={() => duplicateEvent(event)}
+                                type="button"
+                              >
+                                {isDuplicatingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Duplicate"}
+                              </button>
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                                disabled={isDeletingId === event.id}
+                                onClick={() => deleteEvent(event.id)}
+                                type="button"
+                              >
+                                {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
                       ) : (
                         <p className="m-0 text-sm text-muted-foreground">Built-in service schedule</p>
                       )}

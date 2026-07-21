@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, SendHorizonal, Users } from "lucide-react";
+import { LoaderCircle, MoreVertical, SendHorizonal, Users } from "lucide-react";
 import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
 const CONTENT_LIMIT = 150;
@@ -73,6 +73,7 @@ export function CommunityUpdatesSection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showSubmitGate, setShowSubmitGate] = useState(false);
   const [isComposerExpanded, setIsComposerExpanded] = useState(false);
+  const [openMenuUpdateId, setOpenMenuUpdateId] = useState<string | null>(null);
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
@@ -221,6 +222,7 @@ export function CommunityUpdatesSection({
     setEditingId(update.id);
     setEditingSummary(getUpdateContent(update));
     setFeedback("");
+    setOpenMenuUpdateId(null);
   }
 
   async function saveEdit(updateId: string) {
@@ -258,6 +260,7 @@ export function CommunityUpdatesSection({
       );
       setEditingId(null);
       setFeedback(payload.message ?? "Your update was saved and sent for approval.");
+      setOpenMenuUpdateId(null);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to update community update.");
     } finally {
@@ -285,6 +288,7 @@ export function CommunityUpdatesSection({
         setEditingId(null);
       }
       setFeedback(payload.message ?? "Community update deleted.");
+      setOpenMenuUpdateId(null);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to delete community update.");
     } finally {
@@ -557,25 +561,39 @@ export function CommunityUpdatesSection({
                   </span>
                 ) : null}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="relative flex items-center gap-2">
                 {update.isOwner && editingId !== update.id ? (
-                  <>
+                  <div className="relative">
                     <button
-                      className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-3 text-sm font-semibold text-foreground"
-                      onClick={() => startEditing(update)}
+                      aria-label="Update actions"
+                      className="inline-flex size-10 items-center justify-center rounded-[14px] border border-border/70 bg-white text-foreground"
+                      onClick={() =>
+                        setOpenMenuUpdateId((current) => (current === update.id ? null : update.id))
+                      }
                       type="button"
                     >
-                      Edit
+                      <MoreVertical className="size-4" />
                     </button>
-                    <button
-                      className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-3 text-sm font-semibold text-foreground disabled:opacity-60"
-                      disabled={deletingId === update.id}
-                      onClick={() => deleteUpdate(update.id)}
-                      type="button"
-                    >
-                      {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                    </button>
-                  </>
+                    {openMenuUpdateId === update.id ? (
+                      <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                          onClick={() => startEditing(update)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          disabled={deletingId === update.id}
+                          onClick={() => deleteUpdate(update.id)}
+                          type="button"
+                        >
+                          {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             </div>
