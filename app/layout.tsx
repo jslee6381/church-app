@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
 import { LiveRouteRefresh } from "@/components/navigation/live-route-refresh";
