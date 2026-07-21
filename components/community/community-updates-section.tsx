@@ -473,17 +473,15 @@ export function CommunityUpdatesSection({
     });
   }
 
-  function getCurrentImageRatio(updateId: string) {
+  function getPostFrameRatio(updateId: string) {
     const ratios = updateImageRatios[updateId] ?? [];
-    const currentIndex = currentImageIndexes[updateId] ?? 0;
-    const currentRatio = ratios[currentIndex];
+    const knownRatios = ratios.filter((value): value is number => Number.isFinite(value) && value > 0);
 
-    if (Number.isFinite(currentRatio) && currentRatio > 0) {
-      return currentRatio;
+    if (knownRatios.length === 0) {
+      return null;
     }
 
-    const firstKnownRatio = ratios.find((value) => Number.isFinite(value) && value > 0);
-    return firstKnownRatio ?? null;
+    return Math.min(...knownRatios);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -955,7 +953,7 @@ export function CommunityUpdatesSection({
                 <div
                   className="overflow-hidden transition-[aspect-ratio] duration-300 ease-out"
                   style={{
-                    aspectRatio: getCurrentImageRatio(update.id) ?? undefined,
+                    aspectRatio: getPostFrameRatio(update.id) ?? undefined,
                   }}
                 >
                   <div
