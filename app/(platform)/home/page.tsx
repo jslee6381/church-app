@@ -11,6 +11,10 @@ import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import churchWordmark from "@/aaa.png";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getProfilePhotoUrl(memberId: string) {
   if (!hasAdminEnvironment()) {
     return null;

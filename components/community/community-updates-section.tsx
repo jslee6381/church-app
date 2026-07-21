@@ -162,6 +162,19 @@ export function CommunityUpdatesSection({
   const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
   const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setUpdates(initialUpdates);
+    setSelectedReactions(
+      Object.fromEntries(
+        initialUpdates
+          .filter((item) => item.selectedReaction)
+          .map((item) => [item.id, item.selectedReaction as ReactionKind]),
+      ),
+    );
+    setCurrentImageIndexes({});
+    setUpdateImageRatios({});
+  }, [initialUpdates]);
+
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
   }
