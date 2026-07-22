@@ -1,5 +1,29 @@
 const EASTERN_TIME_ZONE = "America/New_York";
 
+function getEasternParts(
+  value: string | Date,
+  options: {
+    year?: "numeric";
+    month?: "short" | "long" | "2-digit";
+    day?: "numeric" | "2-digit";
+    weekday?: "short";
+    hour?: "numeric" | "2-digit";
+    minute?: "2-digit";
+  },
+) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: EASTERN_TIME_ZONE,
+    hour12: true,
+    ...options,
+  }).formatToParts(typeof value === "string" ? new Date(value) : value);
+
+  return Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+}
+
 function parseDateOnly(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
@@ -16,20 +40,22 @@ export function toEasternDate(value: string) {
 }
 
 export function formatEasternMonthDay(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: EASTERN_TIME_ZONE,
+  const parts = getEasternParts(toEasternDate(value), {
     month: "short",
     day: "numeric",
-  }).format(toEasternDate(value));
+  });
+
+  return `${parts.month} ${parts.day}`;
 }
 
 export function formatEasternLongDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: EASTERN_TIME_ZONE,
+  const parts = getEasternParts(toEasternDate(value), {
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(toEasternDate(value));
+  });
+
+  return `${parts.month} ${parts.day}, ${parts.year}`;
 }
 
 export function getEasternGreeting(date = new Date()) {
@@ -130,4 +156,41 @@ export function formatEasternDateTimeLocalValue(value: string) {
   );
 
   return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
+}
+
+export function formatEasternDayNumber(value: string) {
+  return getEasternParts(value, { day: "numeric" }).day;
+}
+
+export function formatEasternWeekday(value: string) {
+  return getEasternParts(value, { weekday: "short" }).weekday;
+}
+
+export function formatEasternMonthHeading(value: string) {
+  return getEasternParts(value, { month: "long" }).month;
+}
+
+export function formatEasternEventDate(value: string) {
+  const parts = getEasternParts(value, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return `${parts.weekday}, ${parts.month} ${parts.day}, ${parts.year}`;
+}
+
+export function formatEasternEventTime(value: string) {
+  const parts = getEasternParts(value, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const minute = parts.minute === "00" ? "" : `:${parts.minute}`;
+
+  return `${parts.hour}${minute}${parts.dayPeriod ?? ""}`;
+}
+
+export function formatEasternEventDateTime(value: string) {
+  return `${formatEasternEventDate(value)} at ${formatEasternEventTime(value)}`;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatEasternDateTimeLocalValue } from "@/lib/eastern-time";
+import { formatEasternDateTimeLocalValue, formatEasternDayNumber, formatEasternEventDate, formatEasternEventTime, formatEasternMonthHeading, formatEasternWeekday } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 const TITLE_LIMIT = 50;
@@ -14,43 +14,6 @@ type Props = {
   canManage: boolean;
   initialEvents: EventListItem[];
 };
-
-function formatDayNumber(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-  }).format(new Date(date));
-}
-
-function formatWeekday(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-  }).format(new Date(date));
-}
-
-function formatFullEventDate(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-}
-
-function formatEventTimeLabel(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  })
-    .format(new Date(date))
-    .replace(":00 ", "")
-    .replace(" ", "");
-}
-
-function formatMonthHeading(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-  }).format(new Date(date));
-}
 
 export function EventsPageClient({ canManage, initialEvents }: Props) {
   const router = useRouter();
@@ -446,7 +409,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       ) : null}
 
       {events.map((event) => {
-        const monthHeading = formatMonthHeading(event.startsAt);
+        const monthHeading = formatEasternMonthHeading(event.startsAt);
         const showMonthHeading = monthHeading !== lastMonthHeading;
 
         lastMonthHeading = monthHeading;
@@ -512,8 +475,8 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               ) : null}
               <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-4">
                 <div className="flex flex-col items-center justify-start pt-1 text-center">
-                  <p className="m-0 font-sans text-[2rem] font-semibold leading-none text-foreground">{formatDayNumber(event.startsAt)}</p>
-                  <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatWeekday(event.startsAt)}</p>
+                  <p className="m-0 font-sans text-[2rem] font-semibold leading-none text-foreground">{formatEasternDayNumber(event.startsAt)}</p>
+                  <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatEasternWeekday(event.startsAt)}</p>
                 </div>
 
                 <div className="min-w-0 overflow-hidden">
@@ -521,7 +484,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                     <>
                       <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                         <CalendarDays className="size-4 text-primary" />
-                        <span>{formatFullEventDate(event.startsAt)}</span>
+                        <span>{formatEasternEventDate(event.startsAt)}</span>
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-3 text-center">
                         {event.services.map((service) => (
@@ -530,7 +493,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                               {service.title}
                             </p>
                             <p className="ui-text mt-1 mb-0 text-muted-foreground">
-                              {service.startsAt ? formatEventTimeLabel(service.startsAt) : service.time}
+                              {service.startsAt ? formatEasternEventTime(service.startsAt) : service.time}
                             </p>
                           </div>
                         ))}
@@ -543,7 +506,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       </p>
                       <p className="ui-text mt-4 mb-0 flex items-center gap-2 text-muted-foreground">
                         <CalendarDays className="size-4 text-primary" />
-                        <span>{formatFullEventDate(event.startsAt)} · {formatEventTimeLabel(event.startsAt)}</span>
+                        <span>{formatEasternEventDate(event.startsAt)} · {formatEasternEventTime(event.startsAt)}</span>
                       </p>
                       {event.locationName ? (
                         <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
@@ -657,7 +620,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
                             <CalendarDays className="size-4 text-primary" />
                             <span>
-                              {formatFullEventDate(event.startsAt)} · {formatEventTimeLabel(event.startsAt)}
+                              {formatEasternEventDate(event.startsAt)} · {formatEasternEventTime(event.startsAt)}
                             </span>
                           </p>
                           {event.locationName ? (

@@ -1,6 +1,7 @@
 import "server-only";
 import { hasAdminEnvironment } from "@/lib/supabase/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatEasternEventDate, formatEasternEventTime, formatEasternMonthHeading } from "@/lib/eastern-time";
 
 export const DEFAULT_LIVE_STREAM_URL = "https://www.youtube.com/@nyubfsundayworship260/streams";
 
@@ -26,28 +27,15 @@ export type EventListItem = {
 export type EventRsvpStatus = "going" | "maybe" | "not_going";
 
 export function formatEventDate(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
+  return formatEasternEventDate(date);
 }
 
 export function formatEventTime(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  })
-    .format(new Date(date))
-    .replace(":00 ", "")
-    .replace(" ", "");
+  return formatEasternEventTime(date);
 }
 
 export function formatMonthHeading(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-  }).format(new Date(date));
+  return formatEasternMonthHeading(date);
 }
 
 export async function getUpcomingEvents(churchId?: string | null): Promise<EventListItem[]> {

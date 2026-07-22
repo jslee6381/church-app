@@ -3,22 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { formatEasternEventDateTime } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 type Props = {
   events: EventListItem[];
 };
-
-function formatEventDateTime(date: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(date));
-}
 
 function LiveIndicatorIcon() {
   return (
@@ -113,7 +103,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             <div className="mt-2 space-y-2 text-left">
               <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                 <CalendarDays className="size-4 shrink-0 text-primary" />
-                <span>{formatEventDateTime(currentEvent.startsAt)}</span>
+                <span>{formatEasternEventDateTime(currentEvent.startsAt)}</span>
               </p>
               {currentEvent.locationName ? (
                 <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
