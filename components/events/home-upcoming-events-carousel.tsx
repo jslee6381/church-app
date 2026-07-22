@@ -11,7 +11,7 @@ type Props = {
 
 function formatEventDateTime(date: string) {
   return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
+    weekday: "short",
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -34,7 +34,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
   return (
     <article className="overflow-hidden bg-background">
       <div className="px-4 pb-1">
-        <p className="ui-text m-0 text-center font-sans font-semibold text-foreground">Upcoming Event</p>
+        <p className="m-0 text-center text-sm font-medium uppercase tracking-[0.12em] text-primary">Upcoming Event</p>
       </div>
       <div className="bg-background px-4 pt-4 pb-4">
         <div className="mb-4 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
@@ -56,13 +56,13 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
                 className="ui-text inline-flex min-w-0 items-center justify-center gap-1 font-sans font-semibold leading-tight text-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
                 href={`/events#event-${currentEvent.id}`}
               >
-                <span className="truncate">{currentEvent.title}</span>
+                <span className="whitespace-normal break-words text-center">{currentEvent.title}</span>
                 <ExternalLink className="size-3.5 shrink-0" />
               </Link>
               {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
                 <Link
                   aria-label={`Open live stream for ${currentEvent.title}`}
-                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#f24b00] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] text-white no-underline"
+                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#ff0000] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] text-white no-underline"
                   href={currentEvent.liveStreamUrl}
                   rel="noreferrer"
                   target="_blank"
@@ -71,13 +71,13 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
                 </Link>
               ) : null}
             </div>
-            <div className="mt-2 space-y-2">
-              <p className="ui-text m-0 flex items-center justify-center gap-2 text-muted-foreground">
+            <div className="mt-2 space-y-2 text-left">
+              <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                 <CalendarDays className="size-4 shrink-0 text-primary" />
                 <span>{formatEventDateTime(currentEvent.startsAt)}</span>
               </p>
               {currentEvent.locationName ? (
-                <p className="ui-text m-0 flex items-center justify-center gap-2 text-muted-foreground">
+                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                   <MapPin className="size-4 shrink-0 text-primary" />
                   <span>{currentEvent.locationName}</span>
                 </p>
