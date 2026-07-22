@@ -65,7 +65,7 @@ export function HomeHeaderActions({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
-        void syncState().then(() => router.refresh());
+        void syncState();
       }
 
       if (event === "SIGNED_OUT") {
@@ -73,7 +73,6 @@ export function HomeHeaderActions({
           authenticated: false,
           canAccessAdmin: false,
         });
-        router.refresh();
       }
     });
 

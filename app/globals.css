@@ -134,7 +134,7 @@ select {
 .shell {
   width: min(100%, 1024px);
   margin: 0 auto;
-  padding: 8px 16px 80px;
+  padding: 8px 16px 108px;
 }
 
 .ui-text {

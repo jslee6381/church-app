@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { startTransition, useState } from "react";
+import { useState } from "react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
@@ -76,9 +76,6 @@ export function HomeTabbedSections({
       return;
     }
 
-    startTransition(() => {
-      router.refresh();
-    });
     setActiveTab("community");
   }
 
@@ -94,12 +91,7 @@ export function HomeTabbedSections({
                     ? "bg-background text-black"
                     : "bg-background text-muted-foreground"
                 }`}
-                onClick={() => {
-                  startTransition(() => {
-                    router.refresh();
-                  });
-                  setActiveTab("home");
-                }}
+                onClick={() => setActiveTab("home")}
                 style={{ fontWeight: 700 }}
                 type="button"
               >
