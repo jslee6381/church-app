@@ -471,7 +471,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                     {item.title}
                   </h2>
 
-                  <p className="ui-text mt-3 mb-0 text-muted-foreground">{item.body}</p>
+                  <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p>
 
                   {item.imageUrl ? (
                     <div className="mt-4 -mx-4">
