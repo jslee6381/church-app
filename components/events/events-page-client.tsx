@@ -35,6 +35,16 @@ function formatFullEventDate(date: string) {
   }).format(new Date(date));
 }
 
+function formatEventTimeLabel(date: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+    .format(new Date(date))
+    .replace(":00 ", "")
+    .replace(" ", "");
+}
+
 function formatMonthHeading(date: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -65,11 +75,8 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [isDuplicatingId, setIsDuplicatingId] = useState<string | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [openMenuEventId, setOpenMenuEventId] = useState<string | null>(null);
-
-  const hasSampleEvents = events.some((event) => !UUID_PATTERN.test(event.id));
 
   useEffect(() => {
     if (!isComposerOpen) {
@@ -115,7 +122,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
   function beginEdit(event: EventListItem) {
     if (!UUID_PATTERN.test(event.id)) {
-      setFeedback("Import the current schedule first to edit built-in worship service entries here.");
+      setFeedback("Only saved events can be edited here.");
       return;
     }
 
@@ -214,7 +221,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
   async function deleteEvent(eventId: string) {
     if (!UUID_PATTERN.test(eventId)) {
-      setFeedback("Import the current schedule first to edit or remove built-in worship service entries here.");
+      setFeedback("Only saved events can be deleted here.");
       return;
     }
 
@@ -297,29 +304,6 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     }
   }
 
-  async function importSampleEvents() {
-    setIsImporting(true);
-    setFeedback("");
-
-    try {
-      const response = await fetch("/api/admin/events/import", {
-        method: "POST",
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to import events.");
-      }
-
-      setFeedback(payload.importedCount > 0 ? `${payload.importedCount} events imported.` : "Events were already imported.");
-      router.refresh();
-    } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Unable to import events.");
-    } finally {
-      setIsImporting(false);
-    }
-  }
-
   function clearSelectedImage() {
     setImageFile(null);
     setImagePreviewUrl(null);
@@ -356,16 +340,6 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
             >
               <Plus className={`size-5 transition-transform ${isComposerOpen || editingEventId ? "rotate-45" : ""}`} />
             </button>
-            {hasSampleEvents ? (
-              <button
-                className="inline-flex min-h-11 items-center justify-center rounded-[16px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
-                disabled={isImporting}
-                onClick={importSampleEvents}
-                type="button"
-              >
-                {isImporting ? <LoaderCircle className="size-4 animate-spin" /> : "Import current schedule"}
-              </button>
-            ) : null}
           </div>
 
           {isComposerOpen ? (
@@ -560,7 +534,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             <p className="ui-text m-0 font-sans font-semibold text-foreground">
                               {service.title}
                             </p>
-                            <p className="ui-text mt-1 mb-0 text-muted-foreground">{service.time}</p>
+                            <p className="ui-text mt-1 mb-0 text-muted-foreground">
+                              {service.startsAt ? formatEventTimeLabel(service.startsAt) : service.time}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -572,7 +548,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       </p>
                       <p className="ui-text mt-4 mb-0 flex items-center gap-2 text-muted-foreground">
                         <CalendarDays className="size-4 text-primary" />
-                        <span>{formatFullEventDate(event.startsAt)} · 11AM</span>
+                        <span>{formatFullEventDate(event.startsAt)} · {formatEventTimeLabel(event.startsAt)}</span>
                       </p>
                       {event.locationName ? (
                         <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
@@ -686,8 +662,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
                             <CalendarDays className="size-4 text-primary" />
                             <span>
-                              {formatFullEventDate(event.startsAt)} ·{" "}
-                              {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(event.startsAt))}
+                              {formatFullEventDate(event.startsAt)} · {formatEventTimeLabel(event.startsAt)}
                             </span>
                           </p>
                           {event.locationName ? (

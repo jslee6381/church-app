@@ -1,6 +1,6 @@
 import "server-only";
 import { formatEasternMonthDay } from "@/lib/eastern-time";
-import { socialPosts, sampleEvents } from "@/lib/data";
+import { socialPosts } from "@/lib/data";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { formatEventDate, formatEventTime } from "@/lib/events";
 
@@ -77,17 +77,7 @@ function getDemoAdminDashboardData() {
       { id: "demo-prayer-2", title: "Healing for a family member", requesterName: "Paul Kim", createdAtLabel: "Jul 8" },
       { id: "demo-prayer-3", title: "Safe travel for summer mission", requesterName: "Mina Lee", createdAtLabel: "Jul 7" },
     ] satisfies AdminPrayerItem[],
-    upcomingEvents: sampleEvents.slice(0, 3).map((event) => ({
-      id: event.id,
-      title: event.title,
-      summary: event.summary,
-      dateLabel: formatEventDate(event.startsAt),
-      timeLabel: formatEventTime(event.startsAt),
-      locationLabel: event.locationName ?? "Location to be announced",
-      startsAt: event.startsAt,
-      imageUrl: event.posterSrc ?? null,
-      isLiveStream: event.isLiveStream ?? false,
-    })) satisfies AdminEventItem[],
+    upcomingEvents: [] satisfies AdminEventItem[],
     latestCommunityUpdates: socialPosts.slice(0, 3).map((post) => ({
       id: String(post.id),
       title: post.title,
@@ -167,17 +157,7 @@ export async function getAdminDashboardData(churchId: string) {
           imageUrl: event.image_url ?? null,
           isLiveStream: event.is_live_stream ?? false,
         }))
-      : sampleEvents.slice(0, 3).map((event) => ({
-          id: event.id,
-          title: event.title,
-          summary: event.summary,
-          dateLabel: formatEventDate(event.startsAt),
-          timeLabel: formatEventTime(event.startsAt),
-          locationLabel: event.locationName ?? "Location to be announced",
-          startsAt: event.startsAt,
-          imageUrl: event.posterSrc ?? null,
-          isLiveStream: event.isLiveStream ?? false,
-        }));
+      : [];
 
   const latestCommunityUpdates =
     (updatesRes.data ?? []).length > 0

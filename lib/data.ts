@@ -107,7 +107,7 @@ export type SampleEvent = {
   isLiveStream?: boolean;
   liveStreamUrl?: string | null;
   variant?: "featured" | "service-pair" | "united-service";
-  services?: Array<{ title: string; time: string }>;
+  services?: Array<{ title: string; time?: string; startsAt?: string }>;
   reactionCount?: number;
 };
 
@@ -126,8 +126,8 @@ const worshipServiceEvents: SampleEvent[] = SUNDAY_SERVICE_DATES_2026.map((date)
       locationAddress: null,
       variant: "service-pair",
       services: [
-        { title: "Queens", time: "11AM" },
-        { title: "Columbia", time: "5PM" },
+        { title: "Queens", startsAt: `${date}T11:00:00-04:00` },
+        { title: "Columbia", startsAt: `${date}T17:00:00-04:00` },
       ],
     };
   }

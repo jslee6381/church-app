@@ -1,12 +1,25 @@
 import "server-only";
-import { sampleEvents, type SampleEvent } from "@/lib/data";
 import { hasAdminEnvironment } from "@/lib/supabase/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const DEFAULT_LIVE_STREAM_URL = "https://www.youtube.com/@nyubfsundayworship260/streams";
 
-export type EventListItem = SampleEvent & {
-  isFallback?: boolean;
+export type EventListItem = {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  locationName: string | null;
+  locationAddress: string | null;
+  category?: string;
+  posterSrc?: string;
+  posterAlt?: string;
+  isLiveStream?: boolean;
+  liveStreamUrl?: string | null;
+  variant?: "featured" | "service-pair" | "united-service";
+  services?: Array<{ title: string; time?: string; startsAt?: string }>;
   imageUrl?: string | null;
 };
 
@@ -37,16 +50,9 @@ export function formatMonthHeading(date: string) {
   }).format(new Date(date));
 }
 
-function mapSampleEvents(): EventListItem[] {
-  return sampleEvents.map((event) => ({
-    ...event,
-    isFallback: true,
-  }));
-}
-
 export async function getUpcomingEvents(churchId?: string | null): Promise<EventListItem[]> {
   if (!hasAdminEnvironment() || !churchId) {
-    return mapSampleEvents();
+    return [];
   }
 
   try {
@@ -61,7 +67,7 @@ export async function getUpcomingEvents(churchId?: string | null): Promise<Event
       .limit(30);
 
     if (error || !data || data.length === 0) {
-      return mapSampleEvents();
+      return [];
     }
 
     return data.map((event) => ({
@@ -78,13 +84,13 @@ export async function getUpcomingEvents(churchId?: string | null): Promise<Event
       liveStreamUrl: event.live_stream_url ?? null,
     }));
   } catch {
-    return mapSampleEvents();
+    return [];
   }
 }
 
 export async function getEventById(churchId: string | null | undefined, eventId: string): Promise<EventListItem | null> {
   if (!hasAdminEnvironment() || !churchId) {
-    return mapSampleEvents().find((event) => event.id === eventId) ?? null;
+    return null;
   }
 
   try {
@@ -97,7 +103,7 @@ export async function getEventById(churchId: string | null | undefined, eventId:
       .single();
 
     if (error || !data) {
-      return mapSampleEvents().find((event) => event.id === eventId) ?? null;
+      return null;
     }
 
     return {
@@ -114,7 +120,7 @@ export async function getEventById(churchId: string | null | undefined, eventId:
       liveStreamUrl: data.live_stream_url ?? null,
     };
   } catch {
-    return mapSampleEvents().find((event) => event.id === eventId) ?? null;
+    return null;
   }
 }
 
