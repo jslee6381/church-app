@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { applyUiTextSize, DEFAULT_SIZE, STORAGE_KEY } from "@/components/settings/ui-preferences-sync";
+import { safeLocalStorageGet, safeLocalStorageSet } from "@/lib/browser-storage";
 
 const SIZE_STEPS = [
   { label: "1", value: DEFAULT_SIZE },
@@ -17,7 +18,7 @@ export function FontSizeEditor() {
       return DEFAULT_SIZE;
     }
 
-    return window.localStorage.getItem(STORAGE_KEY) ?? DEFAULT_SIZE;
+    return safeLocalStorageGet(STORAGE_KEY) ?? DEFAULT_SIZE;
   });
 
   const selectedIndex = useMemo(() => {
@@ -29,7 +30,7 @@ export function FontSizeEditor() {
     const nextSize = SIZE_STEPS[nextIndex]?.value ?? DEFAULT_SIZE;
 
     setSelectedSize(nextSize);
-    window.localStorage.setItem(STORAGE_KEY, nextSize);
+    safeLocalStorageSet(STORAGE_KEY, nextSize);
     applyUiTextSize(nextSize);
   }
 

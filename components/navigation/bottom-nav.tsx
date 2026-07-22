@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FileText, House } from "lucide-react";
+import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
 
 function VideoBoardIcon({ className }: { className?: string }) {
   return (
@@ -52,9 +53,10 @@ const items = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const visibility = useBottomNavVisibility();
   const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video";
 
-  if (!shouldShow) {
+  if (!shouldShow || visibility?.visible === false) {
     return null;
   }
 

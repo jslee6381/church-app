@@ -6,6 +6,7 @@ import { LoaderCircle, QrCode, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MEMBER_LOCAL_STORAGE_KEY } from "@/lib/auth/constants";
+import { safeLocalStorageSet } from "@/lib/browser-storage";
 
 type ValidationState = {
   churchName: string;
@@ -79,7 +80,7 @@ export function InvitationFlow() {
         throw new Error(payload.error ?? "We could not start your church session.");
       }
 
-      window.localStorage.setItem(
+      safeLocalStorageSet(
         MEMBER_LOCAL_STORAGE_KEY,
         JSON.stringify({
           memberId: payload.member.id,

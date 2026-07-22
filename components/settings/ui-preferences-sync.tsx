@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { safeLocalStorageGet } from "@/lib/browser-storage";
 
 const STORAGE_KEY = "koinonia-ui-text-size";
 const DEFAULT_SIZE = "1rem";
@@ -15,7 +16,7 @@ export function applyUiTextSize(size: string) {
 
 export function UiPreferencesSync() {
   useEffect(() => {
-    const storedSize = window.localStorage.getItem(STORAGE_KEY) ?? DEFAULT_SIZE;
+    const storedSize = safeLocalStorageGet(STORAGE_KEY) ?? DEFAULT_SIZE;
     applyUiTextSize(storedSize);
   }, []);
 

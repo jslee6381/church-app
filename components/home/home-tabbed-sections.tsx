@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
+import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
 import type { AnnouncementListItem } from "@/lib/announcements";
 import type { CommunityUpdateFeedItem } from "@/lib/community-updates";
 import type { EventListItem } from "@/lib/events";
@@ -64,6 +65,11 @@ export function HomeTabbedSections({
 }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"home" | "community">("home");
+  const bottomNavVisibility = useBottomNavVisibility();
+
+  useEffect(() => {
+    bottomNavVisibility?.setVisible(activeTab === "home");
+  }, [activeTab, bottomNavVisibility]);
 
   function openCommunityTab() {
     if (submitAccessState === "pending") {
@@ -91,7 +97,9 @@ export function HomeTabbedSections({
                     ? "bg-background text-black"
                     : "bg-background text-muted-foreground"
                 }`}
-                onClick={() => setActiveTab("home")}
+                onClick={() => {
+                  setActiveTab("home");
+                }}
                 style={{ fontWeight: 700 }}
                 type="button"
               >

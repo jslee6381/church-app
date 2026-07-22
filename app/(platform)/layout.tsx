@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/navigation/bottom-nav";
+import { BottomNavVisibilityProvider } from "@/components/navigation/bottom-nav-visibility";
 
 export default async function PlatformLayout({
   children,
@@ -6,9 +7,9 @@ export default async function PlatformLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <BottomNavVisibilityProvider>
       {children}
       <BottomNav />
-    </>
+    </BottomNavVisibilityProvider>
   );
 }
