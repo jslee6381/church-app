@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import type { EventListItem } from "@/lib/events";
 
 type Props = {
@@ -41,7 +41,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
           <div className="flex justify-start">
             <button
               aria-label="Previous event"
-              className="inline-flex size-10 items-center justify-center rounded-full border border-border/80 bg-white/70 text-foreground disabled:opacity-35"
+              className="inline-flex size-10 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoPrevious}
               onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
               type="button"
@@ -57,12 +57,11 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
                 href={`/events#event-${currentEvent.id}`}
               >
                 <span className="whitespace-normal break-words text-center">{currentEvent.title}</span>
-                <ExternalLink className="size-3.5 shrink-0" />
               </Link>
               {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
                 <Link
                   aria-label={`Open live stream for ${currentEvent.title}`}
-                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#ff0000] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] text-white no-underline"
+                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#ff0000] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] !text-white no-underline"
                   href={currentEvent.liveStreamUrl}
                   rel="noreferrer"
                   target="_blank"
@@ -88,7 +87,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
           <div className="flex justify-end">
             <button
               aria-label="Next event"
-              className="inline-flex size-10 items-center justify-center rounded-full border border-border/80 bg-white/70 text-foreground disabled:opacity-35"
+              className="inline-flex size-10 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoNext}
               onClick={() => setCurrentIndex((index) => Math.min(events.length - 1, index + 1))}
               type="button"
