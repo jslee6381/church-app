@@ -62,6 +62,11 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
   const currentEvent = events[currentIndex];
   const canGoPrevious = currentIndex > 0;
   const canGoNext = currentIndex < events.length - 1;
+  const titleHref =
+    currentEvent.isLiveStream && currentEvent.liveStreamUrl
+      ? currentEvent.liveStreamUrl
+      : `/events#event-${currentEvent.id}`;
+  const titleIsExternal = Boolean(currentEvent.isLiveStream && currentEvent.liveStreamUrl);
 
   return (
     <article className="overflow-hidden bg-background">
@@ -86,7 +91,9 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             <div className="flex items-center justify-center gap-2">
               <Link
                 className="ui-text inline-flex min-w-0 items-center justify-center gap-1 font-sans font-semibold leading-tight text-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
-                href={`/events#event-${currentEvent.id}`}
+                href={titleHref}
+                rel={titleIsExternal ? "noreferrer" : undefined}
+                target={titleIsExternal ? "_blank" : undefined}
               >
                 <span className="whitespace-normal break-words text-center">{currentEvent.title}</span>
               </Link>

@@ -261,7 +261,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
             <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
               <div className="relative">
                 <input
-                  className="min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
+                  className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
                   maxLength={TITLE_LIMIT}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Title"
@@ -274,7 +274,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
               <div className="relative">
                 <textarea
-                  className="min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                  className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
                   maxLength={CONTENT_LIMIT}
                   onChange={(event) => setBody(event.target.value)}
                   placeholder="Content"
@@ -382,7 +382,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                 <form className="grid gap-3" onSubmit={handleSubmit}>
                   <div className="relative">
                     <input
-                      className="min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
+                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
                       maxLength={TITLE_LIMIT}
                       onChange={(event) => setTitle(event.target.value)}
                       placeholder="Title"
@@ -395,7 +395,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
                   <div className="relative">
                     <textarea
-                      className="min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                      className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => setBody(event.target.value)}
                       placeholder="Content"

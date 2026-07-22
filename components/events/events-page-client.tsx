@@ -650,44 +650,29 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                                 className="block w-full rounded-[12px]"
                                 src={imagePreviewUrl ?? existingImageUrl ?? ""}
                               />
-                              <div className="grid grid-cols-2 gap-3">
-                                <button
-                                  className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
-                                  onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
-                                  type="button"
-                                >
-                                  {imagePreviewUrl ? "Clear selected image" : "Remove image"}
-                                </button>
-                                <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground">
-                                  Replace image
-                                  <input
-                                    accept="image/jpeg,image/png,image/webp"
-                                    className="sr-only"
-                                    onChange={(event) => {
-                                      const nextFile = event.target.files?.[0] ?? null;
-                                      setImageFile(nextFile);
-                                      setRemoveExistingImage(false);
-                                    }}
-                                    type="file"
-                                  />
-                                </label>
-                              </div>
+                              <button
+                                className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                                onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
+                                type="button"
+                              >
+                                {imagePreviewUrl ? "Clear selected image" : "Remove image"}
+                              </button>
                             </div>
                           ) : null}
-                          <div className="flex flex-wrap gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             <button
-                              className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
-                              disabled={isSaving}
-                              type="submit"
-                            >
-                              {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Update event"}
-                            </button>
-                            <button
-                              className="inline-flex min-h-12 items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
+                              className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
                               onClick={resetInlineEdit}
                               type="button"
                             >
                               Cancel
+                            </button>
+                            <button
+                              className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+                              disabled={isSaving}
+                              type="submit"
+                            >
+                              {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Update"}
                             </button>
                           </div>
                         </form>
