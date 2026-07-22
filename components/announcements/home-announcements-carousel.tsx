@@ -59,7 +59,7 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
             >
               {currentAnnouncement.title}
             </Link>
-            <p className="ui-text mt-2 mb-0 text-left text-muted-foreground">{currentAnnouncement.body}</p>
+            <p className="ui-text mt-2 mb-0 whitespace-pre-line text-left text-muted-foreground">{currentAnnouncement.body}</p>
           </div>
 
           <div className="flex justify-end">
