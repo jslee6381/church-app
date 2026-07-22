@@ -35,30 +35,7 @@ const COLUMBIA_SKIP_DATES = new Set([
   "2026-12-27",
 ]);
 
-export const announcements = [
-  {
-    id: 1,
-    title: "Post-Retreat Praise & Worship Night",
-    date: "Friday, July 24, 2026 · 7:30 PM",
-    isPinned: true,
-    summary: "Community Gathering",
-    body: "Join us for an evening of praise, reflection, and fellowship as we continue sharing the grace and joy of the summer retreat together.",
-    posterSrc: "/announcement-ne-regional-retreat.png",
-    posterAlt: "Post-Retreat Praise and Worship Night poster",
-    reactionCount: 18,
-  },
-  {
-    id: 2,
-    title: "Is Freedom from Porn Possible?",
-    date: "Friday, July 24, 2026 · 7:30 PM",
-    isPinned: false,
-    summary: "Seminar",
-    body: "A seminar evening focused on hope, restoration, and practical support for those seeking freedom.",
-    posterSrc: "/seminar-poster.png",
-    posterAlt: "Is Freedom from Porn Possible seminar poster",
-    reactionCount: 9,
-  },
-];
+export const announcements = [];
 
 export const prayerTopics = [
   {

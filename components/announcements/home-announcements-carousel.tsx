@@ -18,7 +18,21 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (announcements.length === 0) {
-    return null;
+    return (
+      <article className="overflow-hidden bg-background">
+        <div className="px-4 pb-1">
+          <p className="m-0 text-center text-sm font-medium uppercase tracking-[0.12em] text-primary">Announcement</p>
+        </div>
+        <div className="bg-background px-4 pt-4 pb-4">
+          <Link
+            className="ui-text block text-center text-muted-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
+            href="/announcements"
+          >
+            No announcement
+          </Link>
+        </div>
+      </article>
+    );
   }
 
   const currentAnnouncement = announcements[currentIndex];

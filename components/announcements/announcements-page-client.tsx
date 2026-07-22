@@ -7,7 +7,6 @@ type AnnouncementItem = {
   id: number | string;
   title: string;
   body: string;
-  date: string;
   posterSrc?: string;
   posterAlt?: string;
 };
@@ -19,15 +18,6 @@ type Props = {
 
 const TITLE_LIMIT = 50;
 const CONTENT_LIMIT = 150;
-
-function getEasternDateLabel(date = new Date()) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
 
 export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Props) {
   const composerRef = useRef<HTMLDivElement | null>(null);
@@ -176,7 +166,6 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
             id: `announcement-${Date.now()}`,
             title: nextTitle,
             body: nextBody,
-            date: getEasternDateLabel(),
             posterSrc: imagePreviewUrl ?? undefined,
             posterAlt: imagePreviewUrl ? nextTitle : undefined,
           },
@@ -295,7 +284,11 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
       ) : null}
 
       <div className="space-y-4">
-        {announcements.map((item) => (
+        {announcements.length === 0 ? (
+          <article className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+            <p className="ui-text m-0 text-center text-muted-foreground">No announcement</p>
+          </article>
+        ) : announcements.map((item) => (
           <article
             className={`relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
               item.posterSrc ? "pb-0" : "pb-4"
@@ -427,12 +420,9 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
               </form>
             ) : (
               <>
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="ui-text m-0 min-w-0 pr-10 font-sans font-semibold leading-tight text-foreground">
-                    {item.title}
-                  </h2>
-                  <p className="ui-text m-0 shrink-0 text-muted-foreground">{item.date}</p>
-                </div>
+                <h2 className="ui-text m-0 pr-10 font-sans font-semibold leading-tight text-foreground">
+                  {item.title}
+                </h2>
 
                 <p className="ui-text mt-3 mb-0 text-muted-foreground">{item.body}</p>
 
