@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin } from "lucide-react";
 import type { EventListItem } from "@/lib/events";
 
 type Props = {
@@ -33,6 +33,9 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
 
   return (
     <article className="overflow-hidden bg-background">
+      <div className="px-4 pb-1">
+        <p className="ui-text m-0 text-center font-sans font-semibold text-foreground">Upcoming Event</p>
+      </div>
       <div className="bg-background px-4 pt-4 pb-4">
         <div className="mb-4 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
           <div className="flex justify-start">
@@ -47,11 +50,40 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             </button>
           </div>
 
-          <h2
-            className="ui-text m-0 text-center font-sans font-semibold leading-tight text-foreground"
-          >
-            {currentEvent.title}
-          </h2>
+          <div className="min-w-0 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Link
+                className="ui-text inline-flex min-w-0 items-center justify-center gap-1 font-sans font-semibold leading-tight text-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
+                href={`/events#event-${currentEvent.id}`}
+              >
+                <span className="truncate">{currentEvent.title}</span>
+                <ExternalLink className="size-3.5 shrink-0" />
+              </Link>
+              {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
+                <Link
+                  aria-label={`Open live stream for ${currentEvent.title}`}
+                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#f24b00] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] text-white no-underline"
+                  href={currentEvent.liveStreamUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Live
+                </Link>
+              ) : null}
+            </div>
+            <div className="mt-2 space-y-2">
+              <p className="ui-text m-0 flex items-center justify-center gap-2 text-muted-foreground">
+                <CalendarDays className="size-4 shrink-0 text-primary" />
+                <span>{formatEventDateTime(currentEvent.startsAt)}</span>
+              </p>
+              {currentEvent.locationName ? (
+                <p className="ui-text m-0 flex items-center justify-center gap-2 text-muted-foreground">
+                  <MapPin className="size-4 shrink-0 text-primary" />
+                  <span>{currentEvent.locationName}</span>
+                </p>
+              ) : null}
+            </div>
+          </div>
 
           <div className="flex justify-end">
             <button
@@ -65,43 +97,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             </button>
           </div>
         </div>
-
-        <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-          <CalendarDays className="size-4 shrink-0 text-primary" />
-          <span>{formatEventDateTime(currentEvent.startsAt)}</span>
-        </p>
-        {currentEvent.locationName ? (
-          <p className="ui-text mb-0 mt-2 flex items-center gap-2 text-muted-foreground">
-            <MapPin className="size-4 shrink-0 text-primary" />
-            <span>{currentEvent.locationName}</span>
-          </p>
-        ) : null}
-
       </div>
-
-      {currentEvent.posterSrc || currentEvent.imageUrl ? (
-        <div className="px-2 pb-2">
-          {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
-            <Link href={currentEvent.liveStreamUrl} rel="noreferrer" target="_blank">
-              <div className="overflow-hidden rounded-[8px]">
-                <img
-                  alt={currentEvent.posterAlt ?? currentEvent.title}
-                  className="block w-full"
-                  src={currentEvent.posterSrc ?? currentEvent.imageUrl ?? ""}
-                />
-              </div>
-            </Link>
-          ) : (
-            <div className="overflow-hidden rounded-[8px]">
-              <img
-                alt={currentEvent.posterAlt ?? currentEvent.title}
-                className="block w-full"
-                src={currentEvent.posterSrc ?? currentEvent.imageUrl ?? ""}
-              />
-            </div>
-          )}
-        </div>
-      ) : null}
     </article>
   );
 }

@@ -1,13 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 export function LiveRouteRefresh() {
   const router = useRouter();
-  const pathname = usePathname();
   const lastRefreshAtRef = useRef(0);
-  const hasMountedPathRef = useRef(false);
 
   function refreshIfNeeded() {
     const now = Date.now();
@@ -19,15 +17,6 @@ export function LiveRouteRefresh() {
     lastRefreshAtRef.current = now;
     router.refresh();
   }
-
-  useEffect(() => {
-    if (!hasMountedPathRef.current) {
-      hasMountedPathRef.current = true;
-      return;
-    }
-
-    refreshIfNeeded();
-  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function handleFocus() {

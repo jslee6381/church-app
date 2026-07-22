@@ -413,13 +413,14 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
             {showMonthHeading ? <div className="ui-text py-1 text-center font-sans font-semibold text-foreground">{monthHeading}</div> : null}
 
             <article
+              id={`event-${event.id}`}
               className={`rounded-[18px] bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
                 "relative "
               }${
                 event.variant !== "service-pair" && event.variant !== "united-service" && (event.posterSrc || event.imageUrl)
                   ? "pb-0"
                   : "pb-4"
-              } ${
+              } scroll-mt-6 ${
                 event.variant === "united-service" ? "border-2 border-primary/28" : "border border-border/80"
               }`}
             >
