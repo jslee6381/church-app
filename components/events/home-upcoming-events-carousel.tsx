@@ -12,7 +12,7 @@ type Props = {
 function formatEventDateTime(date: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
-    month: "long",
+    month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
