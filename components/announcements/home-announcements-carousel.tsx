@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type AnnouncementItem = {
-  id: number | string;
+  id: string;
   title: string;
   body: string;
 };

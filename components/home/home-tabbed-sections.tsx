@@ -8,7 +8,7 @@ import { HomeAnnouncementsCarousel } from "@/components/announcements/home-annou
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
-import { announcements } from "@/lib/data";
+import type { AnnouncementListItem } from "@/lib/announcements";
 import type { CommunityUpdateFeedItem } from "@/lib/community-updates";
 import type { EventListItem } from "@/lib/events";
 
@@ -32,6 +32,7 @@ const quickActions = [
 ];
 
 type Props = {
+  announcements: AnnouncementListItem[];
   canManageCommunity: boolean;
   canReact: boolean;
   communityGreeting?: string | null;
@@ -49,6 +50,7 @@ type Props = {
 };
 
 export function HomeTabbedSections({
+  announcements,
   canManageCommunity,
   canReact,
   communityGreeting,

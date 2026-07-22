@@ -2,6 +2,7 @@ import { MemberLocalSync } from "@/components/auth/member-local-sync";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { HomeHeaderActions } from "@/components/home/home-header-actions";
 import { HomeTabbedSections } from "@/components/home/home-tabbed-sections";
+import { getAnnouncements } from "@/lib/announcements";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
@@ -41,6 +42,7 @@ export default async function HomePage() {
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
   const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
   const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
+  const announcements = await getAnnouncements(churchId);
   const updates = await getCommunityUpdateFeed(churchId, authSession?.member.id ?? null);
   const events = await getUpcomingEvents(churchId);
   const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
@@ -60,6 +62,7 @@ export default async function HomePage() {
           />
         ) : null}
         <HomeTabbedSections
+          announcements={announcements}
           canManageCommunity={canAccessAdmin}
           canReact={authSession?.member.status === "active"}
           communityGreeting={communityGreeting}
