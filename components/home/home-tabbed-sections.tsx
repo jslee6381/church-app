@@ -142,16 +142,16 @@ export function HomeTabbedSections({
             </div>
           </section>
 
-          <section className="fade-up mt-8 -mx-4">
+          <section className="fade-up mt-6 -mx-4">
             <div className="px-3">
-              <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-[8px] border border-border bg-white/72 shadow-none">
+              <div className="grid grid-cols-3 gap-2">
                 {quickActions.map((action) => {
                   const Icon = action.icon;
 
                   return (
                     <Link
                       key={action.href}
-                      className="border-r border-border p-4 transition hover:bg-white last:border-r-0"
+                      className="rounded-[16px] border border-border bg-white/72 p-4 transition hover:bg-white"
                       href={action.href}
                       rel={action.external ? "noreferrer" : undefined}
                       target={action.external ? "_blank" : undefined}
@@ -160,7 +160,7 @@ export function HomeTabbedSections({
                         <div className="inline-flex size-[52px] shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
                           <Icon className="size-[27px]" />
                         </div>
-                        <p className="ui-text m-0 font-semibold leading-tight text-foreground">{action.title}</p>
+                        <p className="ui-text m-0 whitespace-nowrap text-[0.95rem] font-semibold leading-tight text-foreground">{action.title}</p>
                       </div>
                     </Link>
                   );
@@ -170,11 +170,21 @@ export function HomeTabbedSections({
           </section>
 
           <section className="fade-up -mx-4">
-            <HomeUpcomingEventsCarousel events={events} />
+            <div className="px-7 pb-3">
+              <p className="ui-text m-0 text-left text-black">Upcoming Event</p>
+            </div>
+            <div className="px-3">
+              <HomeUpcomingEventsCarousel events={events} />
+            </div>
           </section>
 
           <section className="fade-up -mx-4 -mt-4">
-            <HomeAnnouncementsCarousel announcements={announcements} />
+            <div className="px-7 pb-3">
+              <p className="ui-text m-0 text-left text-black">Announcement</p>
+            </div>
+            <div className="px-3">
+              <HomeAnnouncementsCarousel announcements={announcements} />
+            </div>
           </section>
         </div>
       ) : (

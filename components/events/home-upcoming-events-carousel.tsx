@@ -59,12 +59,9 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
   const titleIsExternal = Boolean(currentEvent.isLiveStream && currentEvent.liveStreamUrl);
 
   return (
-    <article className="overflow-hidden bg-background">
-      <div className="px-4 pb-1">
-        <p className="m-0 text-center text-sm font-medium uppercase tracking-[0.12em] text-primary">Upcoming Event</p>
-      </div>
-      <div className="bg-background px-4 pt-4 pb-4">
-        <div className="mb-4 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
+    <article className="overflow-hidden rounded-[16px] border border-border bg-white/72">
+      <div className="pt-4 pb-4">
+        <div className="mb-0 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
           <div className="flex justify-start">
             <button
               aria-label="Previous event"
