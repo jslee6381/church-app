@@ -7,11 +7,12 @@ export function LiveRouteRefresh() {
   const router = useRouter();
   const pathname = usePathname();
   const lastRefreshAtRef = useRef(0);
+  const hasMountedPathRef = useRef(false);
 
   function refreshIfNeeded() {
     const now = Date.now();
 
-    if (now - lastRefreshAtRef.current < 800) {
+    if (now - lastRefreshAtRef.current < 4000) {
       return;
     }
 
@@ -20,6 +21,11 @@ export function LiveRouteRefresh() {
   }
 
   useEffect(() => {
+    if (!hasMountedPathRef.current) {
+      hasMountedPathRef.current = true;
+      return;
+    }
+
     refreshIfNeeded();
   }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 

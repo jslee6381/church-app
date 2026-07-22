@@ -64,7 +64,7 @@ export function HomeHeaderActions({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      if (event === "SIGNED_IN") {
         void syncState().then(() => router.refresh());
       }
 
