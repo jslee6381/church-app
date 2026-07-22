@@ -52,6 +52,11 @@ const items = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video";
+
+  if (!shouldShow) {
+    return null;
+  }
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-3">
