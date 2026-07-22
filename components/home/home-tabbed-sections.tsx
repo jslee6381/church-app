@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { startTransition, useState } from "react";
+import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
+import { announcements } from "@/lib/data";
 import type { CommunityUpdateFeedItem } from "@/lib/community-updates";
 import type { EventListItem } from "@/lib/events";
 
@@ -167,6 +169,10 @@ export function HomeTabbedSections({
 
           <section className="fade-up -mx-4">
             <HomeUpcomingEventsCarousel events={events} />
+          </section>
+
+          <section className="fade-up -mx-4 -mt-4">
+            <HomeAnnouncementsCarousel announcements={announcements} />
           </section>
         </div>
       ) : (

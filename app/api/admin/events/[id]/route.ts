@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
-import { uploadPublicImage } from "@/lib/storage";
+import { removePublicImage, uploadPublicImage } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { DEFAULT_LIVE_STREAM_URL } from "@/lib/events";
 
@@ -25,6 +25,7 @@ export async function PATCH(
     const locationName = normalizeText(String(formData.get("locationName") ?? ""));
     const startsAt = normalizeText(String(formData.get("startsAt") ?? ""));
     const isLiveStream = String(formData.get("isLiveStream") ?? "") === "true";
+    const removeImage = String(formData.get("removeImage") ?? "") === "true";
     const image = formData.get("image");
 
     if (!startsAt) {
@@ -56,6 +57,13 @@ export async function PATCH(
     }
 
     const admin = createAdminClient();
+    const { data: existingEvent } = await admin
+      .from("events")
+      .select("image_url")
+      .eq("id", id)
+      .eq("church_id", session.member.church_id)
+      .maybeSingle();
+
     const updates: {
       title: string;
       summary: string | null;
@@ -75,6 +83,10 @@ export async function PATCH(
       live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
     };
 
+    if (removeImage) {
+      updates.image_url = null;
+    }
+
     if (image instanceof File && image.size > 0) {
       updates.image_url = await uploadPublicImage(image, "events");
     }
@@ -89,6 +101,13 @@ export async function PATCH(
 
     if (error || !data) {
       return NextResponse.json({ error: error?.message ?? "Unable to update event." }, { status: 500 });
+    }
+
+    const previousImageUrl = existingEvent?.image_url ?? null;
+    const nextImageUrl = data.image_url ?? null;
+
+    if (previousImageUrl && previousImageUrl !== nextImageUrl && hasAdminEnvironment()) {
+      await removePublicImage(previousImageUrl);
     }
 
     await admin.from("audit_logs").insert({

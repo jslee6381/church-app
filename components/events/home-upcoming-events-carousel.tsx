@@ -20,6 +20,38 @@ function formatEventDateTime(date: string) {
   }).format(new Date(date));
 }
 
+function LiveIndicatorIcon() {
+  return (
+    <svg aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" fill="currentColor" r="2.5" />
+      <path
+        d="M7.2 7.5a6.5 6.5 0 0 0 0 9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M16.8 7.5a6.5 6.5 0 0 1 0 9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M4.4 4.8a10.5 10.5 0 0 0 0 14.4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M19.6 4.8a10.5 10.5 0 0 1 0 14.4"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 export function HomeUpcomingEventsCarousel({ events }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -61,11 +93,12 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
               {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
                 <Link
                   aria-label={`Open live stream for ${currentEvent.title}`}
-                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-[10px] bg-[#ff0000] px-2.5 text-[0.72rem] font-bold uppercase tracking-[0.06em] !text-white no-underline"
+                  className="inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-[9px] bg-[#ff0000] px-2 text-[0.68rem] font-bold uppercase tracking-[0.05em] !text-white no-underline"
                   href={currentEvent.liveStreamUrl}
                   rel="noreferrer"
                   target="_blank"
                 >
+                  <LiveIndicatorIcon />
                   Live
                 </Link>
               ) : null}

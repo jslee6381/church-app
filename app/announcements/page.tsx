@@ -1,29 +1,18 @@
+import { AnnouncementsPageClient } from "@/components/announcements/announcements-page-client";
 import { PageHeader } from "@/components/page-header";
+import { getMemberRoles } from "@/lib/auth/authorization";
+import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { announcements } from "@/lib/data";
 
-export default function AnnouncementsPage() {
+export default async function AnnouncementsPage() {
+  const session = await getAuthenticatedMemberSession();
+  const roles = session ? await getMemberRoles(session.member.id) : [];
+  const canCompose = session?.member.status === "active" && (roles.includes("leader") || roles.includes("admin"));
+
   return (
     <main className="shell">
-      <PageHeader
-        title="Announcements"
-        description="See worship times, event schedules, and important church updates in one place."
-      />
-
-      <section className="stack">
-        {announcements.map((item) => (
-          <article className="list-card" key={item.id}>
-            <div className="list-card-header">
-              <div>
-                {item.isPinned ? <span className="pill">Pinned</span> : null}
-                <h2>{item.title}</h2>
-              </div>
-              <span className="date-chip">{item.date}</span>
-            </div>
-            <p>{item.summary}</p>
-            <div className="notice-body">{item.body}</div>
-          </article>
-        ))}
-      </section>
+      <PageHeader title="" />
+      <AnnouncementsPageClient canCompose={canCompose} initialAnnouncements={announcements} />
     </main>
   );
 }

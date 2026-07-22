@@ -16,10 +16,12 @@ export function PageHeader({ title, description }: PageHeaderProps) {
         <ChevronLeft className="size-4" />
         Home
       </Link>
-      <div className="mt-4">
-        <h1 className="mb-0 font-sans text-[1.6rem] leading-tight text-foreground">{title}</h1>
-        {description ? <p className="ui-text mt-2 mb-0 text-muted-foreground">{description}</p> : null}
-      </div>
+      {title || description ? (
+        <div className="mt-4">
+          {title ? <h1 className="mb-0 font-sans text-[1.6rem] leading-tight text-foreground">{title}</h1> : null}
+          {description ? <p className="ui-text mt-2 mb-0 text-muted-foreground">{description}</p> : null}
+        </div>
+      ) : null}
     </header>
   );
 }

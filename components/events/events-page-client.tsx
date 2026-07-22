@@ -59,6 +59,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const [startsAt, setStartsAt] = useState("");
   const [isLiveStream, setIsLiveStream] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [isDuplicatingId, setIsDuplicatingId] = useState<string | null>(null);
@@ -91,6 +94,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartsAt("");
     setIsLiveStream(false);
     setImageFile(null);
+    setExistingImageUrl(null);
+    setRemoveExistingImage(false);
+    setImagePreviewUrl(null);
     setIsComposerOpen(false);
   }
 
@@ -102,6 +108,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartsAt("");
     setIsLiveStream(false);
     setImageFile(null);
+    setExistingImageUrl(null);
+    setRemoveExistingImage(false);
+    setImagePreviewUrl(null);
   }
 
   function beginEdit(event: EventListItem) {
@@ -117,9 +126,26 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartsAt(formatDateTimeLocalValue(event.startsAt));
     setIsLiveStream(Boolean(event.isLiveStream));
     setImageFile(null);
+    setExistingImageUrl(event.imageUrl ?? event.posterSrc ?? null);
+    setRemoveExistingImage(false);
+    setImagePreviewUrl(null);
     setFeedback("");
     setOpenMenuEventId(null);
   }
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageFile]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -133,6 +159,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       formData.set("locationName", locationName);
       formData.set("startsAt", startsAt);
       formData.set("isLiveStream", String(isLiveStream));
+      formData.set("removeImage", String(removeExistingImage && !imageFile));
 
       if (imageFile) {
         formData.set("image", imageFile);
@@ -293,6 +320,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     }
   }
 
+  function clearSelectedImage() {
+    setImageFile(null);
+    setImagePreviewUrl(null);
+  }
+
+  function removeCurrentImage() {
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    setExistingImageUrl(null);
+    setRemoveExistingImage(true);
+  }
+
   let lastMonthHeading = "";
 
   return (
@@ -384,10 +423,45 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 <input
                   accept="image/jpeg,image/png,image/webp"
                   className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                  onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] ?? null;
+                    setImageFile(nextFile);
+                    setRemoveExistingImage(false);
+                  }}
                   type="file"
                 />
               </label>
+              {imagePreviewUrl || existingImageUrl ? (
+                <div className="grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                  <img
+                    alt="Event preview"
+                    className="block w-full rounded-[12px]"
+                    src={imagePreviewUrl ?? existingImageUrl ?? ""}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                      onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
+                      type="button"
+                    >
+                      {imagePreviewUrl ? "Clear selected image" : "Remove image"}
+                    </button>
+                    <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                      Replace image
+                      <input
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={(event) => {
+                          const nextFile = event.target.files?.[0] ?? null;
+                          setImageFile(nextFile);
+                          setRemoveExistingImage(false);
+                        }}
+                        type="file"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : null}
               <button
                 className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
                 disabled={isSaving}
@@ -561,10 +635,45 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             <input
                               accept="image/jpeg,image/png,image/webp"
                               className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                              onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+                              onChange={(event) => {
+                                const nextFile = event.target.files?.[0] ?? null;
+                                setImageFile(nextFile);
+                                setRemoveExistingImage(false);
+                              }}
                               type="file"
                             />
                           </label>
+                          {imagePreviewUrl || existingImageUrl ? (
+                            <div className="grid w-full min-w-0 max-w-full gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                              <img
+                                alt="Event preview"
+                                className="block w-full rounded-[12px]"
+                                src={imagePreviewUrl ?? existingImageUrl ?? ""}
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <button
+                                  className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                                  onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
+                                  type="button"
+                                >
+                                  {imagePreviewUrl ? "Clear selected image" : "Remove image"}
+                                </button>
+                                <label className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                                  Replace image
+                                  <input
+                                    accept="image/jpeg,image/png,image/webp"
+                                    className="sr-only"
+                                    onChange={(event) => {
+                                      const nextFile = event.target.files?.[0] ?? null;
+                                      setImageFile(nextFile);
+                                      setRemoveExistingImage(false);
+                                    }}
+                                    type="file"
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          ) : null}
                           <div className="flex flex-wrap gap-2">
                             <button
                               className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
