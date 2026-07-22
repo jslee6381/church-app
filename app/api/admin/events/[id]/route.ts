@@ -3,6 +3,7 @@ import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
 import { removePublicImage, uploadPublicImage } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { DEFAULT_LIVE_STREAM_URL } from "@/lib/events";
+import { easternLocalDateTimeToIso } from "@/lib/eastern-time";
 
 function normalizeText(value: string) {
   return value.trim();
@@ -78,7 +79,7 @@ export async function PATCH(
       summary: summary || null,
       description: summary || null,
       location_name: locationName || null,
-      starts_at: new Date(startsAt).toISOString(),
+      starts_at: easternLocalDateTimeToIso(startsAt),
       is_live_stream: isLiveStream,
       live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
     };

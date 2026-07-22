@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatEasternDateTimeLocalValue } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 const TITLE_LIMIT = 50;
@@ -49,12 +50,6 @@ function formatMonthHeading(date: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
   }).format(new Date(date));
-}
-
-function formatDateTimeLocalValue(value: string) {
-  const date = new Date(value);
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return localDate.toISOString().slice(0, 16);
 }
 
 export function EventsPageClient({ canManage, initialEvents }: Props) {
@@ -130,7 +125,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setTitle(event.title);
     setSummary(event.summary ?? "");
     setLocationName(event.locationName ?? "");
-    setStartsAt(formatDateTimeLocalValue(event.startsAt));
+    setStartsAt(formatEasternDateTimeLocalValue(event.startsAt));
     setIsLiveStream(Boolean(event.isLiveStream));
     setImageFile(null);
     setExistingImageUrl(event.imageUrl ?? event.posterSrc ?? null);
