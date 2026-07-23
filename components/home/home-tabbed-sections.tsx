@@ -122,7 +122,7 @@ export function HomeTabbedSections({
                 style={{ fontWeight: 700 }}
                 type="button"
               >
-                Community
+                Fellowship
               </button>
             </div>
             {headerAction ? (
