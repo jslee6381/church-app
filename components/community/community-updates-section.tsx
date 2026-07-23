@@ -1490,7 +1490,7 @@ export function CommunityUpdatesSection({
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuUpdateId === update.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_10px_30px_rgba(68,52,35,0.16)]">
+                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(update)}
@@ -1599,7 +1599,7 @@ export function CommunityUpdatesSection({
                                   <MoreVertical className="size-4" />
                                 </button>
                                 {openCommentMenuId === comment.id ? (
-                                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_10px_30px_rgba(68,52,35,0.16)]">
+                                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                                     <button
                                       className="flex min-h-10 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                                       onClick={() => startEditingComment(comment)}

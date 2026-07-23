@@ -244,12 +244,12 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
       {canCompose ? (
         <div
           ref={composerRef}
-          className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="announcement-card-surface rounded-[18px] border border-border/80 bg-background p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex items-center justify-center">
             <button
               aria-label={isComposerOpen ? "Close announcement form" : "Create announcement"}
-              className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-white text-foreground"
+              className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-background text-foreground"
               onClick={() => setIsComposerOpen((current) => !current)}
               type="button"
             >
@@ -261,7 +261,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
             <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
               <div className="relative">
                 <input
-                  className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
+                  className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
                   maxLength={TITLE_LIMIT}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Title"
@@ -274,7 +274,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
               <div className="relative">
                 <textarea
-                  className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
+                  className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
                   maxLength={CONTENT_LIMIT}
                   onChange={(event) => setBody(event.target.value)}
                   placeholder="Content"
@@ -289,17 +289,17 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                 Image optional, JPG/PNG/WEBP up to 8 MB
                 <input
                   accept="image/jpeg,image/png,image/webp"
-                  className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                  className="min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                   onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
                   type="file"
                 />
               </label>
 
               {imagePreviewUrl ? (
-                <div className="grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                <div className="grid gap-3 rounded-[16px] border border-border/70 bg-background p-3">
                   <img alt="Announcement preview" className="block w-full rounded-[12px]" src={imagePreviewUrl} />
                   <button
-                    className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                    className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-background px-4 text-sm font-semibold text-foreground"
                     onClick={() => setImageFile(null)}
                     type="button"
                   >
@@ -310,7 +310,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
                   onClick={resetForm}
                   type="button"
                 >
@@ -356,7 +356,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuAnnouncementId === item.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(item)}
@@ -365,7 +365,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                           Edit
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={deletingId === item.id}
                           onClick={() => void deleteAnnouncement(item.id)}
                           type="button"
@@ -382,7 +382,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                 <form className="grid gap-3" onSubmit={handleSubmit}>
                   <div className="relative">
                     <input
-                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
+                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
                       maxLength={TITLE_LIMIT}
                       onChange={(event) => setTitle(event.target.value)}
                       placeholder="Title"
@@ -395,7 +395,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
                   <div className="relative">
                     <textarea
-                      className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
+                      className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => setBody(event.target.value)}
                       placeholder="Content"
@@ -410,7 +410,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                     Image optional, JPG/PNG/WEBP up to 8 MB
                     <input
                       accept="image/jpeg,image/png,image/webp"
-                      className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                      className="min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                       onChange={(event) => {
                         const nextFile = event.target.files?.[0] ?? null;
                         setImageFile(nextFile);
@@ -421,11 +421,11 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                   </label>
 
                   {imagePreviewUrl || existingImageUrl ? (
-                    <div className="grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                    <div className="grid gap-3 rounded-[16px] border border-border/70 bg-background p-3">
                       <img alt="Announcement preview" className="block w-full rounded-[12px]" src={imagePreviewUrl ?? existingImageUrl ?? ""} />
                       <div className="grid grid-cols-2 gap-3">
                         <button
-                          className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                          className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-background px-4 text-sm font-semibold text-foreground"
                           onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
                           type="button"
                         >
@@ -450,7 +450,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
+                      className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
                       onClick={resetInlineEdit}
                       type="button"
                     >

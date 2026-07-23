@@ -444,7 +444,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuEventId === event.id ? (
-                      <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => beginEdit(event)}
@@ -453,7 +453,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           Edit
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={isDeletingId === event.id}
                           onClick={() => deleteEvent(event.id)}
                           type="button"
@@ -461,7 +461,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={isDuplicatingId === event.id}
                           onClick={() => duplicateEvent(event)}
                           type="button"
