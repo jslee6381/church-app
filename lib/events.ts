@@ -52,7 +52,7 @@ export async function getUpcomingEvents(churchId?: string | null): Promise<Event
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .order("created_at", { ascending: true })
-      .limit(30);
+      .limit(200);
 
     if (error || !data || data.length === 0) {
       return [];
