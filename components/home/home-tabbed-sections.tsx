@@ -184,8 +184,8 @@ export function HomeTabbedSections({
             </div>
           </section>
 
-          <section className="fade-up -mx-4">
-            <div className="px-7 pb-3">
+          <section className="fade-up -mx-4 -mt-3">
+            <div className="px-7 pb-2">
               <p className="ui-text m-0 text-left text-foreground">Upcoming Event</p>
             </div>
             <div className="px-3">

@@ -641,11 +641,31 @@ h2 {
 }
 
 .bottom-nav-item-active {
-  background: rgba(255, 255, 255, 0.92);
+  background: #A3A3A3;
 }
 
 .bottom-nav-item-inactive {
   background: transparent;
+}
+
+.google-sign-in-button {
+  border-color: #000000;
+  color: #000000;
+}
+
+.google-sign-in-button:hover {
+  border-color: #000000;
+  color: #000000;
+}
+
+:root[data-theme="dark"] .google-sign-in-button {
+  border-color: #1E1E1E;
+  color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .google-sign-in-button:hover {
+  border-color: #1E1E1E;
+  color: #FFFFFF;
 }
 
 .launch-screen {

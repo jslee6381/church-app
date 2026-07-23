@@ -88,6 +88,7 @@ export function HomeHeaderActions({
         compact
         label="Sign in"
         nextPath="/home"
+        showLogo={false}
         variant="secondary"
       />
     );

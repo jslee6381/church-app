@@ -1,5 +1,5 @@
 import Script from "next/script";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
@@ -16,6 +16,14 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
     shortcut: "/icon-192.png",
   },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f4e1" },
+    { media: "(prefers-color-scheme: dark)", color: "#121212" },
+  ],
 };
 
 export default function RootLayout({
@@ -39,6 +47,15 @@ export default function RootLayout({
   document.documentElement.style.backgroundColor = background;
   document.documentElement.style.color = foreground;
   document.documentElement.style.colorScheme = resolved;
+  var themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute('content', background);
+    themeColorMeta.removeAttribute('media');
+  }
+  var appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleStatusBarMeta) {
+    appleStatusBarMeta.setAttribute('content', resolved === "dark" ? 'black-translucent' : 'default');
+  }
   if (document.body) {
     document.body.style.backgroundColor = background;
     document.body.style.color = foreground;
