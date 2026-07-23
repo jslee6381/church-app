@@ -18,6 +18,7 @@ type Props = {
 export function EventsPageClient({ canManage, initialEvents }: Props) {
   const router = useRouter();
   const composerRef = useRef<HTMLDivElement | null>(null);
+  const menuAreaRef = useRef<HTMLDivElement | null>(null);
   const [events, setEvents] = useState(initialEvents);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -50,6 +51,24 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
     return () => window.cancelAnimationFrame(frame);
   }, [isComposerOpen]);
+
+  useEffect(() => {
+    if (!openMenuEventId) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuAreaRef.current?.contains(event.target as Node)) {
+        setOpenMenuEventId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [openMenuEventId]);
 
   function resetForm() {
     setEditingEventId(null);
@@ -431,7 +450,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               }`}
             >
               {canManage && editingEventId !== event.id ? (
-                <div className="absolute right-3 top-3 z-10">
+                <div ref={openMenuEventId === event.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
                   <div className="relative">
                     <button
                       aria-label="Event actions"

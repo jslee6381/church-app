@@ -161,6 +161,7 @@ export function CommunityUpdatesSection({
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const lightboxTouchStartXRef = useRef<number | null>(null);
   const editingImagesRef = useRef<EditableCommunityImage[]>([]);
+  const menuAreaRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [updates, setUpdates] = useState(initialUpdates);
   const [selectedReactions, setSelectedReactions] = useState<Record<string, ReactionKind>>(
@@ -216,6 +217,25 @@ export function CommunityUpdatesSection({
     setCommentDrafts({});
     setOpenCommentComposerId(null);
   }, [initialUpdates]);
+
+  useEffect(() => {
+    if (!openMenuUpdateId && !openCommentMenuId) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuAreaRef.current?.contains(event.target as Node)) {
+        setOpenMenuUpdateId(null);
+        setOpenCommentMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [openMenuUpdateId, openCommentMenuId]);
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
     return update.body?.trim() || update.summary || update.legacyTitle || "";
@@ -1478,7 +1498,7 @@ export function CommunityUpdatesSection({
               </div>
               <div className="relative flex items-center gap-2">
                 {(update.isOwner || canManage) && editingId !== update.id ? (
-                  <div className="relative">
+                  <div ref={openMenuUpdateId === update.id ? menuAreaRef : null} className="relative">
                     <button
                       aria-label="Update actions"
                       className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
@@ -1589,7 +1609,7 @@ export function CommunityUpdatesSection({
                               ) : null}
                             </div>
                             {(comment.isOwner || canManage) && editingCommentId !== comment.id ? (
-                              <div className="relative shrink-0">
+                              <div ref={openCommentMenuId === comment.id ? menuAreaRef : null} className="relative shrink-0">
                                 <button
                                   aria-label="Comment actions"
                                   className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
