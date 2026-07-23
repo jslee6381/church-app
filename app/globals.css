@@ -636,20 +636,14 @@ h2 {
   display: none !important;
 }
 
-:root[data-theme="light"] .launch-logo-light {
-  display: block !important;
-}
+@media (prefers-color-scheme: dark) {
+  .launch-logo-light {
+    display: none !important;
+  }
 
-:root[data-theme="light"] .launch-logo-dark {
-  display: none !important;
-}
-
-:root[data-theme="dark"] .launch-logo-light {
-  display: none !important;
-}
-
-:root[data-theme="dark"] .launch-logo-dark {
-  display: block !important;
+  .launch-logo-dark {
+    display: block !important;
+  }
 }
 
 :root[data-theme="dark"] .light-wordmark {
@@ -720,31 +714,6 @@ h2 {
   }
 }
 
-:root[data-theme="dark"] .launch-screen {
-  background: #121212;
-  color: #FFFFFF;
-}
-
-:root[data-theme="dark"] .launch-title {
-  color: #FFFFFF;
-}
-
-:root[data-theme="dark"] .launch-subtitle {
-  color: #B3B3B3;
-}
-
-:root[data-theme="light"] .launch-screen {
-  background: #f6f4e1;
-  color: #1e2a2a;
-}
-
-:root[data-theme="light"] .launch-title {
-  color: #1e2a2a;
-}
-
-:root[data-theme="light"] .launch-subtitle {
-  color: #6f746b;
-}
 
 :root[data-theme="dark"] .bottom-nav-surface {
   background: #1E1E1E;
