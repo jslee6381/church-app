@@ -45,6 +45,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
           authorPhotoUrl: null,
           message: normalizedMessage,
           createdAtLabel: formatEasternLongDate(new Date()),
+          reactionCounts: { heart: 0, like: 0 },
+          selectedReaction: null,
+          isOwner: true,
         },
       });
     }
@@ -104,6 +107,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         authorPhotoUrl: profile?.profile_photo_url ?? null,
         message: inserted.message,
         createdAtLabel: formatEasternLongDate(inserted.created_at),
+        reactionCounts: { heart: 0, like: 0 },
+        selectedReaction: null,
+        isOwner: true,
       },
     });
   } catch {

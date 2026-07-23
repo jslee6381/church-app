@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, CornerDownLeft, LoaderCircle, MoreVertical } from "lucide-react";
+import { ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 
 type PrayerFeedItem = {
   id: string;
@@ -189,6 +188,10 @@ export function PrayerPageClient({
     return Boolean(item.isOwner || canManageAll);
   }
 
+  function canUpdateItem() {
+    return true;
+  }
+
   async function saveEdit(prayerId: string) {
     setIsSavingEdit(true);
     setErrorMessage("");
@@ -336,39 +339,38 @@ export function PrayerPageClient({
             {editingId !== item.id && updatingPrayerId !== item.id ? (
               <div
                 ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                className="absolute right-0 top-2 z-10 flex items-center gap-1"
+                className="absolute right-0 top-2 z-10"
               >
-                <button
-                  className="inline-flex min-h-10 items-center justify-center bg-transparent px-2 text-xs font-medium text-muted-foreground"
-                  onClick={() => startUpdating(item)}
-                  type="button"
-                >
-                  Update
-                </button>
-                {getAllUpdates(item).length > 0 ? (
+                <div className="relative">
                   <button
-                    aria-label={expandedUpdates[item.id] ? "Hide updates" : "Show updates"}
+                    aria-label="Prayer actions"
                     className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                    onClick={() => toggleUpdates(item.id)}
+                    onClick={() =>
+                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                    }
                     type="button"
                   >
-                    <CornerDownLeft className={`size-4 transition ${expandedUpdates[item.id] ? "rotate-180" : "rotate-0"}`} />
+                    <MoreVertical className="size-4" />
                   </button>
-                ) : null}
-                {canManageItem(item) ? (
-                  <div className="relative">
-                    <button
-                      aria-label="Prayer actions"
-                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                      onClick={() =>
-                        setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                      }
-                      type="button"
-                    >
-                      <MoreVertical className="size-4" />
-                    </button>
-                    {openMenuPrayerId === item.id ? (
-                      <div className="prayer-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                  {openMenuPrayerId === item.id ? (
+                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_10px_30px_rgba(68,52,35,0.16)]">
+                      {canUpdateItem() ? (
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                          onClick={() => startUpdating(item)}
+                          type="button"
+                        >
+                          Update
+                        </button>
+                      ) : null}
+                      <button
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                        onClick={() => toggleUpdates(item.id)}
+                        type="button"
+                      >
+                        {expandedUpdates[item.id] ? "Hide History" : "History"}
+                      </button>
+                      {canManageItem(item) ? (
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(item)}
@@ -376,6 +378,8 @@ export function PrayerPageClient({
                         >
                           Edit
                         </button>
+                      ) : null}
+                      {canManageItem(item) ? (
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={deletingId === item.id}
@@ -384,14 +388,14 @@ export function PrayerPageClient({
                         >
                           {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
                         </button>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-32">
+              <div className="mb-2 pr-12">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -410,26 +414,26 @@ export function PrayerPageClient({
                     {editingText.length}/{CONTENT_LIMIT}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <button
-                    className="inline-flex min-h-11 items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-                    disabled={isSavingEdit}
-                    onClick={() => saveEdit(item.id)}
-                    type="button"
-                  >
-                    {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Save"}
-                  </button>
-                  <button
-                    className="prayer-form-input inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                    className="prayer-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
                     onClick={() => setEditingId(null)}
                     type="button"
                   >
                     Cancel
                   </button>
+                  <button
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                    disabled={isSavingEdit}
+                    onClick={() => saveEdit(item.id)}
+                    type="button"
+                  >
+                    {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Update"}
+                  </button>
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-32 leading-[1.5] break-words text-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-12 leading-[1.5] break-words text-foreground">{item.body}</p>
             )}
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
@@ -446,27 +450,24 @@ export function PrayerPageClient({
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    className="min-h-11 rounded-[16px]"
+                  <button
+                    className="prayer-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
                     onClick={() => {
                       setUpdatingPrayerId(null);
                       setUpdateText("");
                     }}
-                    size="sm"
                     type="button"
-                    variant="secondary"
                   >
                     Cancel
-                  </Button>
-                  <Button
-                    className="min-h-11 rounded-[16px]"
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                     disabled={isSavingUpdate || !updateText.trim()}
                     onClick={() => saveUpdate(item.id)}
-                    size="sm"
                     type="button"
                   >
-                    {isSavingUpdate ? <LoaderCircle className="size-4 animate-spin" /> : "Post"}
-                  </Button>
+                    {isSavingUpdate ? <LoaderCircle className="size-4 animate-spin" /> : "Update"}
+                  </button>
                 </div>
               </div>
             ) : null}
@@ -539,28 +540,25 @@ export function PrayerPageClient({
 
                   {isComposerExpanded ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        className="min-h-11 rounded-[16px]"
+                      <button
+                        className="prayer-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
                         onClick={() => {
                           setIsComposerExpanded(false);
                           setRequestText("");
                           setErrorMessage("");
                           setShowSuccess(false);
                         }}
-                        size="sm"
                         type="button"
-                        variant="secondary"
                       >
                         Cancel
-                      </Button>
-                      <Button
-                        className="min-h-11 rounded-[16px]"
+                      </button>
+                      <button
+                        className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                         disabled={isSubmitting || !requestText.trim()}
-                        size="sm"
                         type="submit"
                       >
                         {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : "Post"}
-                      </Button>
+                      </button>
                     </div>
                   ) : null}
                 </div>

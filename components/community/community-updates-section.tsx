@@ -762,7 +762,12 @@ export function CommunityUpdatesSection({
           item.id === updateId
             ? {
                 ...item,
-                comments: [...item.comments, payload.comment],
+                comments: [...item.comments, {
+                  reactionCounts: { heart: 0, like: 0 },
+                  selectedReaction: null,
+                  isOwner: true,
+                  ...payload.comment,
+                }],
                 commentCount: item.commentCount + 1,
               }
             : item,
