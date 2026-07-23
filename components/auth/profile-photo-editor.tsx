@@ -266,7 +266,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
         />
         <p className="ui-text m-0 text-muted-foreground">JPG, PNG, or WEBP up to 8 MB</p>
         {draftPreviewUrl && previewRect ? (
-          <div className="grid gap-4 rounded-[16px] border border-border/70 bg-white/72 p-4">
+          <div className="settings-card-surface grid gap-4 rounded-[16px] border border-border/70 bg-white/72 p-4">
             <div className="flex justify-center">
               <div
                 className="relative overflow-hidden rounded-full border border-border/80 bg-accent/30"

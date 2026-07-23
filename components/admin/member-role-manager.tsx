@@ -135,7 +135,7 @@ export function MemberRoleManager({
       </div>
       <div className="mt-4 grid gap-3">
         {members.map((member) => (
-          <div key={member.id} className="rounded-[22px] border border-border/80 bg-white/72 p-4">
+          <div key={member.id} className="admin-card-surface rounded-[22px] border border-border/80 bg-white/72 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="m-0 text-lg font-semibold text-foreground">{member.displayName}</p>

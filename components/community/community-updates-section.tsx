@@ -941,7 +941,7 @@ export function CommunityUpdatesSection({
         {updates.map((update, index) => (
           <article
             key={update.id}
-            className={`community-card-surface overflow-hidden rounded-[18px] border border-border/80 pb-2 last:pb-0 ${index > 0 ? "pt-2" : ""}`}
+            className={`overflow-hidden pb-2 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-2" : ""}`}
           >
             <div className="px-4 pt-1 pb-2">
               <div className="flex min-h-[36px] items-center justify-between gap-3">

@@ -74,7 +74,7 @@ export function PendingMembersApproval({ initialMembers, onApprove }: Props) {
           <p className="m-0 text-base leading-7 text-muted-foreground">No members are waiting for approval right now.</p>
         ) : (
           members.map((member) => (
-            <div key={member.id} className="rounded-[22px] border border-border/80 bg-white/72 p-4">
+            <div key={member.id} className="admin-card-surface rounded-[22px] border border-border/80 bg-white/72 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="m-0 text-lg font-semibold text-foreground">{member.displayName}</p>

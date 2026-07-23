@@ -642,7 +642,6 @@ h2 {
 :root[data-theme="dark"] .event-form-surface,
 :root[data-theme="dark"] .prayer-form-surface,
 :root[data-theme="dark"] .prayer-card-surface,
-:root[data-theme="dark"] .community-card-surface,
 :root[data-theme="dark"] .community-form-surface,
 :root[data-theme="dark"] .event-form-input,
 :root[data-theme="dark"] .prayer-form-input,
@@ -652,6 +651,11 @@ h2 {
 
 :root[data-theme="dark"] .prayer-composer-shell {
   background: linear-gradient(180deg, rgba(18,18,18,0.56) 0%, rgba(18,18,18,0.92) 18%, rgba(18,18,18,1) 100%);
+}
+
+:root[data-theme="dark"] .admin-card-surface,
+:root[data-theme="dark"] .settings-card-surface {
+  background: #1E1E1E;
 }
 
 :root[data-theme="dark"] .dark-wordmark {
