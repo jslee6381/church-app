@@ -37,8 +37,31 @@ export function applyUiTheme(mode: ThemeMode) {
   }
 
   const resolvedTheme = getResolvedTheme(mode);
+  const background = resolvedTheme === "dark" ? "#121212" : "#f6f4e1";
+  const foreground = resolvedTheme === "dark" ? "#FFFFFF" : "#1e2a2a";
+
   document.documentElement.dataset.theme = resolvedTheme;
   document.documentElement.dataset.themeMode = mode;
+  document.documentElement.style.backgroundColor = background;
+  document.documentElement.style.color = foreground;
+  document.documentElement.style.colorScheme = resolvedTheme;
+
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute("content", background);
+    themeColorMeta.removeAttribute("media");
+  }
+
+  const appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleStatusBarMeta) {
+    appleStatusBarMeta.setAttribute("content", resolvedTheme === "dark" ? "black-translucent" : "default");
+  }
+
+  if (document.body) {
+    document.body.style.backgroundColor = background;
+    document.body.style.color = foreground;
+    document.body.style.colorScheme = resolvedTheme;
+  }
 }
 
 export function UiPreferencesSync() {
