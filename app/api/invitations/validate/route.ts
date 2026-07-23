@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       code: invitation.code,
-      churchName: invitation.churchName ?? "KOINONIA",
+      churchName: invitation.churchName ?? "New York UBF",
       issuedForName: invitation.issued_for_name ?? null,
     });
   } catch {

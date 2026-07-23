@@ -8,8 +8,8 @@ import { PwaRegistrar } from "@/components/pwa-registrar";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
 
 export const metadata: Metadata = {
-  title: "KOINONIA",
-  description: "A calm, trusted church community hub for KOINONIA.",
+  title: "New York UBF",
+  description: "A calm, trusted church community hub for New York UBF.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon-192.png",
