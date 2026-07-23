@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
+import { ChevronLeft, CornerDownLeft, LoaderCircle, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -266,6 +266,8 @@ export function PrayerPageClient({
           item.id === prayerId
             ? {
                 ...item,
+                body: payload.prayerRequest?.body ?? trimmedText,
+                status: payload.prayerRequest?.status ?? item.status,
                 followUp: undefined,
                 followUps: [...(item.followUps ?? []), payload.followUp],
               }
@@ -326,53 +328,70 @@ export function PrayerPageClient({
       </header>
 
       <section className="flex-1 space-y-4">
-        {feed.map((item) => (
+        {feed.map((item, index) => (
           <article
             key={item.id}
-            className="prayer-form-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-5 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""}`}
           >
-            {canManageItem(item) && editingId !== item.id && updatingPrayerId !== item.id ? (
-              <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
+            {editingId !== item.id && updatingPrayerId !== item.id ? (
+              <div
+                ref={openMenuPrayerId === item.id ? menuAreaRef : null}
+                className="absolute right-0 top-2 z-10 flex items-center gap-1"
+              >
                 <button
-                  aria-label="Prayer actions"
-                  className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                  onClick={() =>
-                    setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                  }
+                  className="inline-flex min-h-10 items-center justify-center bg-transparent px-2 text-sm font-medium text-foreground"
+                  onClick={() => startUpdating(item)}
                   type="button"
                 >
-                  <MoreVertical className="size-4" />
+                  Update
                 </button>
-                {openMenuPrayerId === item.id ? (
-                  <div className="prayer-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                {getAllUpdates(item).length > 0 ? (
+                  <button
+                    aria-label={expandedUpdates[item.id] ? "Hide updates" : "Show updates"}
+                    className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                    onClick={() => toggleUpdates(item.id)}
+                    type="button"
+                  >
+                    <CornerDownLeft className={`size-4 transition ${expandedUpdates[item.id] ? "rotate-180" : "rotate-0"}`} />
+                  </button>
+                ) : null}
+                {canManageItem(item) ? (
+                  <div className="relative">
                     <button
-                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                      onClick={() => startUpdating(item)}
+                      aria-label="Prayer actions"
+                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                      onClick={() =>
+                        setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                      }
                       type="button"
                     >
-                      Update
+                      <MoreVertical className="size-4" />
                     </button>
-                    <button
-                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                      onClick={() => startEditing(item)}
-                      type="button"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                      disabled={deletingId === item.id}
-                      onClick={() => deletePrayer(item.id)}
-                      type="button"
-                    >
-                      {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                    </button>
+                    {openMenuPrayerId === item.id ? (
+                      <div className="prayer-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                          onClick={() => startEditing(item)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          disabled={deletingId === item.id}
+                          onClick={() => deletePrayer(item.id)}
+                          type="button"
+                        >
+                          {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-10">
+              <div className="mb-2 pr-28">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -410,7 +429,7 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-8 leading-[1.5] text-muted-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-28 leading-[1.5] text-muted-foreground">{item.body}</p>
             )}
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
@@ -451,33 +470,18 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : null}
-            {getAllUpdates(item).length > 0 ? (
-              <div className="mt-3">
-                <button
-                  className="inline-flex items-center gap-1 bg-transparent px-0 text-sm font-semibold text-foreground"
-                  onClick={() => toggleUpdates(item.id)}
-                  type="button"
-                >
-                  <ChevronDown
-                    className={`size-4 transition ${expandedUpdates[item.id] ? "rotate-180" : "rotate-0"}`}
-                  />
-                  Updates ({getAllUpdates(item).length})
-                </button>
-                {expandedUpdates[item.id] ? (
-                  <div className="mt-2 space-y-2">
-                    {[...getAllUpdates(item)].reverse().map((followUp) => (
-                      <div key={followUp.id} className="prayer-card-surface rounded-[14px] border border-border/70 bg-white/75 px-4 py-2.5">
-                        <div className="mb-1 flex items-center justify-between gap-3">
-                          <p className="m-0 text-sm font-semibold text-foreground">{followUp.authorName}</p>
-                          {followUp.createdAtLabel ? (
-                            <p className="ui-text m-0 font-medium text-muted-foreground">{followUp.createdAtLabel}</p>
-                          ) : null}
-                        </div>
-                        <p className="ui-text m-0 leading-[1.5] text-muted-foreground">{followUp.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+            {getAllUpdates(item).length > 0 && expandedUpdates[item.id] ? (
+              <div className="mt-3 border-t border-border/50 pt-3">
+                <div className="space-y-3">
+                  {[...getAllUpdates(item)].reverse().map((followUp, followUpIndex) => (
+                    <div key={followUp.id} className={followUpIndex > 0 ? "border-t border-border/40 pt-3" : ""}>
+                      {followUp.createdAtLabel ? (
+                        <p className="ui-text mb-1 text-muted-foreground">{followUp.createdAtLabel}</p>
+                      ) : null}
+                      <p className="ui-text m-0 leading-[1.5] text-muted-foreground">{followUp.message}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </article>

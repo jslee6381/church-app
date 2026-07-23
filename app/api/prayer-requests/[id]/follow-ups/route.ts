@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { canSelfApproveByRole, getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -24,8 +23,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const { message } = (await request.json()) as { message?: string };
     const normalizedMessage = normalizeText(message ?? "");
-    const roles = await getMemberRoles(session.member.id);
-    const canBypassOwnership = canSelfApproveByRole(roles);
 
     if (!normalizedMessage) {
       return NextResponse.json({ error: "Please write a short follow-up." }, { status: 400 });
@@ -50,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const admin = createAdminClient();
     const { data: prayerRequest } = await admin
       .from("prayer_requests")
-      .select("id, requester_member_id")
+      .select("id")
       .eq("id", id)
       .eq("church_id", session.member.church_id)
       .maybeSingle();
@@ -59,8 +56,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Prayer request not found." }, { status: 404 });
     }
 
-    if (prayerRequest.requester_member_id !== session.member.id && !canBypassOwnership) {
-      return NextResponse.json({ error: "Only the requester can add a follow-up." }, { status: 403 });
+
+    const { data: updatedPrayer, error: prayerError } = await admin
+      .from("prayer_requests")
+      .update({
+        request_text: normalizedMessage,
+      })
+      .eq("id", id)
+      .eq("church_id", session.member.church_id)
+      .select("id, request_text, status")
+      .single();
+
+    if (prayerError || !updatedPrayer) {
+      return NextResponse.json({ error: prayerError?.message ?? "Unable to update prayer request." }, { status: 500 });
     }
 
     const { data, error } = await admin
@@ -77,19 +85,37 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: error?.message ?? "Unable to add follow-up." }, { status: 500 });
     }
 
-    await admin.from("audit_logs").insert({
-      church_id: session.member.church_id,
-      actor_member_id: session.member.id,
-      entity_type: "prayer_request_follow_ups",
-      entity_id: data.id,
-      action: "create",
-      metadata: {
-        prayerRequestId: id,
+    await admin.from("audit_logs").insert([
+      {
+        church_id: session.member.church_id,
+        actor_member_id: session.member.id,
+        entity_type: "prayer_requests",
+        entity_id: updatedPrayer.id,
+        action: "update",
+        metadata: {
+          requestText: updatedPrayer.request_text,
+          source: "follow_up_update",
+        },
       },
-    });
+      {
+        church_id: session.member.church_id,
+        actor_member_id: session.member.id,
+        entity_type: "prayer_request_follow_ups",
+        entity_id: data.id,
+        action: "create",
+        metadata: {
+          prayerRequestId: id,
+        },
+      },
+    ]);
 
     return NextResponse.json({
       success: true,
+      prayerRequest: {
+        id: updatedPrayer.id,
+        body: updatedPrayer.request_text,
+        status: updatedPrayer.status,
+      },
       followUp: {
         id: data.id,
         authorName: session.member.display_name ?? session.member.full_name,
