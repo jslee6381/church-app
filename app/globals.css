@@ -636,6 +636,80 @@ h2 {
   background: #1E1E1E;
 }
 
+.bottom-nav-surface {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.launch-screen {
+  background: #f6f4e1;
+  color: #1e2a2a;
+}
+
+.launch-title {
+  color: #1e2a2a;
+}
+
+.launch-subtitle {
+  color: #6f746b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .launch-screen {
+    background: #121212;
+    color: #FFFFFF;
+  }
+
+  .launch-title {
+    color: #FFFFFF;
+  }
+
+  .launch-subtitle {
+    color: #B3B3B3;
+  }
+}
+
+:root[data-theme="dark"] .launch-screen {
+  background: #121212;
+  color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .launch-title {
+  color: #FFFFFF;
+}
+
+:root[data-theme="dark"] .launch-subtitle {
+  color: #B3B3B3;
+}
+
+:root[data-theme="light"] .launch-screen {
+  background: #f6f4e1;
+  color: #1e2a2a;
+}
+
+:root[data-theme="light"] .launch-title {
+  color: #1e2a2a;
+}
+
+:root[data-theme="light"] .launch-subtitle {
+  color: #6f746b;
+}
+
+:root[data-theme="dark"] .bottom-nav-surface {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .announcement-card-surface {
+  background: #1E1E1E;
+}
+
+.quick-action-icon {
+  color: #000000;
+}
+
+:root[data-theme="dark"] .quick-action-icon {
+  color: #FFFFFF;
+}
+
 :root[data-theme="dark"] .event-surface,
 :root[data-theme="dark"] .event-surface-sub,
 :root[data-theme="dark"] .event-card-surface,
@@ -655,6 +729,14 @@ h2 {
 
 :root[data-theme="dark"] .admin-card-surface,
 :root[data-theme="dark"] .settings-card-surface {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .settings-action-surface {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .admin-role-input {
   background: #1E1E1E;
 }
 

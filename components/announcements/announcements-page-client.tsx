@@ -331,13 +331,13 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
       <div className="space-y-4">
         {announcements.length === 0 ? (
-          <article className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+          <article className="announcement-card-surface rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="ui-text m-0 text-center text-muted-foreground">No announcement</p>
           </article>
         ) : (
           announcements.map((item) => (
             <article
-              className={`relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
+              className={`announcement-card-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
                 item.imageUrl ? "pb-0" : "pb-4"
               }`}
               key={item.id}

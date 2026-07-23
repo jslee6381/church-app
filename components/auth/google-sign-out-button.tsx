@@ -30,7 +30,7 @@ export function GoogleSignOutButton() {
   }
 
   return (
-    <Button className="min-h-11 rounded-[16px] px-4 text-sm" disabled={isLoading} onClick={handleClick} size="sm" type="button" variant="secondary">
+    <Button className="settings-action-surface min-h-11 rounded-[16px] px-4 text-sm" disabled={isLoading} onClick={handleClick} size="sm" type="button" variant="secondary">
       Sign out
     </Button>
   );

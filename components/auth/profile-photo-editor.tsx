@@ -361,7 +361,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
 
             <div className="flex justify-end">
               <Button
-                className="min-h-10 rounded-[14px]"
+                className="settings-action-surface min-h-10 rounded-[14px]"
                 onClick={() => {
                   setZoom(1);
                   setPanX(0);
@@ -380,7 +380,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
         {selectedFile ? (
           <div className="grid grid-cols-2 gap-3">
             <Button
-              className="min-h-11 rounded-[16px]"
+              className="settings-action-surface min-h-11 rounded-[16px]"
               disabled={isSaving || isRemoving}
               onClick={() => {
                 setSelectedFile(null);
@@ -407,7 +407,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
         ) : null}
         {photoUrl ? (
           <Button
-            className="min-h-11 rounded-[16px]"
+            className="settings-action-surface min-h-11 rounded-[16px]"
             disabled={isSaving || isRemoving}
             onClick={handleRemovePhoto}
             size="sm"

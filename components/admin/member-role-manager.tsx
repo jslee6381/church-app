@@ -145,7 +145,7 @@ export function MemberRoleManager({
               {canAssignRoles ? (
                 <div className="grid w-[7.5rem] gap-2">
                   <select
-                    className="h-10 w-full rounded-[12px] border border-input bg-white px-2.5 py-0 text-sm leading-none"
+                    className="admin-role-input h-10 w-full rounded-[12px] border border-input bg-white px-2.5 py-0 text-sm leading-none"
                     value={member.status === "invited" ? "pending" : member.roleName}
                     disabled={savingId === member.id || member.isProtected}
                     onChange={(event) => {

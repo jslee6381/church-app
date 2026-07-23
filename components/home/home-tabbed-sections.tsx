@@ -172,7 +172,7 @@ export function HomeTabbedSections({
                       target={action.external ? "_blank" : undefined}
                     >
                       <div className="flex min-h-[88px] flex-col items-center justify-center gap-2 text-center">
-                        <div className="inline-flex size-[40px] shrink-0 items-center justify-center text-accent-foreground">
+                        <div className="quick-action-icon inline-flex size-[40px] shrink-0 items-center justify-center text-accent-foreground">
                           <Icon className="size-[33px]" />
                         </div>
                         <p className="ui-text m-0 whitespace-nowrap text-[0.95rem] font-semibold leading-tight text-foreground">{action.title}</p>

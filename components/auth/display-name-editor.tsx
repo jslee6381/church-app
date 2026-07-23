@@ -57,7 +57,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
             <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Display Name</p>
             <p className="m-0 mt-1 text-lg font-semibold text-foreground">{displayName}</p>
           </div>
-          <Button className="min-h-10 rounded-[16px]" onClick={() => setIsEditing(true)} size="sm" type="button" variant="secondary">
+          <Button className="settings-action-surface min-h-10 rounded-[16px]" onClick={() => setIsEditing(true)} size="sm" type="button" variant="secondary">
             <PencilLine className="size-4" />
             Edit
           </Button>
