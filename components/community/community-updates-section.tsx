@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
-import type { CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
+import { ChevronLeft, ChevronRight, LoaderCircle, MessageCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
+import type { CommentReactionKind, CommunityUpdateComment, CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
 const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 10;
@@ -120,6 +120,14 @@ function LikeReactionIcon({ active }: { active: boolean }) {
   );
 }
 
+function renderSmallCommentReactionIcon(kind: CommentReactionKind, active: boolean) {
+  if (kind === "heart") {
+    return <HeartReactionIcon active={active} />;
+  }
+
+  return <LikeReactionIcon active={active} />;
+}
+
 function ExpandImageIcon() {
   return (
     <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -181,6 +189,16 @@ export function CommunityUpdatesSection({
   const [updateImageRatios, setUpdateImageRatios] = useState<Record<string, number[]>>({});
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [openCommentComposerId, setOpenCommentComposerId] = useState<string | null>(null);
+  const [postingCommentId, setPostingCommentId] = useState<string | null>(null);
+  const [savingCommentReactionKey, setSavingCommentReactionKey] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [savingCommentId, setSavingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [openCommentMenuId, setOpenCommentMenuId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -194,6 +212,9 @@ export function CommunityUpdatesSection({
     );
     setCurrentImageIndexes({});
     setUpdateImageRatios({});
+    setExpandedComments({});
+    setCommentDrafts({});
+    setOpenCommentComposerId(null);
   }, [initialUpdates]);
 
   function getUpdateContent(update: CommunityUpdateFeedItem) {
@@ -496,6 +517,272 @@ export function CommunityUpdatesSection({
 
   function shouldUseFramedCarousel(update: CommunityUpdateFeedItem) {
     return update.imageUrls.length > 1;
+  }
+
+  function getCurrentMemberAvatar() {
+    if (currentMemberPhotoUrl) {
+      return (
+        <img
+          alt="Your profile"
+          className="size-8 rounded-full object-cover"
+          src={currentMemberPhotoUrl}
+        />
+      );
+    }
+
+    return (
+      <div className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Users className="size-4" />
+      </div>
+    );
+  }
+
+  function getCommentAvatar(comment: CommunityUpdateComment) {
+    if (comment.authorPhotoUrl) {
+      return (
+        <img
+          alt={`${comment.authorName} profile`}
+          className="size-8 rounded-full object-cover"
+          src={comment.authorPhotoUrl}
+        />
+      );
+    }
+
+    return (
+      <div className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <Users className="size-4" />
+      </div>
+    );
+  }
+
+  function ensureCommentAccess() {
+    if (submitAccessState === "signed_out") {
+      router.push("/access-required?context=community-feed&next=%2Fhome");
+      return false;
+    }
+
+    if (submitAccessState !== "active") {
+      if (submitAccessState === "pending") {
+        router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+        return false;
+      }
+
+      setShowSubmitGate(true);
+      setFeedback("");
+      return false;
+    }
+
+    return true;
+  }
+
+  function toggleComments(updateId: string) {
+    setExpandedComments((current) => ({
+      ...current,
+      [updateId]: !current[updateId],
+    }));
+  }
+
+  function openCommentComposer(updateId: string) {
+    if (!ensureCommentAccess()) {
+      return;
+    }
+
+    setExpandedComments((current) => ({
+      ...current,
+      [updateId]: true,
+    }));
+    setOpenCommentComposerId(updateId);
+  }
+
+  function startEditingComment(comment: CommunityUpdateComment) {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.message);
+    setOpenCommentMenuId(null);
+    setFeedback("");
+  }
+
+  async function saveComment(updateId: string, commentId: string) {
+    const message = editingCommentText.trim();
+    if (!message) {
+      return;
+    }
+
+    setSavingCommentId(commentId);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/community-updates/${updateId}/comments/${commentId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to update comment.");
+      }
+
+      setUpdates((current) =>
+        current.map((item) =>
+          item.id === updateId
+            ? {
+                ...item,
+                comments: item.comments.map((comment) =>
+                  comment.id === commentId ? { ...comment, message: payload.comment.message } : comment,
+                ),
+              }
+            : item,
+        ),
+      );
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      router.refresh();
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to update comment.");
+    } finally {
+      setSavingCommentId(null);
+    }
+  }
+
+  async function deleteComment(updateId: string, commentId: string) {
+    setDeletingCommentId(commentId);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/community-updates/${updateId}/comments/${commentId}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to delete comment.");
+      }
+
+      setUpdates((current) =>
+        current.map((item) =>
+          item.id === updateId
+            ? {
+                ...item,
+                comments: item.comments.filter((comment) => comment.id !== commentId),
+                commentCount: Math.max(0, item.commentCount - 1),
+              }
+            : item,
+        ),
+      );
+      setOpenCommentMenuId(null);
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditingCommentText("");
+      }
+      router.refresh();
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to delete comment.");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  }
+
+  async function toggleCommentReaction(updateId: string, commentId: string, reactionKind: CommentReactionKind) {
+    if (!canReact) {
+      return;
+    }
+
+    const reactionKey = `${commentId}:${reactionKind}`;
+    setSavingCommentReactionKey(reactionKey);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/community-updates/${updateId}/comments/${commentId}/reactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reactionKind }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to update reaction.");
+      }
+
+      setUpdates((current) =>
+        current.map((item) =>
+          item.id === updateId
+            ? {
+                ...item,
+                comments: item.comments.map((comment) =>
+                  comment.id === commentId
+                    ? {
+                        ...comment,
+                        reactionCounts: payload.reactionCounts,
+                        selectedReaction: payload.selectedReaction,
+                      }
+                    : comment,
+                ),
+              }
+            : item,
+        ),
+      );
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to update reaction.");
+    } finally {
+      setSavingCommentReactionKey(null);
+    }
+  }
+
+  async function submitComment(updateId: string) {
+    if (!ensureCommentAccess()) {
+      return;
+    }
+
+    const message = (commentDrafts[updateId] ?? "").trim();
+
+    if (!message) {
+      return;
+    }
+
+    setPostingCommentId(updateId);
+    setFeedback("");
+
+    try {
+      const response = await fetch(`/api/community-updates/${updateId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to post comment.");
+      }
+
+      setUpdates((current) =>
+        current.map((item) =>
+          item.id === updateId
+            ? {
+                ...item,
+                comments: [...item.comments, payload.comment],
+                commentCount: item.commentCount + 1,
+              }
+            : item,
+        ),
+      );
+      setCommentDrafts((current) => ({
+        ...current,
+        [updateId]: "",
+      }));
+      setExpandedComments((current) => ({
+        ...current,
+        [updateId]: true,
+      }));
+      setOpenCommentComposerId(null);
+      router.refresh();
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Unable to post comment.");
+    } finally {
+      setPostingCommentId(null);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -1166,6 +1453,15 @@ export function CommunityUpdatesSection({
                           </button>
                         );
                       })}
+                      <button
+                        aria-label="Comments"
+                        className="inline-flex items-center gap-1 rounded-full px-1 py-1 text-foreground"
+                        onClick={() => toggleComments(update.id)}
+                        type="button"
+                      >
+                        <MessageCircle className="size-[1.4rem]" />
+                        <span className="text-[1rem] font-semibold">{update.commentCount}</span>
+                      </button>
                     </div>
                   </div>
                 ) : null}
@@ -1211,6 +1507,175 @@ export function CommunityUpdatesSection({
                 ) : null}
               </div>
             </div>
+            {expandedComments[update.id] ? (
+              <div className="px-4 pt-3">
+                {update.comments.length > 0 ? (
+                  <div className="space-y-3 pb-3">
+                    {update.comments.map((comment) => (
+                      <div key={comment.id} className="flex items-start gap-3">
+                        {getCommentAvatar(comment)}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="m-0 text-sm font-semibold text-foreground">{comment.authorName}</p>
+                                <p className="m-0 text-xs text-muted-foreground">{comment.createdAtLabel}</p>
+                              </div>
+                              {editingCommentId === comment.id ? (
+                                <div className="mt-2 grid gap-3">
+                                  <div className="relative">
+                                    <textarea
+                                      className="community-form-input min-h-[96px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                                      maxLength={CONTENT_LIMIT}
+                                      onChange={(event) => setEditingCommentText(event.target.value)}
+                                      value={editingCommentText}
+                                    />
+                                    <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                                      {editingCommentText.length}/{CONTENT_LIMIT}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                      className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                                      onClick={() => {
+                                        setEditingCommentId(null);
+                                        setEditingCommentText("");
+                                      }}
+                                      type="button"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      className="inline-flex min-h-10 items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                                      disabled={savingCommentId === comment.id || !editingCommentText.trim()}
+                                      onClick={() => saveComment(update.id, comment.id)}
+                                      type="button"
+                                    >
+                                      {savingCommentId === comment.id ? <LoaderCircle className="size-4 animate-spin" /> : "Save"}
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="ui-text m-0 text-muted-foreground">{comment.message}</p>
+                              )}
+                              {editingCommentId !== comment.id ? (
+                                <div className="mt-1 flex items-center gap-2">
+                                  {(["heart", "like"] as CommentReactionKind[]).map((kind) => {
+                                    const active = comment.selectedReaction === kind;
+                                    const count = comment.reactionCounts[kind];
+                                    const reactionKey = `${comment.id}:${kind}`;
+                                    return (
+                                      <button
+                                        key={reactionKey}
+                                        aria-label={kind}
+                                        className="inline-flex items-center gap-1 bg-transparent px-0 py-0 text-foreground"
+                                        disabled={!canReact || savingCommentReactionKey === reactionKey}
+                                        onClick={() => toggleCommentReaction(update.id, comment.id, kind)}
+                                        type="button"
+                                      >
+                                        <span className={`inline-flex h-4 w-4 items-center justify-center ${active ? "text-foreground" : "text-muted-foreground"}`}>
+                                          <span className="scale-[0.7]">{savingCommentReactionKey === reactionKey ? <LoaderCircle className="size-3 animate-spin" /> : renderSmallCommentReactionIcon(kind, active)}</span>
+                                        </span>
+                                        <span className="text-[0.8rem] font-medium text-muted-foreground">{count}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              ) : null}
+                            </div>
+                            {(comment.isOwner || canManage) && editingCommentId !== comment.id ? (
+                              <div className="relative shrink-0">
+                                {openCommentMenuId === comment.id ? (
+                                  <div className="absolute right-[calc(100%+0.35rem)] top-0 z-20 flex items-center gap-2">
+                                    <button
+                                      className="community-form-input inline-flex min-h-9 items-center justify-center rounded-[12px] border border-border/80 bg-white px-3 text-xs font-semibold text-foreground"
+                                      onClick={() => startEditingComment(comment)}
+                                      type="button"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      className="community-form-input inline-flex min-h-9 items-center justify-center rounded-[12px] border border-border/80 bg-white px-3 text-xs font-semibold text-foreground disabled:opacity-60"
+                                      disabled={deletingCommentId === comment.id}
+                                      onClick={() => deleteComment(update.id, comment.id)}
+                                      type="button"
+                                    >
+                                      {deletingCommentId === comment.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                                    </button>
+                                  </div>
+                                ) : null}
+                                <button
+                                  aria-label="Comment actions"
+                                  className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
+                                  onClick={() => setOpenCommentMenuId((current) => (current === comment.id ? null : comment.id))}
+                                  type="button"
+                                >
+                                  <MoreVertical className="size-4" />
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="flex items-start gap-3 pt-1">
+                  {getCurrentMemberAvatar()}
+                  <div className="min-w-0 flex-1">
+                    {openCommentComposerId === update.id ? (
+                      <div className="grid gap-3">
+                        <div className="relative">
+                          <textarea
+                            className="community-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                            maxLength={CONTENT_LIMIT}
+                            onChange={(event) =>
+                              setCommentDrafts((current) => ({
+                                ...current,
+                                [update.id]: event.target.value,
+                              }))
+                            }
+                            placeholder="Write a comment..."
+                            value={commentDrafts[update.id] ?? ""}
+                          />
+                          <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                            {(commentDrafts[update.id] ?? "").length}/{CONTENT_LIMIT}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            className="community-form-input inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                            onClick={() => {
+                              setOpenCommentComposerId(null);
+                              setCommentDrafts((current) => ({ ...current, [update.id]: "" }));
+                            }}
+                            type="button"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="inline-flex min-h-11 items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                            disabled={postingCommentId === update.id || !(commentDrafts[update.id] ?? "").trim()}
+                            onClick={() => submitComment(update.id)}
+                            type="button"
+                          >
+                            {postingCommentId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Post"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        className="community-form-input flex min-h-11 w-full items-center rounded-[16px] border border-input bg-white px-4 text-left text-sm text-muted-foreground"
+                        onClick={() => openCommentComposer(update.id)}
+                        type="button"
+                      >
+                        Write a comment...
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </article>
         ))}
       </div>

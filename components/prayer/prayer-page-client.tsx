@@ -339,7 +339,7 @@ export function PrayerPageClient({
                 className="absolute right-0 top-2 z-10 flex items-center gap-1"
               >
                 <button
-                  className="inline-flex min-h-10 items-center justify-center bg-transparent px-2 text-sm font-medium text-foreground"
+                  className="inline-flex min-h-10 items-center justify-center bg-transparent px-2 text-xs font-medium text-muted-foreground"
                   onClick={() => startUpdating(item)}
                   type="button"
                 >
@@ -391,7 +391,7 @@ export function PrayerPageClient({
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-28">
+              <div className="mb-2 pr-32">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -429,7 +429,7 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-28 leading-[1.5] text-muted-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-32 leading-[1.5] break-words text-foreground">{item.body}</p>
             )}
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
@@ -470,15 +470,17 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : null}
-            {getAllUpdates(item).length > 0 && expandedUpdates[item.id] ? (
-              <div className="mt-3 border-t border-border/50 pt-3">
+            {getAllUpdates(item).length > 1 && expandedUpdates[item.id] ? (
+              <div className="mt-3 border-t border-border/50 pt-3 pl-4">
                 <div className="space-y-3">
-                  {[...getAllUpdates(item)].reverse().map((followUp, followUpIndex) => (
+                  {[...getAllUpdates(item)].slice(0, -1).reverse().map((followUp, followUpIndex) => (
                     <div key={followUp.id} className={followUpIndex > 0 ? "border-t border-border/40 pt-3" : ""}>
-                      {followUp.createdAtLabel ? (
-                        <p className="ui-text mb-1 text-muted-foreground">{followUp.createdAtLabel}</p>
-                      ) : null}
-                      <p className="ui-text m-0 leading-[1.5] text-muted-foreground">{followUp.message}</p>
+                      <div className="relative pr-16">
+                        <p className="ui-text m-0 leading-[1.5] text-foreground">{followUp.message}</p>
+                        {followUp.createdAtLabel ? (
+                          <p className="m-0 absolute right-0 top-0 text-[0.7rem] font-normal leading-5 text-muted-foreground">{followUp.createdAtLabel}</p>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>

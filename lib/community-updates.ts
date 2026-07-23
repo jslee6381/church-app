@@ -5,6 +5,19 @@ import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export type ReactionKind = "heart" | "like" | "pray";
 
+export type CommentReactionKind = "heart" | "like";
+
+export type CommunityUpdateComment = {
+  id: string;
+  authorName: string;
+  authorPhotoUrl: string | null;
+  message: string;
+  createdAtLabel: string;
+  reactionCounts: Record<CommentReactionKind, number>;
+  selectedReaction: CommentReactionKind | null;
+  isOwner: boolean;
+};
+
 export type CommunityUpdateFeedItem = {
   id: string;
   legacyTitle?: string | null;
@@ -17,6 +30,8 @@ export type CommunityUpdateFeedItem = {
   selectedReaction: ReactionKind | null;
   authorName: string;
   authorPhotoUrl: string | null;
+  comments: CommunityUpdateComment[];
+  commentCount: number;
   isOwner: boolean;
   status: "pending" | "approved" | "rejected" | "archived";
 };
@@ -38,6 +53,8 @@ function getFallbackUpdates(): CommunityUpdateFeedItem[] {
     selectedReaction: null,
     authorName: "KOINONIA",
     authorPhotoUrl: null,
+    comments: [],
+    commentCount: 0,
     isOwner: false,
     status: "approved",
   }));
@@ -83,12 +100,29 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
       .in("community_update_id", ids)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
+    const { data: commentRows } = await admin
+      .from("community_update_comments")
+      .select("id, community_update_id, author_member_id, message, created_at, author_member:members!community_update_comments_author_member_id_fkey(display_name, full_name)")
+      .in("community_update_id", ids)
+      .order("created_at", { ascending: true });
+    const commentIds = (commentRows ?? []).map((comment) => comment.id);
+    const { data: commentReactions } =
+      commentIds.length > 0
+        ? await admin
+            .from("community_update_comment_reactions")
+            .select("community_update_comment_id, member_id, reaction_kind")
+            .in("community_update_comment_id", commentIds)
+        : { data: [] as never[] };
+    const commentAuthorIds = (commentRows ?? [])
+      .map((comment) => comment.author_member_id)
+      .filter((value): value is string => Boolean(value));
+    const profileMemberIds = Array.from(new Set([...authorIds, ...commentAuthorIds]));
     const { data: memberProfiles } =
-      authorIds.length > 0
+      profileMemberIds.length > 0
         ? await admin
             .from("members")
             .select("id, profiles!left(profile_photo_url)")
-            .in("id", authorIds)
+            .in("id", profileMemberIds)
         : { data: [] as never[] };
 
     const profileByMemberId = new Map<string, string | null>(
@@ -113,6 +147,27 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
       const selectedReaction =
         ((memberId &&
           reactionRows.find((reaction) => reaction.member_id === memberId)?.reaction_kind) as ReactionKind | undefined) ?? null;
+      const comments = (commentRows ?? [])
+        .filter((comment) => comment.community_update_id === update.id)
+        .map((comment) => {
+          const author = Array.isArray(comment.author_member) ? comment.author_member[0] : comment.author_member;
+          const reactionRows = (commentReactions ?? []).filter((reaction) => reaction.community_update_comment_id === comment.id);
+          const reactionCounts: Record<CommentReactionKind, number> = { heart: 0, like: 0 };
+          reactionRows.forEach((reaction) => {
+            const kind = (reaction.reaction_kind ?? "heart") as CommentReactionKind;
+            reactionCounts[kind] += 1;
+          });
+          return {
+            id: comment.id,
+            authorName: author?.display_name ?? author?.full_name ?? "Church Member",
+            authorPhotoUrl: comment.author_member_id ? (profileByMemberId.get(comment.author_member_id) ?? null) : null,
+            message: comment.message,
+            createdAtLabel: formatDate(comment.created_at),
+            reactionCounts,
+            selectedReaction: ((memberId && reactionRows.find((reaction) => reaction.member_id === memberId)?.reaction_kind) as CommentReactionKind | undefined) ?? null,
+            isOwner: Boolean(memberId && comment.author_member_id === memberId),
+          };
+        });
 
       return {
         id: update.id,
@@ -126,6 +181,8 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
         selectedReaction,
         authorName: author?.display_name ?? author?.full_name ?? "Church Member",
         authorPhotoUrl: update.author_member_id ? (profileByMemberId.get(update.author_member_id) ?? null) : null,
+        comments,
+        commentCount: comments.length,
         isOwner: Boolean(memberId && update.author_member_id === memberId),
         status: update.status,
       } satisfies CommunityUpdateFeedItem;
