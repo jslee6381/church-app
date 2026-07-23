@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AppLaunchScreen } from "@/components/navigation/app-launch-screen";
 
 type NavigationTransitionContextValue = {
@@ -23,7 +23,6 @@ const MAX_ROUTE_OVERLAY_MS = 1600;
 
 export function NavigationTransitionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [hash, setHash] = useState("");
   const [visible, setVisible] = useState(false);
   const modeRef = useRef<"idle" | "route" | "temporary">("idle");
@@ -91,8 +90,7 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
       return;
     }
 
-    const params = searchParams.toString();
-    const nextLocationKey = `${pathname}?${params}#${hash}`;
+    const nextLocationKey = `${pathname}${window.location.search}#${hash}`;
     const previousLocationKey = locationKeyRef.current;
     locationKeyRef.current = nextLocationKey;
 
@@ -106,7 +104,7 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
     hideTimerRef.current = window.setTimeout(() => {
       hideOverlay();
     }, remaining);
-  }, [hash, hideOverlay, pathname, searchParams]);
+  }, [hash, hideOverlay, pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
