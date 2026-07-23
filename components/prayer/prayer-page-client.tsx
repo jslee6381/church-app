@@ -243,7 +243,7 @@ export function PrayerPageClient({
         {feed.map((item) => (
           <article
             key={item.id}
-            className="relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            className="prayer-form-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
           >
             {canManageItem(item) && editingId !== item.id ? (
               <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
@@ -258,7 +258,7 @@ export function PrayerPageClient({
                   <MoreVertical className="size-4" />
                 </button>
                 {openMenuPrayerId === item.id ? (
-                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                  <div className="prayer-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
                     <button
                       className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                       onClick={() => startEditing(item)}
@@ -280,7 +280,7 @@ export function PrayerPageClient({
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
               <div className="mb-3 pr-10">
-                <span className="rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
               </div>
@@ -289,7 +289,7 @@ export function PrayerPageClient({
               <div className="space-y-3">
                 <div className="relative">
                   <textarea
-                    className="min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    className="prayer-form-input min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
                     onChange={(event) => setEditingText(event.target.value)}
                     value={editingText}
@@ -308,7 +308,7 @@ export function PrayerPageClient({
                     {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Save"}
                   </button>
                   <button
-                    className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                    className="prayer-form-input inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
                     onClick={() => setEditingId(null)}
                     type="button"
                   >
@@ -320,7 +320,7 @@ export function PrayerPageClient({
               <p className="ui-text m-0 pr-10 text-muted-foreground">{item.body}</p>
             )}
             {item.followUp ? (
-              <div className="mt-4 rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
+              <div className="prayer-card-surface mt-4 rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
                 <p className="m-0 text-sm font-semibold uppercase tracking-[0.08em] text-primary">Follow-up</p>
                 <p className="ui-text m-0 mt-1 text-muted-foreground">{item.followUp}</p>
               </div>
@@ -328,7 +328,7 @@ export function PrayerPageClient({
             {item.followUps && item.followUps.length > 0 ? (
               <div className="mt-4 space-y-3">
                 {item.followUps.map((followUp) => (
-                  <div key={followUp.id} className="rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
+                  <div key={followUp.id} className="prayer-card-surface rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <p className="m-0 text-sm font-semibold text-foreground">{followUp.authorName}</p>
                       <p className="ui-text m-0 font-medium text-muted-foreground">{followUp.createdAtLabel}</p>
@@ -342,7 +342,7 @@ export function PrayerPageClient({
         ))}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+14px)] pt-3 backdrop-blur-2xl">
+      <div className="prayer-composer-shell fixed inset-x-0 bottom-0 z-30 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+14px)] pt-3 backdrop-blur-2xl">
         <div className="mx-auto w-full max-w-[560px]">
           {showSuccess ? (
             <div className="mb-3 rounded-[18px] border border-accent bg-accent/70 px-4 py-3 text-base leading-7 text-accent-foreground shadow-sm">
@@ -366,7 +366,7 @@ export function PrayerPageClient({
                     <textarea
                       ref={textareaRef}
                       autoComplete="off"
-                      className={`w-full resize-none rounded-[16px] border border-transparent bg-white px-4 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] ${
+                      className={`prayer-form-input w-full resize-none rounded-[16px] border border-transparent bg-white px-4 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] ${
                         isComposerExpanded ? "min-h-[110px] py-3 pb-8" : "h-10 min-h-10 py-2"
                       }`}
                       maxLength={CONTENT_LIMIT}

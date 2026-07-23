@@ -94,7 +94,7 @@ export function HomeTabbedSections({
 
   return (
     <div className="mt-2">
-      <div className="-mx-4 mb-4">
+      <div className="-mx-4 mb-1">
         <div className="px-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center bg-transparent shadow-none">
@@ -148,7 +148,7 @@ export function HomeTabbedSections({
               />
               <img
                 alt="KOINONIA"
-                className="dark-wordmark block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] scale-[1.01] align-top"
+                className="dark-wordmark block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] align-top"
                 draggable="false"
                 height={wordmark.dark.height}
                 src={wordmark.dark.src}
@@ -157,7 +157,7 @@ export function HomeTabbedSections({
             </div>
           </section>
 
-          <section className="fade-up mt-6 -mx-4">
+          <section className="fade-up -mt-4 -mx-4">
             <div className="px-3">
               <div className="grid grid-cols-3 gap-2">
                 {quickActions.map((action) => {
@@ -166,14 +166,14 @@ export function HomeTabbedSections({
                   return (
                     <Link
                       key={action.href}
-                      className="rounded-[16px] border border-border bg-card p-4 transition hover:bg-card"
+                      className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 transition hover:bg-card"
                       href={action.href}
                       rel={action.external ? "noreferrer" : undefined}
                       target={action.external ? "_blank" : undefined}
                     >
-                      <div className="flex min-h-[104px] flex-col items-center justify-center gap-3 text-center">
-                        <div className="inline-flex size-[52px] shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                          <Icon className="size-[27px]" />
+                      <div className="flex min-h-[88px] flex-col items-center justify-center gap-2 text-center">
+                        <div className="inline-flex size-[40px] shrink-0 items-center justify-center text-accent-foreground">
+                          <Icon className="size-[33px]" />
                         </div>
                         <p className="ui-text m-0 whitespace-nowrap text-[0.95rem] font-semibold leading-tight text-foreground">{action.title}</p>
                       </div>

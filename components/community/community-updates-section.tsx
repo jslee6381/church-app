@@ -804,7 +804,7 @@ export function CommunityUpdatesSection({
                 )
               ) : null}
               <div
-                className={`relative min-w-0 flex-1 rounded-[16px] border border-input bg-white ${
+                className={`community-form-input relative min-w-0 flex-1 rounded-[16px] border border-input bg-white ${
                   isComposerExpanded ? "px-3 py-2" : "px-3 py-0"
                 }`}
               >
@@ -842,7 +842,7 @@ export function CommunityUpdatesSection({
                 <input
                   multiple
                   accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
-                  className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                  className="community-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                   onChange={handleImageSelection}
                   onFocus={keepComposerVisible}
                   type="file"
@@ -855,7 +855,7 @@ export function CommunityUpdatesSection({
                     {imageFiles.map((file, index) => (
                       <div
                         key={`${file.name}-${file.size}`}
-                        className="w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
+                        className="community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
                       >
                         <img
                           alt={`Selected upload ${index + 1}`}
@@ -866,7 +866,7 @@ export function CommunityUpdatesSection({
                           <p className="m-0 truncate text-sm text-muted-foreground">{file.name}</p>
                           <div className="grid grid-cols-2 gap-2">
                             <button
-                              className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                              className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
                               disabled={index === 0}
                               onClick={() => moveImage(index, index - 1)}
                               type="button"
@@ -874,7 +874,7 @@ export function CommunityUpdatesSection({
                               <ChevronLeft className="size-4" />
                             </button>
                             <button
-                              className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                              className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
                               disabled={index === imageFiles.length - 1}
                               onClick={() => moveImage(index, index + 1)}
                               type="button"
@@ -893,7 +893,7 @@ export function CommunityUpdatesSection({
               ) : null}
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  className="inline-flex min-h-12 items-center justify-center rounded-[16px] border border-input bg-white px-5 text-base font-semibold text-foreground disabled:opacity-60"
+                  className="community-form-input inline-flex min-h-12 items-center justify-center rounded-[16px] border border-input bg-white px-5 text-base font-semibold text-foreground disabled:opacity-60"
                   disabled={isSubmitting || isPreparingImages}
                   onClick={cancelComposer}
                   type="button"
@@ -915,7 +915,7 @@ export function CommunityUpdatesSection({
         </form>
 
         {showSubmitGate && submitAccessState === "pending" ? (
-          <div className="mt-4 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+          <div className="community-form-surface mt-4 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="m-0 text-sm font-semibold uppercase tracking-[0.12em] text-primary">Awaiting Approval</p>
             <h3 className="mb-3 mt-3 font-sans text-[1.35rem] leading-tight text-foreground">
               You are signed in. A church admin still needs to approve your member access.
@@ -925,7 +925,7 @@ export function CommunityUpdatesSection({
             </p>
             <div className="mt-5">
               <Link
-                className="inline-flex min-h-11 items-center rounded-[16px] border border-border/80 bg-white/80 px-4 text-sm font-semibold text-foreground transition hover:bg-white"
+                className="community-form-input inline-flex min-h-11 items-center rounded-[16px] border border-border/80 bg-white/80 px-4 text-sm font-semibold text-foreground transition hover:bg-white"
                 href="/settings"
               >
                 Open Settings
@@ -941,7 +941,7 @@ export function CommunityUpdatesSection({
         {updates.map((update, index) => (
           <article
             key={update.id}
-            className={`overflow-hidden pb-2 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-2" : ""}`}
+            className={`community-card-surface overflow-hidden rounded-[18px] border border-border/80 pb-2 last:pb-0 ${index > 0 ? "pt-2" : ""}`}
           >
             <div className="px-4 pt-1 pb-2">
               <div className="flex min-h-[36px] items-center justify-between gap-3">
@@ -1043,7 +1043,7 @@ export function CommunityUpdatesSection({
                 <div className="grid gap-3">
                   <div className="relative">
                     <textarea
-                      className="min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="community-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => setEditingSummary(event.target.value)}
                       value={editingSummary}
@@ -1057,7 +1057,7 @@ export function CommunityUpdatesSection({
                     <input
                       multiple
                       accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
-                      className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                      className="community-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                       onChange={handleEditImageSelection}
                       type="file"
                     />
@@ -1069,7 +1069,7 @@ export function CommunityUpdatesSection({
                         {editingImages.map((image, index) => (
                           <div
                             key={image.id}
-                            className="w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
+                            className="community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
                           >
                             <img
                               alt={`Edit image ${index + 1}`}
@@ -1080,7 +1080,7 @@ export function CommunityUpdatesSection({
                               <p className="m-0 truncate text-sm text-muted-foreground">{image.name}</p>
                               <div className="grid grid-cols-3 gap-2">
                                 <button
-                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                                  className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
                                   disabled={index === 0}
                                   onClick={() => moveEditImage(index, index - 1)}
                                   type="button"
@@ -1088,7 +1088,7 @@ export function CommunityUpdatesSection({
                                   <ChevronLeft className="size-4" />
                                 </button>
                                 <button
-                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
+                                  className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
                                   disabled={index === editingImages.length - 1}
                                   onClick={() => moveEditImage(index, index + 1)}
                                   type="button"
@@ -1096,7 +1096,7 @@ export function CommunityUpdatesSection({
                                   <ChevronRight className="size-4" />
                                 </button>
                                 <button
-                                  className="inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground"
+                                  className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground"
                                   onClick={() => removeEditImage(image.id)}
                                   type="button"
                                 >
@@ -1114,7 +1114,7 @@ export function CommunityUpdatesSection({
                   ) : null}
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                      className="community-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
                       onClick={clearEditState}
                       type="button"
                     >
@@ -1170,7 +1170,7 @@ export function CommunityUpdatesSection({
                   </div>
                 ) : null}
                 {editingId !== update.id && (update.isOwner || canManage) && getStatusLabel(update.status) ? (
-                  <span className="rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                  <span className="community-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                     {getStatusLabel(update.status)}
                   </span>
                 ) : null}
@@ -1181,14 +1181,14 @@ export function CommunityUpdatesSection({
                     {openMenuUpdateId === update.id ? (
                       <div className="absolute right-[calc(100%+0.5rem)] top-1/2 z-20 flex -translate-y-1/2 items-center gap-2">
                         <button
-                          className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                          className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
                           onClick={() => startEditing(update)}
                           type="button"
                         >
                           Edit
                         </button>
                         <button
-                          className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={deletingId === update.id}
                           onClick={() => deleteUpdate(update.id)}
                           type="button"

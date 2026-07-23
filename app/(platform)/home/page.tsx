@@ -12,7 +12,7 @@ import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import churchWordmark from "@/aaa.png";
-import churchWordmarkDark from "@/aaa-dark.png";
+import churchWordmarkDark from "@/aaa-dark-transparent.png";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

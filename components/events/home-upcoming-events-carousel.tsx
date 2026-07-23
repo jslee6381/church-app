@@ -59,7 +59,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
   const titleIsExternal = Boolean(currentEvent.isLiveStream && currentEvent.liveStreamUrl);
 
   return (
-    <article className="overflow-hidden rounded-[16px] border border-border bg-white/72">
+    <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
       <div className="pt-4 pb-4">
         <div className="mb-0 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
           <div className="flex justify-start">

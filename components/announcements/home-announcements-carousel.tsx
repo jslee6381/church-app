@@ -19,7 +19,7 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
 
   if (announcements.length === 0) {
     return (
-      <article className="overflow-hidden rounded-[16px] border border-border bg-white/72">
+      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
         <div className="pt-4 pb-4">
           <Link
             className="ui-text block text-center text-muted-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
@@ -37,7 +37,7 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
   const canGoNext = currentIndex < announcements.length - 1;
 
   return (
-    <article className="overflow-hidden rounded-[16px] border border-border bg-white/72">
+    <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
       <div className="pt-4 pb-4">
         <div className="grid grid-cols-[40px_minmax(0,1fr)_40px] items-start gap-3">
           <div className="flex justify-start">

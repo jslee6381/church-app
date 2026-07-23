@@ -281,12 +281,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       {canManage ? (
         <div
           ref={composerRef}
-          className="rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="event-form-surface rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               aria-label={editingEventId ? "Editing event" : isComposerOpen ? "Close event form" : "Create event"}
-              className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-white text-foreground"
+              className="event-form-input inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-white text-foreground"
               onClick={() => {
                 if (isComposerOpen && !editingEventId) {
                   setIsComposerOpen(false);
@@ -307,7 +307,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               ) : null}
               <div className="relative">
                 <input
-                  className="min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
+                  className="event-form-input min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
                   maxLength={TITLE_LIMIT}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Event title"
@@ -319,7 +319,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               </div>
               <div className="relative">
                 <textarea
-                  className="min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                  className="event-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
                   maxLength={CONTENT_LIMIT}
                   onChange={(event) => setSummary(event.target.value)}
                   placeholder="Short description"
@@ -330,18 +330,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 </span>
               </div>
               <input
-                className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
                 onChange={(event) => setLocationName(event.target.value)}
                 placeholder="Location"
                 value={locationName}
               />
               <input
-                className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
                 onChange={(event) => setStartsAt(event.target.value)}
                 type="datetime-local"
                 value={startsAt}
               />
-              <label className="inline-flex min-h-12 items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
+              <label className="event-form-input inline-flex min-h-12 items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
                 <input
                   checked={isLiveStream}
                   className="size-4 accent-[var(--primary)]"
@@ -354,7 +354,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 Event image optional, JPG/PNG/WEBP up to 8 MB
                 <input
                   accept="image/jpeg,image/png,image/webp"
-                  className="min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                  className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                   onChange={(event) => {
                     const nextFile = event.target.files?.[0] ?? null;
                     setImageFile(nextFile);
@@ -364,7 +364,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 />
               </label>
               {imagePreviewUrl || existingImageUrl ? (
-                <div className="grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                <div className="event-form-input grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
                   <img
                     alt="Event preview"
                     className="block w-full rounded-[12px]"
@@ -372,7 +372,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      className="inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                      className="event-form-input inline-flex min-h-11 items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
                       onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
                       type="button"
                     >
@@ -420,7 +420,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
             <article
               id={`event-${event.id}`}
-              className={`rounded-[18px] bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
+              className={`event-surface rounded-[18px] bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${
                 "relative "
               }${
                 event.variant !== "service-pair" && event.variant !== "united-service" && (event.posterSrc || event.imageUrl)
@@ -444,7 +444,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuEventId === event.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                      <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[144px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => beginEdit(event)}
@@ -488,7 +488,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-3 text-center">
                         {event.services.map((service) => (
-                          <div key={service.title} className="rounded-[14px] bg-white/70 px-3 py-4">
+                          <div key={service.title} className="event-surface-sub rounded-[14px] bg-white/70 px-3 py-4">
                             <p className="ui-text m-0 font-sans font-semibold text-foreground">
                               {service.title}
                             </p>
@@ -521,7 +521,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                         <form className="grid min-w-0 max-w-full gap-3 overflow-hidden" onSubmit={handleSubmit}>
                           <div className="relative">
                             <input
-                              className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
+                              className="event-form-input min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16"
                               maxLength={TITLE_LIMIT}
                               onChange={(event) => setTitle(event.target.value)}
                               placeholder="Event title"
@@ -533,7 +533,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           </div>
                           <div className="relative">
                             <textarea
-                              className="min-h-[110px] w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                              className="event-form-input min-h-[110px] w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
                               maxLength={CONTENT_LIMIT}
                               onChange={(event) => setSummary(event.target.value)}
                               placeholder="Short description"
@@ -544,18 +544,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             </span>
                           </div>
                           <input
-                            className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
+                            className="event-form-input min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
                             onChange={(event) => setLocationName(event.target.value)}
                             placeholder="Location"
                             value={locationName}
                           />
                           <input
-                            className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
+                            className="event-form-input min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3"
                             onChange={(event) => setStartsAt(event.target.value)}
                             type="datetime-local"
                             value={startsAt}
                           />
-                          <label className="inline-flex min-h-12 w-full min-w-0 max-w-full items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
+                          <label className="event-form-input inline-flex min-h-12 w-full min-w-0 max-w-full items-center gap-3 rounded-[16px] border border-input bg-white px-4 py-3 text-sm font-medium text-foreground">
                             <input
                               checked={isLiveStream}
                               className="size-4 accent-[var(--primary)]"
@@ -568,7 +568,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             Event image optional, JPG/PNG/WEBP up to 8 MB
                             <input
                               accept="image/jpeg,image/png,image/webp"
-                              className="min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
+                              className="event-form-input min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
                               onChange={(event) => {
                                 const nextFile = event.target.files?.[0] ?? null;
                                 setImageFile(nextFile);
@@ -578,14 +578,14 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             />
                           </label>
                           {imagePreviewUrl || existingImageUrl ? (
-                            <div className="grid w-full min-w-0 max-w-full gap-3 rounded-[16px] border border-border/70 bg-white p-3">
+                            <div className="event-form-input grid w-full min-w-0 max-w-full gap-3 rounded-[16px] border border-border/70 bg-white p-3">
                               <img
                                 alt="Event preview"
                                 className="block w-full rounded-[12px]"
                                 src={imagePreviewUrl ?? existingImageUrl ?? ""}
                               />
                               <button
-                                className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
+                                className="event-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/80 bg-white px-4 text-sm font-semibold text-foreground"
                                 onClick={imagePreviewUrl ? clearSelectedImage : removeCurrentImage}
                                 type="button"
                               >
@@ -595,7 +595,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           ) : null}
                           <div className="grid grid-cols-2 gap-3">
                             <button
-                              className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
+                              className="event-form-input inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
                               onClick={resetInlineEdit}
                               type="button"
                             >

@@ -65,7 +65,7 @@ export function BottomNav() {
       <div className="mx-auto w-full max-w-[350px]">
         <nav
           aria-label="Bottom navigation"
-          className="pointer-events-auto grid grid-cols-3 rounded-[23px] border border-border bg-white/72 p-1.25 shadow-none"
+          className="pointer-events-auto grid grid-cols-3 rounded-[23px] border border-border bg-[#1E1E1E] p-1.25 shadow-none"
         >
           {items.map((item) => {
             const Icon = item.icon;
@@ -75,7 +75,7 @@ export function BottomNav() {
               <Link
                 aria-label={item.label}
                 className={`flex min-h-11 items-center justify-center rounded-[19px] transition ${
-                  isActive ? "bg-accent/85 text-primary" : "bg-transparent text-accent-foreground"
+                  isActive ? "bg-[#A3A3A3] text-primary" : "bg-transparent text-accent-foreground"
                 }`}
                 href={item.href}
                 key={item.href}
