@@ -4,13 +4,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, LoaderCircle, MessageCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, MessageCircle, MoreVertical, SendHorizonal, Users, X } from "lucide-react";
 import type { CommentReactionKind, CommunityUpdateComment, CommunityUpdateFeedItem, ReactionKind } from "@/lib/community-updates";
 
 const CONTENT_LIMIT = 150;
 const MAX_IMAGES = 10;
 const MAX_IMAGE_DIMENSION = 1800;
 const JPEG_QUALITY = 0.82;
+const MIN_TEXTAREA_HEIGHT = 44;
+const MAX_TEXTAREA_HEIGHT = 180;
+
+function resizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+
+  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
 
 type Props = {
   canManage: boolean;
@@ -1121,12 +1130,12 @@ export function CommunityUpdatesSection({
                 }`}
               >
                 <textarea
-                  ref={composerTextareaRef}
                   className={`w-full resize-none rounded-[16px] border-0 bg-transparent outline-none focus:border-0 focus:shadow-none ${
-                    isComposerExpanded ? "min-h-[110px] px-0 py-1 pb-8" : "h-8 min-h-8 py-[6px] pr-10 pl-0"
+                    isComposerExpanded ? "min-h-[44px] px-0 py-1 pb-8" : "h-8 min-h-8 py-[6px] pr-10 pl-0"
                   }`}
                   maxLength={CONTENT_LIMIT}
-                  onChange={(event) => setSummary(event.target.value)}
+                  onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
+                  ref={(node) => { composerTextareaRef.current = node; resizeTextarea(node); }}
                   onFocus={() => {
                     openComposer();
                     keepComposerVisible();
@@ -1149,17 +1158,20 @@ export function CommunityUpdatesSection({
 
             {isComposerExpanded ? (
               <>
-              <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                Photos optional, up to {MAX_IMAGES} images, JPG/PNG/WEBP up to 8 MB each
-                <input
-                  multiple
-                  accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
-                  className="community-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                  onChange={handleImageSelection}
-                  onFocus={keepComposerVisible}
-                  type="file"
-                />
-              </label>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                  <ImagePlus className="size-5" />
+                  <input
+                    multiple
+                    accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                    className="sr-only"
+                    onChange={handleImageSelection}
+                    onFocus={keepComposerVisible}
+                    type="file"
+                  />
+                </label>
+                <span>{imageFiles.length > 0 ? `${imageFiles.length}/${MAX_IMAGES} selected` : "Add photo"}</span>
+              </div>
               {imageFiles.length > 0 ? (
                 <div className="grid gap-2">
                   <p className="m-0 text-sm text-muted-foreground">{imageFiles.length}/{MAX_IMAGES} selected</p>
@@ -1355,25 +1367,30 @@ export function CommunityUpdatesSection({
                 <div className="grid gap-3">
                   <div className="relative">
                     <textarea
-                      className="community-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                      className="community-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                       maxLength={CONTENT_LIMIT}
-                      onChange={(event) => setEditingSummary(event.target.value)}
+                      onChange={(event) => { resizeTextarea(event.currentTarget); setEditingSummary(event.target.value); }}
+                      ref={(node) => resizeTextarea(node)}
+                      rows={1}
                       value={editingSummary}
                     />
                     <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
                       {editingSummary.length}/{CONTENT_LIMIT}
                     </span>
                   </div>
-                  <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                    Add or remove photos, up to {MAX_IMAGES} images total
-                    <input
-                      multiple
-                      accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
-                      className="community-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                      onChange={handleEditImageSelection}
-                      type="file"
-                    />
-                  </label>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                      <ImagePlus className="size-5" />
+                      <input
+                        multiple
+                        accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                        className="sr-only"
+                        onChange={handleEditImageSelection}
+                        type="file"
+                      />
+                    </label>
+                    <span>{editingImages.length > 0 ? `${editingImages.length}/${MAX_IMAGES} selected` : "Add photo"}</span>
+                  </div>
                   {editingImages.length > 0 ? (
                     <div className="grid gap-2">
                       <p className="m-0 text-sm text-muted-foreground">{editingImages.length}/{MAX_IMAGES} selected</p>
@@ -1550,9 +1567,11 @@ export function CommunityUpdatesSection({
                                 <div className="mt-2 grid gap-3">
                                   <div className="relative">
                                     <textarea
-                                      className="community-form-input min-h-[96px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                                      className="community-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                                       maxLength={CONTENT_LIMIT}
-                                      onChange={(event) => setEditingCommentText(event.target.value)}
+                                      onChange={(event) => { resizeTextarea(event.currentTarget); setEditingCommentText(event.target.value); }}
+                                      ref={(node) => resizeTextarea(node)}
+                                      rows={1}
                                       value={editingCommentText}
                                     />
                                     <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
@@ -1652,14 +1671,17 @@ export function CommunityUpdatesSection({
                       <div className="grid gap-3">
                         <div className="relative">
                           <textarea
-                            className="community-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                            className="community-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                             maxLength={CONTENT_LIMIT}
-                            onChange={(event) =>
+                            ref={(node) => resizeTextarea(node)}
+                            rows={1}
+                            onChange={(event) => {
+                              resizeTextarea(event.currentTarget);
                               setCommentDrafts((current) => ({
                                 ...current,
                                 [update.id]: event.target.value,
-                              }))
-                            }
+                              }));
+                            }}
                             placeholder="Write a comment..."
                             value={commentDrafts[update.id] ?? ""}
                           />

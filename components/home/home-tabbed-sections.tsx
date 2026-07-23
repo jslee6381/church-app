@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
@@ -71,21 +71,48 @@ export function HomeTabbedSections({
   wordmark,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"home" | "community">("home");
   const bottomNavVisibility = useBottomNavVisibility();
 
   useEffect(() => {
-    bottomNavVisibility?.setVisible(activeTab === "home");
-  }, [activeTab, bottomNavVisibility]);
+    bottomNavVisibility?.setVisible(true);
+  }, [bottomNavVisibility]);
 
-  function openCommunityTab() {
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab") === "fellowship" ? "community" : "home";
+
+    if (requestedTab === "home") {
+      setActiveTab("home");
+      return;
+    }
+
     if (submitAccessState === "pending") {
-      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
       return;
     }
 
     if (submitAccessState !== "active") {
-      router.push("/access-required?context=community-feed&next=%2Fhome");
+      router.push("/access-required?context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
+      return;
+    }
+
+    setActiveTab("community");
+  }, [router, searchParams, submitAccessState]);
+
+  function goHomeTab() {
+    setActiveTab("home");
+    router.replace("/home", { scroll: false });
+  }
+
+  function openCommunityTab() {
+    if (submitAccessState === "pending") {
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
+      return;
+    }
+
+    if (submitAccessState !== "active") {
+      router.push("/access-required?context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
       return;
     }
 
@@ -105,7 +132,7 @@ export function HomeTabbedSections({
                     : "bg-background text-muted-foreground"
                 }`}
                 onClick={() => {
-                  setActiveTab("home");
+                  goHomeTab();
                 }}
                 style={{ fontWeight: 700 }}
                 type="button"

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle, MoreVertical, Plus } from "lucide-react";
+import { ImagePlus, LoaderCircle, MoreVertical, Plus } from "lucide-react";
 
 type AnnouncementItem = {
   id: string;
@@ -18,6 +18,15 @@ type Props = {
 
 const TITLE_LIMIT = 50;
 const CONTENT_LIMIT = 150;
+const MIN_TEXTAREA_HEIGHT = 44;
+const MAX_TEXTAREA_HEIGHT = 180;
+
+function resizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+
+  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
 
 export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Props) {
   const router = useRouter();
@@ -274,9 +283,11 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
               <div className="relative">
                 <textarea
-                  className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
+                  className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
                   maxLength={CONTENT_LIMIT}
-                  onChange={(event) => setBody(event.target.value)}
+                  onChange={(event) => { resizeTextarea(event.currentTarget); setBody(event.target.value); }}
+                  ref={(node) => resizeTextarea(node)}
+                  rows={1}
                   placeholder="Content"
                   value={body}
                 />
@@ -285,15 +296,18 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                 </span>
               </div>
 
-              <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                Image optional, JPG/PNG/WEBP up to 8 MB
-                <input
-                  accept="image/jpeg,image/png,image/webp"
-                  className="min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                  onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
-                  type="file"
-                />
-              </label>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                  <ImagePlus className="size-5" />
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+                    type="file"
+                  />
+                </label>
+                <span>{imagePreviewUrl ? "Photo selected" : "Add photo"}</span>
+              </div>
 
               {imagePreviewUrl ? (
                 <div className="grid gap-3 rounded-[16px] border border-border/70 bg-background p-3">
@@ -395,9 +409,11 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
 
                   <div className="relative">
                     <textarea
-                      className="ui-text min-h-[110px] w-full rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
+                      className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
                       maxLength={CONTENT_LIMIT}
-                      onChange={(event) => setBody(event.target.value)}
+                      onChange={(event) => { resizeTextarea(event.currentTarget); setBody(event.target.value); }}
+                      ref={(node) => resizeTextarea(node)}
+                      rows={1}
                       placeholder="Content"
                       value={body}
                     />
@@ -406,19 +422,22 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                     </span>
                   </div>
 
-                  <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                    Image optional, JPG/PNG/WEBP up to 8 MB
-                    <input
-                      accept="image/jpeg,image/png,image/webp"
-                      className="min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                      onChange={(event) => {
-                        const nextFile = event.target.files?.[0] ?? null;
-                        setImageFile(nextFile);
-                        setRemoveExistingImage(false);
-                      }}
-                      type="file"
-                    />
-                  </label>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                      <ImagePlus className="size-5" />
+                      <input
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={(event) => {
+                          const nextFile = event.target.files?.[0] ?? null;
+                          setImageFile(nextFile);
+                          setRemoveExistingImage(false);
+                        }}
+                        type="file"
+                      />
+                    </label>
+                    <span>{imagePreviewUrl || existingImageUrl ? "Photo selected" : "Add photo"}</span>
+                  </div>
 
                   {imagePreviewUrl || existingImageUrl ? (
                     <div className="grid gap-3 rounded-[16px] border border-border/70 bg-background p-3">

@@ -27,9 +27,16 @@ type PrayerPageClientProps = {
   canManageAll?: boolean;
 };
 
-const MIN_TEXTAREA_HEIGHT = 48;
-const MAX_TEXTAREA_HEIGHT = 144;
+const MIN_TEXTAREA_HEIGHT = 44;
+const MAX_TEXTAREA_HEIGHT = 180;
 const CONTENT_LIMIT = 150;
+
+function resizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+
+  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
 
 export function PrayerPageClient({
   initialFeed,
@@ -62,8 +69,7 @@ export function PrayerPageClient({
 
     if (!textarea) return;
 
-    textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
-    textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+    resizeTextarea(textarea);
   }, [requestText]);
 
   useEffect(() => {
@@ -405,9 +411,11 @@ export function PrayerPageClient({
               <div className="space-y-3">
                 <div className="relative">
                   <textarea
-                    className="prayer-form-input min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
-                    onChange={(event) => setEditingText(event.target.value)}
+                    onChange={(event) => { resizeTextarea(event.currentTarget); setEditingText(event.target.value); }}
+                    ref={(node) => resizeTextarea(node)}
+                    rows={1}
                     value={editingText}
                   />
                   <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
@@ -439,9 +447,11 @@ export function PrayerPageClient({
               <div className="mt-3 space-y-3">
                 <div className="relative">
                   <textarea
-                    className="prayer-form-input min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
-                    onChange={(event) => setUpdateText(event.target.value)}
+                    onChange={(event) => { resizeTextarea(event.currentTarget); setUpdateText(event.target.value); }}
+                    ref={(node) => resizeTextarea(node)}
+                    rows={1}
                     placeholder="Share an update..."
                     value={updateText}
                   />
@@ -513,13 +523,14 @@ export function PrayerPageClient({
                 <div className="grid gap-3">
                   <div className="relative flex-1">
                     <textarea
-                      ref={textareaRef}
+                      ref={(node) => { textareaRef.current = node; resizeTextarea(node); }}
                       autoComplete="off"
                       className={`prayer-form-input w-full resize-none rounded-[16px] border border-transparent bg-white px-4 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] ${
-                        isComposerExpanded ? "min-h-[110px] py-3 pb-8" : "h-10 min-h-10 py-2"
+                        isComposerExpanded ? "min-h-[44px] py-3 pb-8" : "h-10 min-h-10 py-2"
                       }`}
                       maxLength={CONTENT_LIMIT}
                       onChange={(event) => {
+                        resizeTextarea(event.currentTarget);
                         setRequestText(event.target.value);
                         if (showSuccess) setShowSuccess(false);
                         if (errorMessage) setErrorMessage("");

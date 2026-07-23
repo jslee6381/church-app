@@ -1,19 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CalendarDays, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
+import { CalendarDays, ImagePlus, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatEasternDateTimeLocalValue, formatEasternDayNumber, formatEasternEventDate, formatEasternEventTime, formatEasternMonthHeading, formatEasternWeekday } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 const TITLE_LIMIT = 50;
 const CONTENT_LIMIT = 150;
+const MIN_TEXTAREA_HEIGHT = 44;
+const MAX_TEXTAREA_HEIGHT = 180;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type Props = {
   canManage: boolean;
   initialEvents: EventListItem[];
 };
+
+function resizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+
+  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
 
 export function EventsPageClient({ canManage, initialEvents }: Props) {
   const router = useRouter();
@@ -338,9 +347,11 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               </div>
               <div className="relative">
                 <textarea
-                  className="event-form-input min-h-[110px] w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                  className="event-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
                   maxLength={CONTENT_LIMIT}
-                  onChange={(event) => setSummary(event.target.value)}
+                  onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
+                  ref={(node) => resizeTextarea(node)}
+                  rows={1}
                   placeholder="Short description"
                   value={summary}
                 />
@@ -369,19 +380,22 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 />
                 Live Stream
               </label>
-              <label className="grid gap-2 text-sm font-medium text-muted-foreground">
-                Event image optional, JPG/PNG/WEBP up to 8 MB
-                <input
-                  accept="image/jpeg,image/png,image/webp"
-                  className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                  onChange={(event) => {
-                    const nextFile = event.target.files?.[0] ?? null;
-                    setImageFile(nextFile);
-                    setRemoveExistingImage(false);
-                  }}
-                  type="file"
-                />
-              </label>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                  <ImagePlus className="size-5" />
+                  <input
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const nextFile = event.target.files?.[0] ?? null;
+                      setImageFile(nextFile);
+                      setRemoveExistingImage(false);
+                    }}
+                    type="file"
+                  />
+                </label>
+                <span>{imagePreviewUrl || existingImageUrl ? "Photo selected" : "Add photo"}</span>
+              </div>
               {imagePreviewUrl || existingImageUrl ? (
                 <div className="event-form-input grid gap-3 rounded-[16px] border border-border/70 bg-white p-3">
                   <img
@@ -552,9 +566,11 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           </div>
                           <div className="relative">
                             <textarea
-                              className="event-form-input min-h-[110px] w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
+                              className="event-form-input min-h-[44px] w-full min-w-0 max-w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8"
                               maxLength={CONTENT_LIMIT}
-                              onChange={(event) => setSummary(event.target.value)}
+                              onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
+                              ref={(node) => resizeTextarea(node)}
+                              rows={1}
                               placeholder="Short description"
                               value={summary}
                             />
@@ -583,19 +599,22 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             />
                             Live Stream
                           </label>
-                          <label className="grid w-full min-w-0 max-w-full gap-2 text-sm font-medium text-muted-foreground">
-                            Event image optional, JPG/PNG/WEBP up to 8 MB
-                            <input
-                              accept="image/jpeg,image/png,image/webp"
-                              className="event-form-input min-h-12 w-full min-w-0 max-w-full rounded-[16px] border border-input bg-white px-4 py-3 file:mr-3 file:max-w-full file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:font-semibold file:text-accent-foreground"
-                              onChange={(event) => {
-                                const nextFile = event.target.files?.[0] ?? null;
-                                setImageFile(nextFile);
-                                setRemoveExistingImage(false);
-                              }}
-                              type="file"
-                            />
-                          </label>
+                          <div className="flex w-full min-w-0 max-w-full items-center gap-3 text-sm text-muted-foreground">
+                            <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-border/80 p-2 text-foreground">
+                              <ImagePlus className="size-5" />
+                              <input
+                                accept="image/jpeg,image/png,image/webp"
+                                className="sr-only"
+                                onChange={(event) => {
+                                  const nextFile = event.target.files?.[0] ?? null;
+                                  setImageFile(nextFile);
+                                  setRemoveExistingImage(false);
+                                }}
+                                type="file"
+                              />
+                            </label>
+                            <span>{imagePreviewUrl || existingImageUrl ? "Photo selected" : "Add photo"}</span>
+                          </div>
                           {imagePreviewUrl || existingImageUrl ? (
                             <div className="event-form-input grid w-full min-w-0 max-w-full gap-3 rounded-[16px] border border-border/70 bg-white p-3">
                               <img
