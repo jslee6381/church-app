@@ -67,7 +67,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
           <label className="grid gap-2 text-base font-semibold text-foreground">
             Display name
             <input
-              className="min-h-12 w-full rounded-[18px] border border-input bg-white px-4 py-3 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+              className="min-h-12 w-full rounded-[18px] border border-input bg-card px-4 py-3 text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
               onChange={(event) => setDraftName(event.target.value)}
               placeholder="e.g. Grace Kim"
               value={draftName}
@@ -75,7 +75,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <Button
-              className="min-h-11 w-full rounded-[16px]"
+              className="settings-action-surface min-h-11 w-full rounded-[16px] text-foreground"
               onClick={() => {
                 setDraftName(displayName);
                 setIsEditing(false);
@@ -87,7 +87,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
             >
               Cancel
             </Button>
-            <Button className="min-h-11 w-full rounded-[16px]" disabled={isSaving} size="sm" type="submit">
+            <Button className="settings-action-surface min-h-11 w-full rounded-[16px] text-foreground" disabled={isSaving} size="sm" type="submit" variant="secondary">
               {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
               Save
             </Button>

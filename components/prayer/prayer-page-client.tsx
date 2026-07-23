@@ -549,6 +549,7 @@ export function PrayerPageClient({
                   <div className="relative flex-1">
                     {isComposerExpanded ? (
                       <textarea
+                        autoFocus
                         ref={(node) => { textareaRef.current = node; resizeTextarea(node); }}
                         autoComplete="off"
                         className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-transparent bg-white px-4 py-2.5 pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"

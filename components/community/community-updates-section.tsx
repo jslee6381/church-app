@@ -1698,9 +1698,10 @@ export function CommunityUpdatesSection({
                       <div className="grid gap-3">
                         <div className="relative">
                           <textarea
+                            autoFocus
                             className="community-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                             maxLength={CONTENT_LIMIT}
-                            ref={(node) => resizeTextarea(node)}
+                            ref={(node) => { commentTextareaRefs.current[update.id] = node; resizeTextarea(node); }}
                             rows={1}
                             onChange={(event) => {
                               resizeTextarea(event.currentTarget);
