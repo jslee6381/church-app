@@ -17,9 +17,9 @@ export const metadata: Metadata = {
     title: "New York UBF",
   },
   icons: {
-    icon: "/icon-192-v2.png",
-    apple: "/apple-touch-icon-v2.png",
-    shortcut: "/icon-192-v2.png",
+    icon: "/icon-192-v3.png",
+    apple: "/apple-touch-icon-v3.png",
+    shortcut: "/icon-192-v3.png",
   },
 };
 
