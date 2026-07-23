@@ -170,7 +170,7 @@ export function MemberRoleManager({
                         <p className="m-0 text-center text-sm font-semibold text-foreground">Are you sure?</p>
                         <div className="grid grid-cols-2 gap-2">
                           <button
-                            className="inline-flex h-10 w-full items-center justify-center rounded-[12px] border border-input bg-white px-2.5 py-0 text-sm font-semibold leading-none text-foreground disabled:opacity-60"
+                            className="settings-action-surface inline-flex h-10 w-full items-center justify-center rounded-[12px] border border-input bg-white px-2.5 py-0 text-sm font-semibold leading-none text-foreground disabled:opacity-60"
                             disabled={savingId === member.id}
                             onClick={() => setConfirmDeleteId(null)}
                             type="button"
