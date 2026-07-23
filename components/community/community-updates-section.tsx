@@ -1217,7 +1217,7 @@ export function CommunityUpdatesSection({
       {isClient && lightboxState
         ? createPortal(
             <div
-              className="fixed inset-0 z-[100] bg-black/95"
+              className="fixed inset-0 z-[100] bg-black"
               onClick={() => setLightboxState(null)}
             >
               <div className="absolute right-3 top-3 z-20">
@@ -1231,7 +1231,7 @@ export function CommunityUpdatesSection({
                 </button>
               </div>
               <div
-                className="relative flex h-screen w-screen items-center justify-center px-3 py-16"
+                className="relative flex h-screen w-screen items-center justify-center px-0 py-16"
                 onClick={(event) => event.stopPropagation()}
                 onTouchEnd={handleLightboxTouchEnd}
                 onTouchStart={handleLightboxTouchStart}
@@ -1239,7 +1239,7 @@ export function CommunityUpdatesSection({
                 {lightboxState.imageUrls.length > 1 ? (
                   <button
                     aria-label="Previous image"
-                    className="absolute left-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    className="absolute left-1 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
                     onClick={showPreviousLightboxImage}
                     type="button"
                   >
@@ -1256,7 +1256,7 @@ export function CommunityUpdatesSection({
                 {lightboxState.imageUrls.length > 1 ? (
                   <button
                     aria-label="Next image"
-                    className="absolute right-3 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    className="absolute right-1 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
                     onClick={showNextLightboxImage}
                     type="button"
                   >
