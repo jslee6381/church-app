@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   title: "New York UBF",
   description: "A calm, trusted church community hub for New York UBF.",
   manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "New York UBF",
+  },
   icons: {
     icon: "/icon-192.png",
     apple: "/apple-touch-icon.png",

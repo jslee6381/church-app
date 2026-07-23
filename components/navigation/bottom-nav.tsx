@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FileText, House } from "lucide-react";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
@@ -54,18 +55,35 @@ const items = [
 export function BottomNav() {
   const pathname = usePathname();
   const visibility = useBottomNavVisibility();
+  const [isAndroid, setIsAndroid] = useState(false);
   const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video";
+
+  useEffect(() => {
+    if (typeof navigator === "undefined") {
+      return;
+    }
+
+    setIsAndroid(/Android/i.test(navigator.userAgent));
+  }, []);
 
   if (!shouldShow || visibility?.visible === false) {
     return null;
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-3">
-      <div className="mx-auto w-full max-w-[350px]">
+    <div
+      className={`pointer-events-none fixed inset-x-0 z-40 ${
+        isAndroid ? "bottom-0 px-0" : "bottom-4 px-3"
+      }`}
+    >
+      <div className={`mx-auto w-full ${isAndroid ? "max-w-none" : "max-w-[350px]"}`}>
         <nav
           aria-label="Bottom navigation"
-          className="bottom-nav-surface pointer-events-auto grid grid-cols-3 rounded-[23px] border border-border p-1.25 shadow-none"
+          className={`bottom-nav-surface pointer-events-auto grid grid-cols-3 border border-border shadow-none ${
+            isAndroid
+              ? "bottom-nav-surface-android rounded-none border-x-0 border-b-0 px-2 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)]"
+              : "rounded-[23px] p-1.25"
+          }`}
         >
           {items.map((item) => {
             const Icon = item.icon;
@@ -74,9 +92,9 @@ export function BottomNav() {
             return (
               <Link
                 aria-label={item.label}
-                className={`bottom-nav-item flex min-h-11 items-center justify-center rounded-[19px] transition ${
+                className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${
                   isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"
-                }`}
+                } ${isAndroid ? "rounded-[12px]" : "rounded-[19px]"}`}
                 href={item.href}
                 key={item.href}
               >

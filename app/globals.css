@@ -628,6 +628,40 @@ h2 {
   display: none;
 }
 
+.launch-logo-light {
+  display: block !important;
+}
+
+.launch-logo-dark {
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .launch-logo-light {
+    display: none !important;
+  }
+
+  .launch-logo-dark {
+    display: block !important;
+  }
+}
+
+:root[data-theme="light"] .launch-logo-light {
+  display: block !important;
+}
+
+:root[data-theme="light"] .launch-logo-dark {
+  display: none !important;
+}
+
+:root[data-theme="dark"] .launch-logo-light {
+  display: none !important;
+}
+
+:root[data-theme="dark"] .launch-logo-dark {
+  display: block !important;
+}
+
 :root[data-theme="dark"] .light-wordmark {
   display: none;
 }
@@ -796,6 +830,8 @@ h2 {
 
 :root[data-theme="dark"] .dark-wordmark {
   display: block;
+  margin-top: -14px;
+  margin-bottom: -20px;
 }
 
 :root[data-theme="dark"] .hero,
