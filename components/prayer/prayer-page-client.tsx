@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
+import { ChevronDown, ChevronLeft, LoaderCircle, MoreVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +14,7 @@ type PrayerFeedItem = {
     id: string;
     authorName: string;
     message: string;
-    createdAtLabel: string;
+    createdAtLabel?: string;
   }[];
   status?: "pending" | "approved" | "rejected" | "archived";
   isOwner?: boolean;
@@ -49,6 +49,10 @@ export function PrayerPageClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [updatingPrayerId, setUpdatingPrayerId] = useState<string | null>(null);
+  const [updateText, setUpdateText] = useState("");
+  const [isSavingUpdate, setIsSavingUpdate] = useState(false);
+  const [expandedUpdates, setExpandedUpdates] = useState<Record<string, boolean>>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [openMenuPrayerId, setOpenMenuPrayerId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -144,10 +148,41 @@ export function PrayerPageClient({
 
   function startEditing(item: PrayerFeedItem) {
     setEditingId(item.id);
+    setUpdatingPrayerId(null);
     setEditingText(item.body);
     setErrorMessage("");
     setShowSuccess(false);
     setOpenMenuPrayerId(null);
+  }
+
+  function startUpdating(item: PrayerFeedItem) {
+    setUpdatingPrayerId(item.id);
+    setEditingId(null);
+    setUpdateText("");
+    setErrorMessage("");
+    setShowSuccess(false);
+    setOpenMenuPrayerId(null);
+  }
+
+  function getAllUpdates(item: PrayerFeedItem) {
+    const updates = item.followUps ? [...item.followUps] : [];
+
+    if (updates.length === 0 && item.followUp) {
+      updates.push({
+        id: `${item.id}-legacy-follow-up`,
+        authorName: "Update",
+        message: item.followUp,
+      });
+    }
+
+    return updates;
+  }
+
+  function toggleUpdates(prayerId: string) {
+    setExpandedUpdates((current) => ({
+      ...current,
+      [prayerId]: !current[prayerId],
+    }));
   }
 
   function canManageItem(item: PrayerFeedItem) {
@@ -198,6 +233,57 @@ export function PrayerPageClient({
     }
   }
 
+  async function saveUpdate(prayerId: string) {
+    const trimmedText = updateText.trim();
+
+    if (!trimmedText) {
+      return;
+    }
+
+    setIsSavingUpdate(true);
+    setErrorMessage("");
+    setShowSuccess(false);
+
+    try {
+      const response = await fetch(`/api/prayer-requests/${prayerId}/follow-ups`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: trimmedText,
+        }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to add update.");
+      }
+
+      setFeed((current) =>
+        current.map((item) =>
+          item.id === prayerId
+            ? {
+                ...item,
+                followUp: undefined,
+                followUps: [...(item.followUps ?? []), payload.followUp],
+              }
+            : item,
+        ),
+      );
+      setExpandedUpdates((current) => ({ ...current, [prayerId]: true }));
+      setUpdatingPrayerId(null);
+      setUpdateText("");
+      setShowSuccess(true);
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to add update.");
+    } finally {
+      setIsSavingUpdate(false);
+    }
+  }
+
   async function deletePrayer(prayerId: string) {
     setDeletingId(prayerId);
     setErrorMessage("");
@@ -245,7 +331,7 @@ export function PrayerPageClient({
             key={item.id}
             className="prayer-form-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-5 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
           >
-            {canManageItem(item) && editingId !== item.id ? (
+            {canManageItem(item) && editingId !== item.id && updatingPrayerId !== item.id ? (
               <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
                 <button
                   aria-label="Prayer actions"
@@ -259,6 +345,13 @@ export function PrayerPageClient({
                 </button>
                 {openMenuPrayerId === item.id ? (
                   <div className="prayer-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[132px] overflow-hidden rounded-[14px] border border-border/80 bg-white shadow-[0_10px_30px_rgba(68,52,35,0.12)]">
+                    <button
+                      className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                      onClick={() => startUpdating(item)}
+                      type="button"
+                    >
+                      Update
+                    </button>
                     <button
                       className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                       onClick={() => startEditing(item)}
@@ -279,7 +372,7 @@ export function PrayerPageClient({
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-3 pr-10">
+              <div className="mb-2 pr-10">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -317,25 +410,74 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-10 text-muted-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-8 leading-[1.5] text-muted-foreground">{item.body}</p>
             )}
-            {item.followUp ? (
-              <div className="prayer-card-surface mt-4 rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
-                <p className="m-0 text-sm font-semibold uppercase tracking-[0.08em] text-primary">Follow-up</p>
-                <p className="ui-text m-0 mt-1 text-muted-foreground">{item.followUp}</p>
+            {updatingPrayerId === item.id ? (
+              <div className="mt-3 space-y-3">
+                <div className="relative">
+                  <textarea
+                    className="prayer-form-input min-h-[110px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    maxLength={CONTENT_LIMIT}
+                    onChange={(event) => setUpdateText(event.target.value)}
+                    placeholder="Share an update..."
+                    value={updateText}
+                  />
+                  <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                    {updateText.length}/{CONTENT_LIMIT}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    className="min-h-11 rounded-[16px]"
+                    onClick={() => {
+                      setUpdatingPrayerId(null);
+                      setUpdateText("");
+                    }}
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="min-h-11 rounded-[16px]"
+                    disabled={isSavingUpdate || !updateText.trim()}
+                    onClick={() => saveUpdate(item.id)}
+                    size="sm"
+                    type="button"
+                  >
+                    {isSavingUpdate ? <LoaderCircle className="size-4 animate-spin" /> : "Post"}
+                  </Button>
+                </div>
               </div>
             ) : null}
-            {item.followUps && item.followUps.length > 0 ? (
-              <div className="mt-4 space-y-3">
-                {item.followUps.map((followUp) => (
-                  <div key={followUp.id} className="prayer-card-surface rounded-[14px] border border-border/70 bg-white/75 px-4 py-3">
-                    <div className="mb-1 flex items-center justify-between gap-3">
-                      <p className="m-0 text-sm font-semibold text-foreground">{followUp.authorName}</p>
-                      <p className="ui-text m-0 font-medium text-muted-foreground">{followUp.createdAtLabel}</p>
-                    </div>
-                    <p className="ui-text m-0 text-muted-foreground">{followUp.message}</p>
+            {getAllUpdates(item).length > 0 ? (
+              <div className="mt-3">
+                <button
+                  className="inline-flex items-center gap-1 bg-transparent px-0 text-sm font-semibold text-foreground"
+                  onClick={() => toggleUpdates(item.id)}
+                  type="button"
+                >
+                  <ChevronDown
+                    className={`size-4 transition ${expandedUpdates[item.id] ? "rotate-180" : "rotate-0"}`}
+                  />
+                  Updates ({getAllUpdates(item).length})
+                </button>
+                {expandedUpdates[item.id] ? (
+                  <div className="mt-2 space-y-2">
+                    {[...getAllUpdates(item)].reverse().map((followUp) => (
+                      <div key={followUp.id} className="prayer-card-surface rounded-[14px] border border-border/70 bg-white/75 px-4 py-2.5">
+                        <div className="mb-1 flex items-center justify-between gap-3">
+                          <p className="m-0 text-sm font-semibold text-foreground">{followUp.authorName}</p>
+                          {followUp.createdAtLabel ? (
+                            <p className="ui-text m-0 font-medium text-muted-foreground">{followUp.createdAtLabel}</p>
+                          ) : null}
+                        </div>
+                        <p className="ui-text m-0 leading-[1.5] text-muted-foreground">{followUp.message}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                ) : null}
               </div>
             ) : null}
           </article>
