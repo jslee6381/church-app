@@ -167,6 +167,7 @@ export function CommunityUpdatesSection({
 }: Props) {
   const composerRef = useRef<HTMLFormElement | null>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const commentTextareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const lightboxTouchStartXRef = useRef<number | null>(null);
   const editingImagesRef = useRef<EditableCommunityImage[]>([]);
@@ -287,6 +288,24 @@ export function CommunityUpdatesSection({
 
     return () => window.cancelAnimationFrame(frame);
   }, [isComposerExpanded]);
+
+  useEffect(() => {
+    if (!openCommentComposerId) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const textarea = commentTextareaRefs.current[openCommentComposerId];
+      textarea?.focus();
+      resizeTextarea(textarea ?? null);
+      textarea?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [openCommentComposerId]);
 
   useEffect(() => {
     const nextPreviewUrls = imageFiles.map((file) => URL.createObjectURL(file));
@@ -1131,6 +1150,7 @@ export function CommunityUpdatesSection({
               >
                 {isComposerExpanded ? (
                   <textarea
+                    autoFocus
                     className="min-h-[44px] w-full resize-none rounded-[16px] border-0 bg-transparent px-0 py-1 pb-8 outline-none focus:border-0 focus:shadow-none"
                     maxLength={CONTENT_LIMIT}
                     onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
@@ -1577,7 +1597,7 @@ export function CommunityUpdatesSection({
                                       className="community-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                                       maxLength={CONTENT_LIMIT}
                                       onChange={(event) => { resizeTextarea(event.currentTarget); setEditingCommentText(event.target.value); }}
-                                      ref={(node) => resizeTextarea(node)}
+                                      ref={(node) => { commentTextareaRefs.current[update.id] = node; resizeTextarea(node); }}
                                       rows={1}
                                       value={editingCommentText}
                                     />

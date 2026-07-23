@@ -62,6 +62,7 @@ export function PrayerPageClient({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [openMenuPrayerId, setOpenMenuPrayerId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const updateTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const menuAreaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -71,6 +72,31 @@ export function PrayerPageClient({
 
     resizeTextarea(textarea);
   }, [requestText]);
+
+  useEffect(() => {
+    if (!isComposerExpanded) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      resizeTextarea(textareaRef.current);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isComposerExpanded]);
+
+  useEffect(() => {
+    if (!updatingPrayerId) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      updateTextareaRef.current?.focus();
+      resizeTextarea(updateTextareaRef.current);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [updatingPrayerId]);
 
   useEffect(() => {
     setFeed(initialFeed);
@@ -129,7 +155,6 @@ export function PrayerPageClient({
         setFeed((current) => [payload.prayerRequest, ...current]);
       }
       router.refresh();
-      textareaRef.current?.focus();
     } catch (error) {
       setShowSuccess(false);
       setErrorMessage(error instanceof Error ? error.message : "Unable to submit prayer request.");
@@ -340,12 +365,12 @@ export function PrayerPageClient({
         {feed.map((item, index) => (
           <article
             key={item.id}
-            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-30" : "z-0"}`}
+            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-50" : "z-0"}`}
           >
             {editingId !== item.id && updatingPrayerId !== item.id ? (
               <div
                 ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                className="absolute right-0 top-2 z-10"
+                className="absolute right-0 top-2 z-50"
               >
                 <div className="relative">
                   <button
@@ -359,7 +384,7 @@ export function PrayerPageClient({
                     <MoreVertical className="size-4" />
                   </button>
                   {openMenuPrayerId === item.id ? (
-                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                       {canUpdateItem() ? (
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
@@ -411,7 +436,7 @@ export function PrayerPageClient({
               <div className="space-y-3">
                 <div className="relative">
                   <textarea
-                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-2.5 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
                     onChange={(event) => { resizeTextarea(event.currentTarget); setEditingText(event.target.value); }}
                     ref={(node) => resizeTextarea(node)}
@@ -447,7 +472,7 @@ export function PrayerPageClient({
               <div className="mt-3 space-y-3">
                 <div className="relative">
                   <textarea
-                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-2.5 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                     maxLength={CONTENT_LIMIT}
                     onChange={(event) => { resizeTextarea(event.currentTarget); setUpdateText(event.target.value); }}
                     ref={(node) => resizeTextarea(node)}
@@ -481,10 +506,10 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : null}
-            {getAllUpdates(item).length > 1 && expandedUpdates[item.id] ? (
+            {getAllUpdates(item).length > 0 && expandedUpdates[item.id] ? (
               <div className="mt-3 border-t border-border/50 pt-3 pl-4">
                 <div className="space-y-3">
-                  {[...getAllUpdates(item)].slice(0, -1).reverse().map((followUp, followUpIndex) => (
+                  {[...getAllUpdates(item)].reverse().map((followUp, followUpIndex) => (
                     <div key={followUp.id} className={followUpIndex > 0 ? "border-t border-border/40 pt-3" : ""}>
                       <div className="relative pr-16">
                         <p className="ui-text m-0 leading-[1.5] text-foreground">{followUp.message}</p>
@@ -522,31 +547,36 @@ export function PrayerPageClient({
               <>
                 <div className="grid gap-3">
                   <div className="relative flex-1">
-                    <textarea
-                      ref={(node) => { textareaRef.current = node; resizeTextarea(node); }}
-                      autoComplete="off"
-                      className={`prayer-form-input w-full resize-none rounded-[16px] border border-transparent bg-white px-4 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)] ${
-                        isComposerExpanded ? "min-h-[44px] py-3 pb-8" : "h-10 min-h-10 py-2"
-                      }`}
-                      maxLength={CONTENT_LIMIT}
-                      onChange={(event) => {
-                        resizeTextarea(event.currentTarget);
-                        setRequestText(event.target.value);
-                        if (showSuccess) setShowSuccess(false);
-                        if (errorMessage) setErrorMessage("");
-                      }}
-                      onFocus={() => setIsComposerExpanded(true)}
-                      placeholder="Share a prayer request..."
-                      rows={1}
-                      value={requestText}
-                    />
-                    <span
-                      className={`pointer-events-none absolute right-4 text-xs text-muted-foreground ${
-                        isComposerExpanded ? "bottom-3" : "top-1/2 -translate-y-1/2"
-                      }`}
-                    >
-                      {requestText.length}/{CONTENT_LIMIT}
-                    </span>
+                    {isComposerExpanded ? (
+                      <textarea
+                        ref={(node) => { textareaRef.current = node; resizeTextarea(node); }}
+                        autoComplete="off"
+                        className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-transparent bg-white px-4 py-2.5 pb-8 text-base leading-6 text-foreground outline-none transition focus:border-primary focus:bg-white focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                        maxLength={CONTENT_LIMIT}
+                        onChange={(event) => {
+                          resizeTextarea(event.currentTarget);
+                          setRequestText(event.target.value);
+                          if (showSuccess) setShowSuccess(false);
+                          if (errorMessage) setErrorMessage("");
+                        }}
+                        placeholder="Share a prayer request..."
+                        rows={1}
+                        value={requestText}
+                      />
+                    ) : (
+                      <button
+                        className="prayer-form-input flex h-10 min-h-10 w-full items-center rounded-[16px] border border-transparent bg-white px-4 pr-12 text-left text-base text-muted-foreground"
+                        onClick={() => setIsComposerExpanded(true)}
+                        type="button"
+                      >
+                        <span className="ui-text text-muted-foreground">Share a prayer request...</span>
+                      </button>
+                    )}
+                    {isComposerExpanded ? (
+                      <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                        {requestText.length}/{CONTENT_LIMIT}
+                      </span>
+                    ) : null}
                   </div>
 
                   {isComposerExpanded ? (

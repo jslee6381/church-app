@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const admin = createAdminClient();
     const { data: prayerRequest } = await admin
       .from("prayer_requests")
-      .select("id")
+      .select("id, request_text")
       .eq("id", id)
       .eq("church_id", session.member.church_id)
       .maybeSingle();
@@ -56,6 +56,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Prayer request not found." }, { status: 404 });
     }
 
+
+    const previousMessage = normalizeText(prayerRequest.request_text ?? "");
 
     const { data: updatedPrayer, error: prayerError } = await admin
       .from("prayer_requests")
@@ -71,12 +73,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: prayerError?.message ?? "Unable to update prayer request." }, { status: 500 });
     }
 
+    const historyMessage = previousMessage && previousMessage !== normalizedMessage ? previousMessage : normalizedMessage;
+
     const { data, error } = await admin
       .from("prayer_request_follow_ups")
       .insert({
         prayer_request_id: id,
         author_member_id: session.member.id,
-        message: normalizedMessage,
+        message: historyMessage,
       })
       .select("id, message, created_at")
       .single();
