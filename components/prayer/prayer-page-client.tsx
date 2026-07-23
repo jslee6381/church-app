@@ -334,7 +334,7 @@ export function PrayerPageClient({
         {feed.map((item, index) => (
           <article
             key={item.id}
-            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""}`}
+            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-30" : "z-0"}`}
           >
             {editingId !== item.id && updatingPrayerId !== item.id ? (
               <div
