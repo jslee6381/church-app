@@ -67,7 +67,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
           <label className="grid gap-2 text-base font-semibold text-foreground">
             Display name
             <input
-              className="min-h-12 w-full rounded-[18px] border border-input bg-card px-4 py-3 text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+              className="settings-action-surface min-h-12 w-full rounded-[18px] border border-input px-4 py-3 text-foreground outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
               onChange={(event) => setDraftName(event.target.value)}
               placeholder="e.g. Grace Kim"
               value={draftName}

@@ -50,7 +50,7 @@ export function ThemeModeEditor() {
               className={`ui-text min-h-11 rounded-[14px] border px-3 transition ${
                 isActive
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-foreground"
+                  : "settings-action-surface border-border text-foreground"
               }`}
               onClick={() => handleSelect(option.value)}
               type="button"
