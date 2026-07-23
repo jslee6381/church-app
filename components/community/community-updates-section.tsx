@@ -1233,7 +1233,7 @@ export function CommunityUpdatesSection({
         {updates.map((update, index) => (
           <article
             key={update.id}
-            className={`overflow-hidden pb-2 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-2" : ""}`}
+            className={`relative pb-2 last:pb-0 ${index > 0 ? "border-t border-border/70 pt-2" : ""} ${openMenuUpdateId === update.id || update.comments.some((comment) => comment.id === openCommentMenuId) ? "z-30 overflow-visible" : "z-0 overflow-hidden"}`}
           >
             <div className="px-4 pt-1 pb-2">
               <div className="flex min-h-[36px] items-center justify-between gap-3">
