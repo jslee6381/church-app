@@ -243,7 +243,7 @@ export function PrayerPageClient({
         {feed.map((item) => (
           <article
             key={item.id}
-            className="prayer-form-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-5 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            className="prayer-form-surface relative rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-5 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
           >
             {canManageItem(item) && editingId !== item.id ? (
               <div ref={openMenuPrayerId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-10">
