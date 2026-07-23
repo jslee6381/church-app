@@ -640,6 +640,14 @@ h2 {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.bottom-nav-item-active {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.bottom-nav-item-inactive {
+  background: transparent;
+}
+
 .launch-screen {
   background: #f6f4e1;
   color: #1e2a2a;
@@ -696,6 +704,31 @@ h2 {
 
 :root[data-theme="dark"] .bottom-nav-surface {
   background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .bottom-nav-item-active {
+  background: #A3A3A3;
+}
+
+:root[data-theme="light"] .announcement-card-surface {
+  background: linear-gradient(180deg, rgba(255,254,251,0.96), rgba(255,252,247,0.9));
+}
+
+:root[data-theme="light"] .event-surface,
+:root[data-theme="light"] .event-surface-sub,
+:root[data-theme="light"] .event-card-surface,
+:root[data-theme="light"] .event-form-surface,
+:root[data-theme="light"] .prayer-form-surface,
+:root[data-theme="light"] .prayer-card-surface,
+:root[data-theme="light"] .community-form-surface,
+:root[data-theme="light"] .event-form-input,
+:root[data-theme="light"] .prayer-form-input,
+:root[data-theme="light"] .community-form-input,
+:root[data-theme="light"] .admin-card-surface,
+:root[data-theme="light"] .settings-card-surface,
+:root[data-theme="light"] .settings-action-surface,
+:root[data-theme="light"] .admin-role-input {
+  background: rgba(255, 255, 255, 0.82);
 }
 
 :root[data-theme="dark"] .announcement-card-surface {

@@ -74,8 +74,8 @@ export function BottomNav() {
             return (
               <Link
                 aria-label={item.label}
-                className={`flex min-h-11 items-center justify-center rounded-[19px] transition ${
-                  isActive ? "bg-[#A3A3A3] text-primary" : "bg-transparent text-accent-foreground"
+                className={`bottom-nav-item flex min-h-11 items-center justify-center rounded-[19px] transition ${
+                  isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"
                 }`}
                 href={item.href}
                 key={item.href}
