@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
 import { LiveRouteRefresh } from "@/components/navigation/live-route-refresh";
+import { NavigationTransitionProvider } from "@/components/navigation/navigation-transition";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 import { UiPreferencesSync } from "@/components/settings/ui-preferences-sync";
 
@@ -68,11 +69,13 @@ export default function RootLayout({
   }
 } catch (e) {}`}
         </Script>
-        <PwaRegistrar />
-        <SupabaseAuthSync />
-        <LiveRouteRefresh />
-        <UiPreferencesSync />
-        {children}
+        <NavigationTransitionProvider>
+          <PwaRegistrar />
+          <SupabaseAuthSync />
+          <LiveRouteRefresh />
+          <UiPreferencesSync />
+          {children}
+        </NavigationTransitionProvider>
         <Analytics />
       </body>
     </html>

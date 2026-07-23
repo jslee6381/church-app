@@ -1111,7 +1111,7 @@ export function CommunityUpdatesSection({
 
   return (
     <div className="overflow-hidden rounded-[16px] bg-transparent shadow-none">
-      <div className="mb-3 px-4 pt-1 pb-2">
+      <div className="mb-3 px-4 pt-1 pb-1">
         <form className="scroll-mb-40" onSubmit={handleSubmit} ref={composerRef}>
           <div className="grid gap-3">
             <div className={`flex gap-3 ${isComposerExpanded ? "items-start" : "items-center"}`}>

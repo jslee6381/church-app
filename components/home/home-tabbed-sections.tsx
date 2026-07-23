@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
@@ -9,6 +9,7 @@ import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
+import { useNavigationTransition } from "@/components/navigation/navigation-transition";
 import type { AnnouncementListItem } from "@/lib/announcements";
 import type { CommunityUpdateFeedItem } from "@/lib/community-updates";
 import type { EventListItem } from "@/lib/events";
@@ -71,52 +72,77 @@ export function HomeTabbedSections({
   wordmark,
 }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"home" | "community">("home");
   const bottomNavVisibility = useBottomNavVisibility();
+  const navigationTransition = useNavigationTransition();
 
   useEffect(() => {
     bottomNavVisibility?.setVisible(true);
   }, [bottomNavVisibility]);
 
   useEffect(() => {
-    const requestedTab = searchParams.get("tab") === "fellowship" ? "community" : "home";
-
-    if (requestedTab === "home") {
-      setActiveTab("home");
+    if (typeof window === "undefined") {
       return;
     }
 
-    if (submitAccessState === "pending") {
-      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
+    const syncTabFromHash = () => {
+      const wantsCommunity = window.location.hash === "#fellowship";
+
+      if (!wantsCommunity) {
+        setActiveTab("home");
+        return;
+      }
+
+      if (submitAccessState === "pending") {
+        router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%23fellowship");
+        return;
+      }
+
+      if (submitAccessState !== "active") {
+        router.push("/access-required?context=community-feed&next=%2Fhome%23fellowship");
+        return;
+      }
+
+      setActiveTab("community");
+    };
+
+    syncTabFromHash();
+    window.addEventListener("hashchange", syncTabFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncTabFromHash);
+    };
+  }, [router, submitAccessState]);
+
+  function replaceHash(nextHash: string) {
+    if (typeof window === "undefined") {
       return;
     }
 
-    if (submitAccessState !== "active") {
-      router.push("/access-required?context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
-      return;
-    }
-
-    setActiveTab("community");
-  }, [router, searchParams, submitAccessState]);
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    window.history.replaceState(null, "", nextUrl);
+  }
 
   function goHomeTab() {
+    navigationTransition?.showTemporaryLaunch();
     setActiveTab("home");
-    router.replace("/home", { scroll: false });
+    replaceHash("");
   }
 
   function openCommunityTab() {
     if (submitAccessState === "pending") {
-      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%23fellowship");
       return;
     }
 
     if (submitAccessState !== "active") {
-      router.push("/access-required?context=community-feed&next=%2Fhome%3Ftab%3Dfellowship");
+      router.push("/access-required?context=community-feed&next=%2Fhome%23fellowship");
       return;
     }
 
+    navigationTransition?.showTemporaryLaunch();
     setActiveTab("community");
+    replaceHash("#fellowship");
   }
 
   return (

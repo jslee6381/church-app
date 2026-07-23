@@ -1,36 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState, type MouseEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { FileText, House, Settings } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
+import { useNavigationTransition } from "@/components/navigation/navigation-transition";
 
 
 function FellowshipIcon({ className }: { className?: string }) {
   return (
-    <svg
+    <span
       aria-hidden="true"
       className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="8" cy="6.75" r="2.6" fill="currentColor" />
-      <circle cx="16.25" cy="7" r="2.45" fill="currentColor" />
-      <path
-        d="M4.6 19.2l1.05-5.4a2.95 2.95 0 0 1 2.9-2.38h4.45c.96 0 1.86.46 2.42 1.23l.16.22 3.65-.15a1.95 1.95 0 0 1 .35 3.88l-4.95.56a2.7 2.7 0 0 1-2.43-.9l-.62-.69-.3 3.63"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M13.15 19.2H5.25"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="1.8"
-      />
-    </svg>
+      style={{
+        backgroundColor: 'currentColor',
+        maskImage: "url('/fellowship-icon.png')",
+        maskPosition: 'center',
+        maskRepeat: 'no-repeat',
+        maskSize: 'contain',
+        WebkitMaskImage: "url('/fellowship-icon.png')",
+        WebkitMaskPosition: 'center',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskSize: 'contain',
+      }}
+    />
   );
 }
 
@@ -69,7 +64,7 @@ const items = [
     icon: House,
   },
   {
-    href: "/home?tab=fellowship",
+    href: "/home#fellowship",
     label: "Fellowship",
     icon: FellowshipIcon,
   },
@@ -90,12 +85,45 @@ const items = [
   },
 ] as const;
 
+type FellowshipAccessState = "unknown" | "signed_out" | "pending" | "active";
+
+async function fetchFellowshipAccessState(): Promise<FellowshipAccessState> {
+  try {
+    const response = await fetch("/api/member/profile", {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return "signed_out";
+    }
+
+    const data = (await response.json()) as {
+      authenticated?: boolean;
+      member?: {
+        status?: string | null;
+      };
+    };
+
+    if (data.authenticated !== true) {
+      return "signed_out";
+    }
+
+    return data.member?.status === "active" ? "active" : "pending";
+  } catch {
+    return "signed_out";
+  }
+}
+
 export function BottomNav() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const visibility = useBottomNavVisibility();
+  const navigationTransition = useNavigationTransition();
   const [isAndroid, setIsAndroid] = useState(false);
-  const isFellowshipActive = pathname === "/home" && searchParams.get("tab") === "fellowship";
+  const [hash, setHash] = useState("");
+  const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
+  const isFellowshipActive = pathname === "/home" && hash === "#fellowship";
   const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video" || pathname === "/settings";
 
   useEffect(() => {
@@ -105,6 +133,86 @@ export function BottomNav() {
 
     setIsAndroid(/Android/i.test(navigator.userAgent));
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const syncHash = () => {
+      setHash(window.location.hash);
+    };
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    router.prefetch("/home");
+    router.prefetch("/study");
+    router.prefetch("/video");
+    router.prefetch("/settings");
+  }, [router]);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const syncAccessState = async () => {
+      const nextState = await fetchFellowshipAccessState();
+      setFellowshipAccessState(nextState);
+    };
+
+    void syncAccessState();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setFellowshipAccessState("signed_out");
+        return;
+      }
+
+      if (event === "SIGNED_IN") {
+        void syncAccessState();
+      }
+    });
+
+    window.addEventListener("focus", syncAccessState);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("focus", syncAccessState);
+    };
+  }, []);
+
+  async function handleFellowshipClick(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+
+    let nextState = fellowshipAccessState;
+
+    if (nextState === "unknown") {
+      nextState = await fetchFellowshipAccessState();
+      setFellowshipAccessState(nextState);
+    }
+
+    navigationTransition?.showTemporaryLaunch(180);
+
+    if (nextState === "active") {
+      router.push("/home#fellowship");
+      return;
+    }
+
+    if (nextState === "pending") {
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%23fellowship");
+      return;
+    }
+
+    router.push("/access-required?context=community-feed&next=%2Fhome%23fellowship");
+  }
 
   if (!shouldShow || visibility?.visible === false) {
     return null;
@@ -127,7 +235,12 @@ export function BottomNav() {
         >
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive = item.label === "Fellowship" ? isFellowshipActive : item.label === "Home" ? pathname === "/home" && !isFellowshipActive : pathname === item.href;
+            const isActive =
+              item.label === "Fellowship"
+                ? isFellowshipActive
+                : item.label === "Home"
+                  ? pathname === "/home" && !isFellowshipActive
+                  : pathname === item.href;
 
             return (
               <Link
@@ -137,10 +250,11 @@ export function BottomNav() {
                 } ${isAndroid ? "rounded-[12px]" : "rounded-[19px]"}`}
                 href={item.href}
                 key={item.href}
+                onClick={item.label === "Fellowship" ? handleFellowshipClick : undefined}
               >
                 <Icon
                   className={`${
-                    item.label === "Video" ? "size-[1.7rem]" : item.label === "Fellowship" ? "size-[1.75rem]" : item.label === "Setting" ? "size-[1.45rem]" : "size-6"
+                    item.label === "Video" ? "size-[1.7rem]" : item.label === "Fellowship" ? "size-[2.25rem]" : item.label === "Setting" ? "size-[1.45rem]" : "size-6"
                   } ${isActive ? "stroke-[2.35]" : "stroke-[2.1]"}`}
                 />
               </Link>
