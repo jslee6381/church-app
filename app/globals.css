@@ -636,16 +636,6 @@ h2 {
   display: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .launch-logo-light {
-    display: none !important;
-  }
-
-  .launch-logo-dark {
-    display: block !important;
-  }
-}
-
 :root[data-theme="light"] .launch-logo-light {
   display: block !important;
 }
