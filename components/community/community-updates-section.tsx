@@ -1131,7 +1131,7 @@ export function CommunityUpdatesSection({
               >
                 <textarea
                   className={`w-full resize-none rounded-[16px] border-0 bg-transparent outline-none focus:border-0 focus:shadow-none ${
-                    isComposerExpanded ? "min-h-[44px] px-0 py-1 pb-8" : "h-8 min-h-8 py-[6px] pr-10 pl-0"
+                    isComposerExpanded ? "min-h-[44px] px-0 py-1 pb-8" : "h-9 min-h-9 py-0 pr-10 pl-0 leading-9"
                   }`}
                   maxLength={CONTENT_LIMIT}
                   onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}

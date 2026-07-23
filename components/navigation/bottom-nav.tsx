@@ -202,6 +202,16 @@ export function BottomNav() {
     navigationTransition?.showTemporaryLaunch(180);
 
     if (nextState === "active") {
+      if (typeof window !== "undefined" && pathname === "/home") {
+        if (window.location.hash !== "#fellowship") {
+          window.location.hash = "fellowship";
+        } else {
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        }
+
+        return;
+      }
+
       router.push("/home#fellowship");
       return;
     }
