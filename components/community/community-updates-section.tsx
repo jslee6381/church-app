@@ -1129,21 +1129,28 @@ export function CommunityUpdatesSection({
                   isComposerExpanded ? "px-3 py-2" : "px-3 py-0"
                 }`}
               >
-                <textarea
-                  className={`w-full resize-none rounded-[16px] border-0 bg-transparent outline-none focus:border-0 focus:shadow-none ${
-                    isComposerExpanded ? "min-h-[44px] px-0 py-1 pb-8" : "h-9 min-h-9 py-0 pr-10 pl-0 leading-9"
-                  }`}
-                  maxLength={CONTENT_LIMIT}
-                  onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
-                  ref={(node) => { composerTextareaRef.current = node; resizeTextarea(node); }}
-                  onFocus={() => {
-                    openComposer();
-                    keepComposerVisible();
-                  }}
-                  placeholder="Share an update..."
-                  rows={1}
-                  value={summary}
-                />
+                {isComposerExpanded ? (
+                  <textarea
+                    className="min-h-[44px] w-full resize-none rounded-[16px] border-0 bg-transparent px-0 py-1 pb-8 outline-none focus:border-0 focus:shadow-none"
+                    maxLength={CONTENT_LIMIT}
+                    onChange={(event) => { resizeTextarea(event.currentTarget); setSummary(event.target.value); }}
+                    ref={(node) => { composerTextareaRef.current = node; resizeTextarea(node); }}
+                    onFocus={() => {
+                      keepComposerVisible();
+                    }}
+                    placeholder="Share an update..."
+                    rows={1}
+                    value={summary}
+                  />
+                ) : (
+                  <button
+                    className="flex h-9 min-h-9 w-full items-center pr-10 pl-0 text-left text-muted-foreground"
+                    onClick={openComposer}
+                    type="button"
+                  >
+                    <span className="ui-text text-muted-foreground">Share an update...</span>
+                  </button>
+                )}
                 {isComposerExpanded ? (
                   <span className="pointer-events-none absolute bottom-3 right-0 text-xs text-muted-foreground">
                     {summary.length}/{CONTENT_LIMIT}
