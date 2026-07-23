@@ -5,6 +5,7 @@ import { ProfilePhotoEditor } from "@/components/auth/profile-photo-editor";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { GoogleSignOutButton } from "@/components/auth/google-sign-out-button";
 import { FontSizeEditor } from "@/components/settings/font-size-editor";
+import { ThemeModeEditor } from "@/components/settings/theme-mode-editor";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -53,6 +54,7 @@ export default async function SettingsPage() {
             <GoogleSignInButton nextPath="/settings" />
           </div>
           <div className="mt-5">
+            <ThemeModeEditor />
             <FontSizeEditor />
           </div>
         </>
@@ -65,6 +67,7 @@ export default async function SettingsPage() {
             />
             <DisplayNameEditor initialDisplayName={session.member.display_name ?? session.member.full_name} />
           </div>
+          <ThemeModeEditor />
           <FontSizeEditor />
           <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/70 px-0 pt-4 pb-1">
             <div>

@@ -12,6 +12,7 @@ import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import churchWordmark from "@/aaa.png";
+import churchWordmarkDark from "@/aaa-dark.png";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -77,7 +78,10 @@ export default async function HomePage() {
           )}
           submitAccessState={!authSession ? "signed_out" : authSession.member.status === "active" ? "active" : "pending"}
           updates={updates}
-          wordmark={churchWordmark}
+          wordmark={{
+            light: churchWordmark,
+            dark: churchWordmarkDark,
+          }}
         />
       </main>
     </PullToRefresh>

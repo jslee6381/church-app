@@ -37,6 +37,40 @@
   --shadow: var(--shadow-soft);
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #090E18;
+  --foreground: #f1efe6;
+  --card: rgba(9, 14, 24, 0.9);
+  --card-foreground: #f1efe6;
+  --popover: rgba(9, 14, 24, 0.96);
+  --popover-foreground: #f1efe6;
+  --primary: #90b7ad;
+  --primary-foreground: #0d1519;
+  --secondary: #111720;
+  --secondary-foreground: #ebe7da;
+  --muted: #10151e;
+  --muted-foreground: #b5b1a4;
+  --accent: #151c26;
+  --accent-foreground: #dbe9e4;
+  --destructive: #cf776b;
+  --destructive-foreground: #fff8f5;
+  --border: rgba(180, 188, 175, 0.16);
+  --input: rgba(180, 188, 175, 0.16);
+  --ring: rgba(143, 184, 172, 0.26);
+  --shadow-soft: 0 26px 68px rgba(0, 0, 0, 0.34);
+  --shadow-card: 0 12px 26px rgba(0, 0, 0, 0.22), 0 24px 48px rgba(0, 0, 0, 0.28);
+  --bg: #090E18;
+  --paper: #10151e;
+  --paper-strong: #121821;
+  --ink: #f1efe6;
+  --line: rgba(185, 192, 208, 0.14);
+  --accent-soft: #1b212b;
+  --accent-strong: #dbe9e4;
+  --warm: #10151e;
+  --shadow: var(--shadow-soft);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -51,7 +85,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   overscroll-behavior-x: none;
-  background: #f6f4e1;
+  background: var(--background);
   color: var(--foreground);
   font-family:
     "SF Pro Display",
@@ -583,4 +617,41 @@ h2 {
     transition: none;
     animation: none;
   }
+}
+
+
+.light-wordmark {
+  display: block;
+}
+
+.dark-wordmark {
+  display: none;
+}
+
+:root[data-theme="dark"] .light-wordmark {
+  display: none;
+}
+
+:root[data-theme="dark"] .dark-wordmark {
+  display: block;
+}
+
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .spotlight,
+:root[data-theme="dark"] .summary-card,
+:root[data-theme="dark"] .info-card,
+:root[data-theme="dark"] .install-guide,
+:root[data-theme="dark"] .list-card,
+:root[data-theme="dark"] .menu-card,
+:root[data-theme="dark"] .news-card {
+  background: linear-gradient(180deg, rgba(9, 14, 24, 0.94), rgba(9, 14, 24, 0.92));
+  box-shadow: var(--shadow-card);
+}
+
+:root[data-theme="dark"] .hero::after {
+  background: radial-gradient(circle, rgba(77, 105, 131, 0.24) 0%, rgba(77, 105, 131, 0) 72%);
+}
+
+:root[data-theme="dark"] ::selection {
+  background: rgba(143, 184, 172, 0.28);
 }

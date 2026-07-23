@@ -42,9 +42,16 @@ type Props = {
   events: EventListItem[];
   headerAction?: ReactNode;
   wordmark: {
-    src: string;
-    width: number;
-    height: number;
+    light: {
+      src: string;
+      width: number;
+      height: number;
+    };
+    dark: {
+      src: string;
+      width: number;
+      height: number;
+    };
   };
   submitAccessState: "signed_out" | "pending" | "active";
   updates: CommunityUpdateFeedItem[];
@@ -94,7 +101,7 @@ export function HomeTabbedSections({
               <button
                 className={`ui-text min-h-11 px-4 transition ${
                   activeTab === "home"
-                    ? "bg-background text-black"
+                    ? "bg-background text-foreground"
                     : "bg-background text-muted-foreground"
                 }`}
                 onClick={() => {
@@ -108,7 +115,7 @@ export function HomeTabbedSections({
               <button
                 className={`ui-text min-h-11 px-4 transition ${
                   activeTab === "community"
-                    ? "bg-background text-black"
+                    ? "bg-background text-foreground"
                     : "bg-background text-muted-foreground"
                 }`}
                 onClick={openCommunityTab}
@@ -133,11 +140,19 @@ export function HomeTabbedSections({
             <div className="flex justify-center">
               <img
                 alt="KOINONIA"
-                className="block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] scale-[1.01] align-top"
+                className="light-wordmark block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] scale-[1.01] align-top"
                 draggable="false"
-                height={wordmark.height}
-                src={wordmark.src}
-                width={wordmark.width}
+                height={wordmark.light.height}
+                src={wordmark.light.src}
+                width={wordmark.light.width}
+              />
+              <img
+                alt="KOINONIA"
+                className="dark-wordmark block h-auto w-[calc(100%+4px)] max-w-[424px] translate-y-[-1px] scale-[1.01] align-top"
+                draggable="false"
+                height={wordmark.dark.height}
+                src={wordmark.dark.src}
+                width={wordmark.dark.width}
               />
             </div>
           </section>
@@ -151,7 +166,7 @@ export function HomeTabbedSections({
                   return (
                     <Link
                       key={action.href}
-                      className="rounded-[16px] border border-border bg-white/72 p-4 transition hover:bg-white"
+                      className="rounded-[16px] border border-border bg-card p-4 transition hover:bg-card"
                       href={action.href}
                       rel={action.external ? "noreferrer" : undefined}
                       target={action.external ? "_blank" : undefined}
@@ -171,7 +186,7 @@ export function HomeTabbedSections({
 
           <section className="fade-up -mx-4">
             <div className="px-7 pb-3">
-              <p className="ui-text m-0 text-left text-black">Upcoming Event</p>
+              <p className="ui-text m-0 text-left text-foreground">Upcoming Event</p>
             </div>
             <div className="px-3">
               <HomeUpcomingEventsCarousel events={events} />
@@ -180,7 +195,7 @@ export function HomeTabbedSections({
 
           <section className="fade-up -mx-4 -mt-4">
             <div className="px-7 pb-3">
-              <p className="ui-text m-0 text-left text-black">Announcement</p>
+              <p className="ui-text m-0 text-left text-foreground">Announcement</p>
             </div>
             <div className="px-3">
               <HomeAnnouncementsCarousel announcements={announcements} />
