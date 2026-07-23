@@ -87,7 +87,7 @@ export function DisplayNameEditor({ initialDisplayName }: Props) {
             >
               Cancel
             </Button>
-            <Button className="settings-action-surface min-h-11 w-full rounded-[16px] text-foreground" disabled={isSaving} size="sm" type="submit" variant="secondary">
+            <Button className="min-h-11 w-full rounded-[16px]" disabled={isSaving} size="sm" type="submit">
               {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
               Save
             </Button>
