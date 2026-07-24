@@ -726,6 +726,12 @@ h2 {
   color: #DDDDDD;
 }
 
+.initial-launch-screen {
+  background: #002A50 !important;
+  color: #DDDDDD !important;
+  color-scheme: dark;
+}
+
 .launch-screen {
   background: #f6f4e1;
   color: #1e2a2a;
@@ -759,7 +765,13 @@ h2 {
   }
 }
 
-:root[data-theme="light"] .launch-screen {
+:root[data-theme="light"] .initial-launch-screen {
+  background: #002A50 !important;
+  color: #DDDDDD !important;
+  color-scheme: dark;
+}
+
+.launch-screen {
   background: #f6f4e1;
   color: #1e2a2a;
 }
