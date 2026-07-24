@@ -516,7 +516,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   {event.variant === "service-pair" && event.services ? (
                     <>
                       <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                        <CalendarDays className="size-4 text-primary" />
+                        <CalendarDays className="size-4 text-current" />
                         <span>{formatEasternEventDate(event.startsAt)}</span>
                       </p>
                       <div className="mt-3 grid grid-cols-2 gap-3 text-center">
@@ -538,12 +538,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                         {event.title}
                       </p>
                       <p className="ui-text mt-4 mb-0 flex items-center gap-2 text-muted-foreground">
-                        <CalendarDays className="size-4 text-primary" />
+                        <CalendarDays className="size-4 text-current" />
                         <span>{formatEasternEventDate(event.startsAt)} · {formatEasternEventTime(event.startsAt)}</span>
                       </p>
                       {event.locationName ? (
                         <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="size-4 text-primary" />
+                          <MapPin className="size-4 text-current" />
                           <span>{event.locationName}</span>
                         </p>
                       ) : null}
@@ -656,14 +656,14 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                             </h2>
                           </div>
                           <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                            <CalendarDays className="size-4 text-primary" />
+                            <CalendarDays className="size-4 text-current" />
                             <span>
                               {formatEasternEventDate(event.startsAt)} · {formatEasternEventTime(event.startsAt)}
                             </span>
                           </p>
                           {event.locationName ? (
                             <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                              <MapPin className="size-4 text-primary" />
+                              <MapPin className="size-4 text-current" />
                               <span>{event.locationName}</span>
                             </p>
                           ) : null}

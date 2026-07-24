@@ -45,13 +45,12 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
         <div className="px-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center bg-transparent shadow-none">
-              <Link className="ui-text inline-flex min-h-11 items-center px-4 transition" href="/home" style={{ color: "#DDDDDD", fontWeight: 700 }}>
+              <Link className="top-route-tab top-route-tab-active ui-text inline-flex min-h-11 items-center px-4 transition" href="/home">
                 Home
               </Link>
               <button
-                className="ui-text inline-flex min-h-11 items-center px-4 transition"
+                className="top-route-tab top-route-tab-inactive ui-text inline-flex min-h-11 items-center px-4 transition"
                 onClick={() => openRoute('/fellowship')}
-                style={{ color: "#7A7A7A", fontWeight: 700 }}
                 type="button"
               >
                 Fellowship

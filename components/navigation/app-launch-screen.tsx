@@ -10,16 +10,20 @@ export function AppLaunchScreen() {
           <Image
             alt="New York UBF logo"
             className="launch-logo-light block h-auto w-full"
+            height={385}
             placeholder="empty"
             priority
             src="/ubf-logo-transparent.png"
+            width={1814}
           />
           <Image
             alt="New York UBF logo"
             className="launch-logo-dark block h-auto w-full"
+            height={385}
             placeholder="empty"
             priority
             src="/ubf-logo-white-transparent.png"
+            width={1814}
           />
         </div>
       </div>

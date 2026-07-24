@@ -99,12 +99,12 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             </div>
             <div className="mt-2 space-y-2 text-left">
               <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                <CalendarDays className="size-4 shrink-0 text-primary" />
+                <CalendarDays className="size-4 shrink-0 text-current" />
                 <span>{formatEasternEventDateTime(currentEvent.startsAt)}</span>
               </p>
               {currentEvent.locationName ? (
                 <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="size-4 shrink-0 text-primary" />
+                  <MapPin className="size-4 shrink-0 text-current" />
                   <span>{currentEvent.locationName}</span>
                 </p>
               ) : null}

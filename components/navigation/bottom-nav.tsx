@@ -201,7 +201,7 @@ export function BottomNav() {
               <button
                 key={item.href}
                 aria-label={item.label}
-                className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"} ${isAndroid ? "rounded-[12px] py-0.5" : "rounded-[19px] py-0.5"}`}
+                className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${isActive ? "bottom-nav-item-active" : "bottom-nav-item-inactive"} ${isAndroid ? "rounded-[12px] py-0.5" : "rounded-[19px] py-0.5"}`}
                 onClick={(event) => item.navKey === "fellowship" ? handleFellowshipClick(event) : handleStandardNavClick(event, item.href, item.navKey)}
                 type="button"
               >
