@@ -61,11 +61,11 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
   return (
     <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
       <div className="pt-4 pb-4">
-        <div className="mb-0 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center gap-3">
+        <div className="mb-0 grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-1">
           <div className="flex justify-start">
             <button
               aria-label="Previous event"
-              className="inline-flex size-10 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
+              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoPrevious}
               onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
               type="button"
@@ -114,7 +114,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
           <div className="flex justify-end">
             <button
               aria-label="Next event"
-              className="inline-flex size-10 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
+              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoNext}
               onClick={() => setCurrentIndex((index) => Math.min(events.length - 1, index + 1))}
               type="button"

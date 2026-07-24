@@ -119,8 +119,13 @@ export function HomeTabbedSections({
       return;
     }
 
+    const previousHash = window.location.hash;
     const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
     window.history.replaceState(null, "", nextUrl);
+
+    if (previousHash !== nextHash) {
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }
   }
 
   function goHomeTab() {
