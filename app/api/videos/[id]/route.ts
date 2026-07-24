@@ -9,12 +9,7 @@ const TITLE_LIMIT = 50;
 const CONTENT_LIMIT = 150;
 
 function normalizeText(value: string) {
-  return value.trim().replace(/\s+
-/g, "
-").replace(/
-{3,}/g, "
-
-");
+  return value.trim().replace(/\s+\n/g, "\n").replace(/\n{3,}/g, "\n\n");
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
