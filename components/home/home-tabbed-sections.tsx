@@ -8,7 +8,6 @@ import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
-import { useNavigationTransition } from "@/components/navigation/navigation-transition";
 import type { AnnouncementListItem } from "@/lib/announcements";
 import type { EventListItem } from "@/lib/events";
 
@@ -30,15 +29,13 @@ type Props = {
 
 export function HomeTabbedSections({ announcements, events, headerAction, wordmark }: Props) {
   const bottomNavVisibility = useBottomNavVisibility();
-  const navigationTransition = useNavigationTransition();
   const router = useRouter();
 
   useEffect(() => {
     bottomNavVisibility?.setVisible(true);
   }, [bottomNavVisibility]);
 
-  function openWithLaunch(href: string) {
-    navigationTransition?.showTemporaryLaunch(220);
+  function openRoute(href: string) {
     router.push(href);
   }
 
@@ -53,7 +50,7 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
               </Link>
               <button
                 className="ui-text inline-flex min-h-11 items-center px-4 transition"
-                onClick={() => openWithLaunch('/fellowship')}
+                onClick={() => openRoute('/fellowship')}
                 style={{ color: "#7A7A7A", fontWeight: 700 }}
                 type="button"
               >
@@ -97,7 +94,7 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
                 <button
                   key={action.href}
                   className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 text-left transition hover:bg-card"
-                  onClick={() => isLaunchAction ? openWithLaunch(action.href) : router.push(action.href)}
+                  onClick={() => router.push(action.href)}
                   type="button"
                 >
                   <div className="flex min-h-[88px] flex-col items-center justify-center gap-2 text-center">
