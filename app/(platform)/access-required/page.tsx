@@ -22,7 +22,11 @@ function getCopy(context?: string, mode?: string) {
       ? "Prayer"
       : context === "community-feed"
         ? "Community Feed"
-        : "Member Access";
+        : context === "gallery"
+          ? "Gallery"
+          : context === "video"
+            ? "Video"
+            : "Member Access";
 
   if (mode === "pending") {
     return {

@@ -1172,7 +1172,7 @@ export function CommunityUpdatesSection({
                   </button>
                 )}
                 {isComposerExpanded ? (
-                  <span className="pointer-events-none absolute bottom-3 right-0 text-xs text-muted-foreground">
+                  <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
                     {summary.length}/{CONTENT_LIMIT}
                   </span>
                 ) : (

@@ -566,7 +566,7 @@ export function PrayerPageClient({
                       />
                     ) : (
                       <button
-                        className="prayer-form-input flex h-10 min-h-10 w-full items-center rounded-[16px] border border-transparent bg-white px-4 pr-12 text-left text-base text-muted-foreground"
+                        className="prayer-form-input flex h-10 min-h-10 w-full items-center rounded-[16px] border border-border/70 bg-white px-4 pr-12 text-left text-base text-muted-foreground"
                         onClick={() => setIsComposerExpanded(true)}
                         type="button"
                       >

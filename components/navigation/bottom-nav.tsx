@@ -77,31 +77,38 @@ function VideoBoardIcon({ className }: { className?: string }) {
   );
 }
 
+type NavKey = "home" | "fellowship" | "gallery" | "video" | "settings";
+
 const items = [
   {
     href: "/home",
     label: "Home",
     icon: House,
+    navKey: "home" as const,
   },
   {
     href: "/home#fellowship",
     label: "Fellowship",
     icon: FellowshipIcon,
+    navKey: "fellowship" as const,
   },
   {
     href: "/study",
     label: "Gallery",
     icon: GalleryIcon,
+    navKey: "gallery" as const,
   },
   {
     href: "/video",
     label: "Video",
     icon: VideoBoardIcon,
+    navKey: "video" as const,
   },
   {
     href: "/settings",
     label: "Setting",
     icon: Settings,
+    navKey: "settings" as const,
   },
 ] as const;
 
@@ -143,6 +150,7 @@ export function BottomNav() {
   const [isAndroid, setIsAndroid] = useState(false);
   const [hash, setHash] = useState("");
   const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
+  const [optimisticNavKey, setOptimisticNavKey] = useState<NavKey | null>(null);
   const isFellowshipActive = pathname === "/home" && hash === "#fellowship";
   const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video" || pathname === "/settings";
 
@@ -170,6 +178,20 @@ export function BottomNav() {
       window.removeEventListener("hashchange", syncHash);
     };
   }, []);
+
+  useEffect(() => {
+    const actualNavKey: NavKey = pathname === "/home"
+      ? hash === "#fellowship"
+        ? "fellowship"
+        : "home"
+      : pathname === "/study"
+        ? "gallery"
+        : pathname === "/video"
+          ? "video"
+          : "settings";
+
+    setOptimisticNavKey((current) => (current === actualNavKey ? null : current));
+  }, [hash, pathname]);
 
   useEffect(() => {
     router.prefetch("/home");
@@ -209,9 +231,10 @@ export function BottomNav() {
     };
   }, []);
 
-  function handleStandardNavClick(event: MouseEvent<HTMLAnchorElement>, href: string) {
+  function handleStandardNavClick(event: MouseEvent<HTMLAnchorElement>, href: string, navKey: NavKey) {
     event.preventDefault();
 
+    setOptimisticNavKey(navKey);
     navigationTransition?.showTemporaryLaunch(180);
 
     if (href === "/home") {
@@ -240,6 +263,7 @@ export function BottomNav() {
       setFellowshipAccessState(nextState);
     }
 
+    setOptimisticNavKey("fellowship");
     navigationTransition?.showTemporaryLaunch(180);
 
     if (nextState === "active") {
@@ -258,10 +282,12 @@ export function BottomNav() {
     }
 
     if (nextState === "pending") {
+      setOptimisticNavKey(null);
       router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome%23fellowship");
       return;
     }
 
+    setOptimisticNavKey(null);
     router.push("/access-required?context=community-feed&next=%2Fhome%23fellowship");
   }
 
@@ -286,31 +312,41 @@ export function BottomNav() {
         >
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive =
+            const actualNavKey: NavKey = item.label === "Fellowship"
+              ? "fellowship"
+              : item.label === "Home"
+                ? "home"
+                : item.label === "Gallery"
+                  ? "gallery"
+                  : item.label === "Video"
+                    ? "video"
+                    : "settings";
+            const isActive = optimisticNavKey ? optimisticNavKey === actualNavKey : (
               item.label === "Fellowship"
                 ? isFellowshipActive
                 : item.label === "Home"
                   ? pathname === "/home" && !isFellowshipActive
-                  : pathname === item.href;
+                  : pathname === item.href
+            );
 
             return (
               <Link
                 aria-label={item.label}
                 className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${
                   isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"
-                } ${isAndroid ? "rounded-[12px]" : "rounded-[19px]"}`}
+                } ${isAndroid ? "rounded-[12px] py-1.5" : "rounded-[19px] py-1.5"}`}
                 href={item.href}
                 key={item.href}
                 onClick={(event) =>
                   item.label === "Fellowship"
                     ? handleFellowshipClick(event)
-                    : handleStandardNavClick(event, item.href)
+                    : handleStandardNavClick(event, item.href, item.navKey)
                 }
               >
                 <Icon
                   className={`${
-                    item.label === "Video" ? "size-[1.7rem]" : item.label === "Fellowship" ? "size-[2.25rem]" : item.label === "Setting" ? "size-[1.45rem]" : "size-6"
-                  } ${isActive ? "stroke-[2.35]" : "stroke-[2.1]"}`}
+                    item.label === "Video" ? "size-[1.55rem]" : item.label === "Fellowship" ? "size-[2.05rem]" : item.label === "Setting" ? "size-[1.3rem]" : "size-[1.35rem]"
+                  } ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`}
                 />
               </Link>
             );
