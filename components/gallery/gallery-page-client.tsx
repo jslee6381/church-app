@@ -187,7 +187,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
       {canCompose ? (
         <div
           ref={composerRef}
-          className="study-video-surface rounded-[18px] border border-border/80 bg-card p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="study-video-surface sticky top-4 z-10 rounded-[18px] border border-border/80 bg-card p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex items-center justify-center">
             <button
@@ -204,6 +204,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
             <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
               <div className="relative">
                 <input
+                  autoFocus
                   className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
                   maxLength={TITLE_LIMIT}
                   onChange={(event) => setTitle(event.target.value)}
