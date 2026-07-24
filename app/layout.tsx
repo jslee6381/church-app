@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SupabaseAuthSync } from "@/components/auth/supabase-auth-sync";
+import { InitialLaunchGate } from "@/components/navigation/initial-launch-gate";
 import { LiveRouteRefresh } from "@/components/navigation/live-route-refresh";
 import { NavigationTransitionProvider } from "@/components/navigation/navigation-transition";
 import { PwaRegistrar } from "@/components/pwa-registrar";
@@ -26,10 +27,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f4e1" },
-    { media: "(prefers-color-scheme: dark)", color: "#121212" },
-  ],
+  themeColor: "#002A50",
 };
 
 export default function RootLayout({
@@ -70,6 +68,7 @@ export default function RootLayout({
 } catch (e) {}`}
         </Script>
         <NavigationTransitionProvider>
+          <InitialLaunchGate />
           <PwaRegistrar />
           <SupabaseAuthSync />
           <LiveRouteRefresh />
