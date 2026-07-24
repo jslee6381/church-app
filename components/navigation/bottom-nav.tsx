@@ -209,6 +209,27 @@ export function BottomNav() {
     };
   }, []);
 
+  function handleStandardNavClick(event: MouseEvent<HTMLAnchorElement>, href: string) {
+    event.preventDefault();
+
+    navigationTransition?.showTemporaryLaunch(180);
+
+    if (href === "/home") {
+      if (typeof window !== "undefined" && pathname === "/home") {
+        if (window.location.hash) {
+          window.history.pushState(null, "", "/home");
+          window.dispatchEvent(new HashChangeEvent("hashchange"));
+        }
+        return;
+      }
+
+      router.push("/home");
+      return;
+    }
+
+    router.push(href);
+  }
+
   async function handleFellowshipClick(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
 
@@ -280,7 +301,11 @@ export function BottomNav() {
                 } ${isAndroid ? "rounded-[12px]" : "rounded-[19px]"}`}
                 href={item.href}
                 key={item.href}
-                onClick={item.label === "Fellowship" ? handleFellowshipClick : undefined}
+                onClick={(event) =>
+                  item.label === "Fellowship"
+                    ? handleFellowshipClick(event)
+                    : handleStandardNavClick(event, item.href)
+                }
               >
                 <Icon
                   className={`${
