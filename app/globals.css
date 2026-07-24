@@ -700,27 +700,7 @@ h2 {
   color: #000000;
 }
 
-:root[data-theme="dark"] .top-route-tab {
-  font-weight: 700;
-}
-
-.top-route-tab-active {
-  color: #1e2a2a;
-}
-
-.top-route-tab-inactive {
-  color: #6f746b;
-}
-
-:root[data-theme="dark"] .top-route-tab-active {
-  color: #DDDDDD;
-}
-
-:root[data-theme="dark"] .top-route-tab-inactive {
-  color: #7A7A7A;
-}
-
-.google-sign-in-button {
+:root[data-theme="dark"] .google-sign-in-button {
   border-color: #1E1E1E;
   color: #DDDDDD;
 }
