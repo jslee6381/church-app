@@ -730,6 +730,11 @@ h2 {
   background: #f6f4e1;
   color: #1e2a2a;
 }
+.launch-screen-initial {
+  background: #002A50;
+  color: #DDDDDD;
+}
+
 
 .launch-title {
   color: #1e2a2a;
@@ -758,6 +763,11 @@ h2 {
   background: #f6f4e1;
   color: #1e2a2a;
 }
+.launch-screen-initial {
+  background: #002A50;
+  color: #DDDDDD;
+}
+
 
 :root[data-theme="light"] .launch-title {
   color: #1e2a2a;
