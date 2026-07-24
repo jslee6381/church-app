@@ -732,10 +732,6 @@ h2 {
   margin-top: calc(env(safe-area-inset-top) * -1);
   padding-top: env(safe-area-inset-top);
   background-color: #001F3F !important;
-  background-image: url("/initial-launch-bg.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
   color: #DDDDDD !important;
   color-scheme: dark;
 }
@@ -773,16 +769,12 @@ h2 {
   }
 }
 
-:root[data-theme="light"] .initial-launch-screen {
+:root[data-theme="light"].initial-launch-screen {
   width: 100%;
   min-height: calc(100dvh + env(safe-area-inset-top));
   margin-top: calc(env(safe-area-inset-top) * -1);
   padding-top: env(safe-area-inset-top);
-  background-color: #001F3F !important;
-  background-image: url("/initial-launch-bg.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  background: #001F3F !important;
   color: #DDDDDD !important;
   color-scheme: dark;
 }

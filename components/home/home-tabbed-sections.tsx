@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
@@ -16,6 +16,27 @@ const quickActions = [
   { href: "/prayer", title: "Prayer", icon: Heart },
   { href: "https://ubf.org/daily-breads", title: "Daily Bread", icon: BookOpen, external: true },
 ];
+
+type FellowshipAccessState = "unknown" | "signed_out" | "pending" | "active";
+
+async function fetchFellowshipAccessState(): Promise<FellowshipAccessState> {
+  try {
+    const response = await fetch("/api/member/profile", {
+      credentials: "include",
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return "signed_out";
+    }
+
+    const data = (await response.json()) as { authenticated?: boolean; member?: { status?: string | null } };
+    if (data.authenticated !== true) return "signed_out";
+    return data.member?.status === "active" ? "active" : "pending";
+  } catch {
+    return "signed_out";
+  }
+}
 
 type Props = {
   announcements: AnnouncementListItem[];
@@ -30,6 +51,7 @@ type Props = {
 export function HomeTabbedSections({ announcements, events, headerAction, wordmark }: Props) {
   const bottomNavVisibility = useBottomNavVisibility();
   const router = useRouter();
+  const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
 
   useEffect(() => {
     bottomNavVisibility?.setVisible(true);
@@ -37,6 +59,26 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
 
   function openRoute(href: string) {
     router.push(href);
+  }
+
+  async function openFellowshipRoute() {
+    let nextState = fellowshipAccessState;
+    if (nextState === "unknown") {
+      nextState = await fetchFellowshipAccessState();
+      setFellowshipAccessState(nextState);
+    }
+
+    if (nextState === "active") {
+      router.push("/fellowship");
+      return;
+    }
+
+    if (nextState === "pending") {
+      router.push("/access-required?mode=pending&context=community-feed&next=%2Ffellowship");
+      return;
+    }
+
+    router.push("/access-required?context=community-feed&next=%2Ffellowship");
   }
 
   return (
@@ -50,7 +92,7 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
               </Link>
               <button
                 className="top-route-tab top-route-tab-inactive ui-text inline-flex min-h-11 items-center px-4 transition"
-                onClick={() => openRoute('/fellowship')}
+                onClick={() => void openFellowshipRoute()}
                 type="button"
               >
                 Fellowship

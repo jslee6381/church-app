@@ -14,7 +14,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
           <div className="w-full">
             <Image
               alt="New York UBF logo"
-              className="block h-auto w-full"
+              className="block h-auto w-full -translate-y-3"
               height={385}
               placeholder="empty"
               priority
@@ -33,7 +33,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
         <div className="w-full">
           <Image
             alt="New York UBF logo"
-            className="launch-logo-light block h-auto w-full"
+            className="launch-logo-light block h-auto w-full -translate-y-3"
             height={385}
             placeholder="empty"
             priority
@@ -42,7 +42,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
           />
           <Image
             alt="New York UBF logo"
-            className="launch-logo-dark block h-auto w-full"
+            className="launch-logo-dark block h-auto w-full -translate-y-3"
             height={385}
             placeholder="empty"
             priority
