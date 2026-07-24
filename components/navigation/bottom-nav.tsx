@@ -249,8 +249,12 @@ export function BottomNav() {
 
     if (href === "/home") {
       if (typeof window !== "undefined" && pathname === "/home") {
-        if (window.location.hash) {
-          window.history.pushState(null, "", "/home");
+        const previousHash = window.location.hash;
+        const nextUrl = `${window.location.pathname}${window.location.search}`;
+        window.history.replaceState(null, "", nextUrl);
+        setHash("");
+
+        if (previousHash) {
           window.dispatchEvent(new HashChangeEvent("hashchange"));
         }
         return;
