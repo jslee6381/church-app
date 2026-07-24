@@ -99,9 +99,6 @@ async function getApprovedPrayerFeed(churchId?: string, memberId?: string): Prom
 
 export default async function PrayerPage() {
   const session = await getAuthenticatedMemberSession();
-  const initialFeed = await getApprovedPrayerFeed(session?.member.church_id, session?.member.id);
-  const roles = session ? await getMemberRoles(session.member.id) : [];
-  const canManageAll = roles.includes("admin") || roles.includes("leader");
 
   if (!session) {
     redirect("/access-required?context=prayer&next=%2Fprayer");
@@ -110,6 +107,12 @@ export default async function PrayerPage() {
   if (session.member.status !== "active") {
     redirect("/access-required?mode=pending&context=prayer&next=%2Fprayer");
   }
+
+  const [initialFeed, roles] = await Promise.all([
+    getApprovedPrayerFeed(session.member.church_id, session.member.id),
+    getMemberRoles(session.member.id),
+  ]);
+  const canManageAll = roles.includes("admin") || roles.includes("leader");
 
   return (
     <PullToRefresh>

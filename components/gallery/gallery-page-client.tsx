@@ -294,7 +294,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                           Edit
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={deletingId === item.id}
                           onClick={() => void deletePost(item.id)}
                           type="button"

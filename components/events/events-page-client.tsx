@@ -486,7 +486,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           Edit
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={isDeletingId === event.id}
                           onClick={() => deleteEvent(event.id)}
                           type="button"
@@ -494,7 +494,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                           {isDeletingId === event.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
                         </button>
                         <button
-                          className="flex min-h-11 w-full items-center border-t border-border/70 px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
                           disabled={isDuplicatingId === event.id}
                           onClick={() => duplicateEvent(event)}
                           type="button"

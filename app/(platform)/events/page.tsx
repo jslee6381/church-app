@@ -9,10 +9,13 @@ import { getUpcomingEvents } from "@/lib/events";
 
 export default async function EventsPage() {
   const authSession = await getAuthenticatedMemberSession();
-  const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
+  const rolesPromise = authSession ? getMemberRoles(authSession.member.id) : Promise.resolve<string[]>([]);
+  const churchIdPromise = authSession?.member.church_id
+    ? Promise.resolve(authSession.member.church_id)
+    : getDefaultChurchId();
+  const eventsPromise = churchIdPromise.then((churchId) => getUpcomingEvents(churchId));
+  const [roles, events] = await Promise.all([rolesPromise, eventsPromise]);
   const canManage = roles.includes("admin") || roles.includes("leader");
-  const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
-  const events = await getUpcomingEvents(churchId);
 
   return (
     <PullToRefresh>

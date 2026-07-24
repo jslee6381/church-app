@@ -130,7 +130,6 @@ export function HomeTabbedSections({
 
   function goHomeTab() {
     navigationTransition?.showTemporaryLaunch();
-    setActiveTab("home");
     replaceHash("");
   }
 
@@ -146,7 +145,6 @@ export function HomeTabbedSections({
     }
 
     navigationTransition?.showTemporaryLaunch();
-    setActiveTab("community");
     replaceHash("#fellowship");
   }
 

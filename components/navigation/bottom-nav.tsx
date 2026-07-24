@@ -282,9 +282,11 @@ export function BottomNav() {
 
     if (nextState === "active") {
       if (typeof window !== "undefined" && pathname === "/home") {
-        if (window.location.hash !== "#fellowship") {
-          window.location.hash = "fellowship";
-        } else {
+        const previousHash = window.location.hash;
+        const nextUrl = `${window.location.pathname}${window.location.search}#fellowship`;
+        window.history.replaceState(null, "", nextUrl);
+
+        if (previousHash !== "#fellowship") {
           window.dispatchEvent(new HashChangeEvent("hashchange"));
         }
 
