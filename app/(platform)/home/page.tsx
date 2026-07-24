@@ -7,33 +7,10 @@ import { getMemberRoles } from "@/lib/auth/authorization";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
-import { getCommunityUpdateFeed } from "@/lib/community-updates";
-import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
-import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-async function getProfilePhotoUrl(memberId: string) {
-  if (!hasAdminEnvironment()) {
-    return null;
-  }
-
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin
-      .from("members")
-      .select("profiles!left(profile_photo_url)")
-      .eq("id", memberId)
-      .maybeSingle();
-
-    const profile = Array.isArray(data?.profiles) ? data.profiles[0] : data?.profiles;
-    return profile?.profile_photo_url ?? null;
-  } catch {
-    return null;
-  }
-}
 
 export default async function HomePage() {
   const session = await getMemberSession();
@@ -42,11 +19,7 @@ export default async function HomePage() {
   const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
   const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
   const announcements = await getAnnouncements(churchId);
-  const updates = await getCommunityUpdateFeed(churchId, authSession?.member.id ?? null);
   const events = await getUpcomingEvents(churchId);
-  const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
-  const currentMemberName = authSession?.member.display_name ?? authSession?.member.full_name ?? null;
-  const communityGreeting = authSession?.member.status === "active" ? getEasternGreeting() : null;
 
   return (
     <PullToRefresh>
@@ -62,11 +35,6 @@ export default async function HomePage() {
         ) : null}
         <HomeTabbedSections
           announcements={announcements}
-          canManageCommunity={canAccessAdmin}
-          canReact={authSession?.member.status === "active"}
-          communityGreeting={communityGreeting}
-          currentMemberPhotoUrl={currentMemberPhotoUrl}
-          currentMemberName={currentMemberName}
           events={events}
           headerAction={(
             <HomeHeaderActions
@@ -74,8 +42,6 @@ export default async function HomePage() {
               initialCanAccessAdmin={canAccessAdmin}
             />
           )}
-          submitAccessState={!authSession ? "signed_out" : authSession.member.status === "active" ? "active" : "pending"}
-          updates={updates}
           wordmark={{
             light: {
               src: "/aaa.png",

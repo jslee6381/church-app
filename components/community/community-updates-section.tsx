@@ -26,6 +26,7 @@ type Props = {
   initialUpdates: CommunityUpdateFeedItem[];
   canReact: boolean;
   currentMemberPhotoUrl?: string | null;
+  nextPath?: string;
   submitAccessState: "signed_out" | "pending" | "active";
 };
 
@@ -163,6 +164,7 @@ export function CommunityUpdatesSection({
   initialUpdates,
   canReact,
   currentMemberPhotoUrl = null,
+  nextPath = "/fellowship",
   submitAccessState,
 }: Props) {
   const composerRef = useRef<HTMLFormElement | null>(null);
@@ -605,13 +607,13 @@ export function CommunityUpdatesSection({
 
   function ensureCommentAccess() {
     if (submitAccessState === "signed_out") {
-      router.push("/access-required?context=community-feed&next=%2Fhome");
+      router.push(`/access-required?context=community-feed&next=${encodeURIComponent(nextPath)}`);
       return false;
     }
 
     if (submitAccessState !== "active") {
       if (submitAccessState === "pending") {
-        router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+        router.push(`/access-required?mode=pending&context=community-feed&next=${encodeURIComponent(nextPath)}`);
         return false;
       }
 
@@ -842,13 +844,13 @@ export function CommunityUpdatesSection({
     event.preventDefault();
 
     if (submitAccessState === "signed_out") {
-      router.push("/access-required?context=community-feed&next=%2Fhome");
+      router.push(`/access-required?context=community-feed&next=${encodeURIComponent(nextPath)}`);
       return;
     }
 
     if (submitAccessState !== "active") {
       if (submitAccessState === "pending") {
-        router.push("/access-required?mode=pending&context=community-feed&next=%2Fhome");
+        router.push(`/access-required?mode=pending&context=community-feed&next=${encodeURIComponent(nextPath)}`);
         return;
       }
 
