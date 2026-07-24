@@ -727,7 +727,11 @@ h2 {
 }
 
 .initial-launch-screen {
-  background-color: #002A50 !important;
+  width: 100%;
+  min-height: calc(100dvh + env(safe-area-inset-top));
+  margin-top: calc(env(safe-area-inset-top) * -1);
+  padding-top: env(safe-area-inset-top);
+  background-color: #001F3F !important;
   background-image: url("/initial-launch-bg.png");
   background-position: center;
   background-repeat: no-repeat;
@@ -741,7 +745,7 @@ h2 {
   color: #1e2a2a;
 }
 .launch-screen-initial {
-  background: #002A50;
+  background: #001F3F;
   color: #DDDDDD;
 }
 
@@ -770,7 +774,11 @@ h2 {
 }
 
 :root[data-theme="light"] .initial-launch-screen {
-  background-color: #002A50 !important;
+  width: 100%;
+  min-height: calc(100dvh + env(safe-area-inset-top));
+  margin-top: calc(env(safe-area-inset-top) * -1);
+  padding-top: env(safe-area-inset-top);
+  background-color: #001F3F !important;
   background-image: url("/initial-launch-bg.png");
   background-position: center;
   background-repeat: no-repeat;
@@ -784,7 +792,7 @@ h2 {
   color: #1e2a2a;
 }
 .launch-screen-initial {
-  background: #002A50;
+  background: #001F3F;
   color: #DDDDDD;
 }
 

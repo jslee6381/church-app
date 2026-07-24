@@ -9,7 +9,7 @@ type AppLaunchScreenProps = {
 export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
   if (variant === "initial") {
     return (
-      <main className="initial-launch-screen flex min-h-dvh items-center justify-center px-4">
+      <main className="initial-launch-screen flex h-full min-h-0 w-full items-center justify-center px-4">
         <div className="mx-auto flex w-full max-w-[42rem] items-center justify-center">
           <div className="w-full">
             <Image
