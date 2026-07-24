@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { House, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -79,6 +78,22 @@ function VideoBoardIcon({ className }: { className?: string }) {
 
 type NavKey = "home" | "fellowship" | "gallery" | "video" | "settings";
 
+function getCurrentNavKey(pathname: string, hash: string): NavKey {
+  if (pathname === "/home") {
+    return hash === "#fellowship" ? "fellowship" : "home";
+  }
+
+  if (pathname === "/study") {
+    return "gallery";
+  }
+
+  if (pathname === "/video") {
+    return "video";
+  }
+
+  return "settings";
+}
+
 const items = [
   {
     href: "/home",
@@ -151,7 +166,8 @@ export function BottomNav() {
   const [hash, setHash] = useState("");
   const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
   const [optimisticNavKey, setOptimisticNavKey] = useState<NavKey | null>(null);
-  const isFellowshipActive = pathname === "/home" && hash === "#fellowship";
+  const currentNavKey = useMemo(() => getCurrentNavKey(pathname, hash), [hash, pathname]);
+  const isFellowshipActive = currentNavKey === "fellowship";
   const shouldShow = pathname === "/home" || pathname === "/study" || pathname === "/video" || pathname === "/settings";
 
   useEffect(() => {
@@ -180,18 +196,8 @@ export function BottomNav() {
   }, []);
 
   useEffect(() => {
-    const actualNavKey: NavKey = pathname === "/home"
-      ? hash === "#fellowship"
-        ? "fellowship"
-        : "home"
-      : pathname === "/study"
-        ? "gallery"
-        : pathname === "/video"
-          ? "video"
-          : "settings";
-
-    setOptimisticNavKey((current) => (current === actualNavKey ? null : current));
-  }, [hash, pathname]);
+    setOptimisticNavKey((current) => (current === currentNavKey ? null : current));
+  }, [currentNavKey]);
 
   useEffect(() => {
     router.prefetch("/home");
@@ -231,8 +237,12 @@ export function BottomNav() {
     };
   }, []);
 
-  function handleStandardNavClick(event: MouseEvent<HTMLAnchorElement>, href: string, navKey: NavKey) {
+  function handleStandardNavClick(event: MouseEvent<HTMLButtonElement>, href: string, navKey: NavKey) {
     event.preventDefault();
+
+    if (currentNavKey === navKey) {
+      return;
+    }
 
     setOptimisticNavKey(navKey);
     navigationTransition?.showTemporaryLaunch(180);
@@ -253,8 +263,12 @@ export function BottomNav() {
     router.push(href);
   }
 
-  async function handleFellowshipClick(event: MouseEvent<HTMLAnchorElement>) {
+  async function handleFellowshipClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
+
+    if (currentNavKey === "fellowship") {
+      return;
+    }
 
     let nextState = fellowshipAccessState;
 
@@ -312,43 +326,28 @@ export function BottomNav() {
         >
           {items.map((item) => {
             const Icon = item.icon;
-            const actualNavKey: NavKey = item.label === "Fellowship"
-              ? "fellowship"
-              : item.label === "Home"
-                ? "home"
-                : item.label === "Gallery"
-                  ? "gallery"
-                  : item.label === "Video"
-                    ? "video"
-                    : "settings";
-            const isActive = optimisticNavKey ? optimisticNavKey === actualNavKey : (
-              item.label === "Fellowship"
-                ? isFellowshipActive
-                : item.label === "Home"
-                  ? pathname === "/home" && !isFellowshipActive
-                  : pathname === item.href
-            );
+            const isActive = (optimisticNavKey ?? currentNavKey) === item.navKey;
 
             return (
-              <Link
+              <button
                 aria-label={item.label}
                 className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${
                   isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"
                 } ${isAndroid ? "rounded-[12px] py-0.5" : "rounded-[19px] py-0.5"}`}
-                href={item.href}
                 key={item.href}
                 onClick={(event) =>
-                  item.label === "Fellowship"
+                  item.navKey === "fellowship"
                     ? handleFellowshipClick(event)
                     : handleStandardNavClick(event, item.href, item.navKey)
                 }
+                type="button"
               >
                 <Icon
                   className={`${
-                    item.label === "Video" ? "size-[2rem]" : item.label === "Fellowship" ? "size-[2.5rem]" : item.label === "Setting" ? "size-[1.72rem]" : "size-[1.78rem]"
+                    item.navKey === "video" ? "size-[2rem]" : item.navKey === "fellowship" ? "size-[2.5rem]" : item.navKey === "settings" ? "size-[1.72rem]" : "size-[1.78rem]"
                   } ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`}
                 />
-              </Link>
+              </button>
             );
           })}
         </nav>

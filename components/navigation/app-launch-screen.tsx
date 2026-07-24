@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import ubfLogoLight from "@/ubf-logo-transparent.png";
-import ubfLogoDark from "@/ubf-logo-white-transparent.png";
 
 export function AppLaunchScreen() {
   return (
@@ -14,14 +12,14 @@ export function AppLaunchScreen() {
             className="launch-logo-light block h-auto w-full"
             placeholder="empty"
             priority
-            src={ubfLogoLight}
+            src="/ubf-logo-transparent.png"
           />
           <Image
             alt="New York UBF logo"
             className="launch-logo-dark block h-auto w-full"
             placeholder="empty"
             priority
-            src={ubfLogoDark}
+            src="/ubf-logo-white-transparent.png"
           />
         </div>
       </div>

@@ -11,8 +11,6 @@ import { getCommunityUpdateFeed } from "@/lib/community-updates";
 import { getEasternGreeting } from "@/lib/eastern-time";
 import { getUpcomingEvents } from "@/lib/events";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
-import churchWordmark from "@/aaa.png";
-import churchWordmarkDark from "@/aaa-dark-transparent.png";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -79,8 +77,16 @@ export default async function HomePage() {
           submitAccessState={!authSession ? "signed_out" : authSession.member.status === "active" ? "active" : "pending"}
           updates={updates}
           wordmark={{
-            light: churchWordmark,
-            dark: churchWordmarkDark,
+            light: {
+              src: "/aaa.png",
+              width: 4295,
+              height: 1116,
+            },
+            dark: {
+              src: "/aaa-dark-transparent.png",
+              width: 2146,
+              height: 733,
+            },
           }}
         />
       </main>
