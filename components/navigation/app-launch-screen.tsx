@@ -4,8 +4,8 @@ import Image from "next/image";
 
 export function AppLaunchScreen() {
   return (
-    <main className="launch-screen min-h-dvh bg-background px-4 py-10 text-foreground">
-      <div className="mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-[42rem] items-center justify-center">
+    <main className="launch-screen flex min-h-dvh items-center justify-center bg-background px-4 text-foreground">
+      <div className="mx-auto flex w-full max-w-[42rem] items-center justify-center">
         <div className="w-full">
           <Image
             alt="New York UBF logo"

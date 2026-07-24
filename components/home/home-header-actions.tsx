@@ -7,6 +7,9 @@ import { Settings, Shield } from "lucide-react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { createClient } from "@/lib/supabase/client";
 
+const HEADER_AUTH_STORAGE_KEY = "koinonia-header-authenticated";
+const HEADER_ADMIN_STORAGE_KEY = "koinonia-header-can-access-admin";
+
 type HomeHeaderActionsProps = {
   initialCanAccessAdmin: boolean;
   initialAuthenticated: boolean;
@@ -16,6 +19,32 @@ type HeaderState = {
   authenticated: boolean;
   canAccessAdmin: boolean;
 };
+
+function readCachedFlag(key: string) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(key) === "true";
+}
+
+function writeCachedState(nextState: HeaderState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(HEADER_AUTH_STORAGE_KEY, String(nextState.authenticated));
+  window.localStorage.setItem(HEADER_ADMIN_STORAGE_KEY, String(nextState.canAccessAdmin));
+}
+
+function clearCachedState() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(HEADER_AUTH_STORAGE_KEY);
+  window.localStorage.removeItem(HEADER_ADMIN_STORAGE_KEY);
+}
 
 async function fetchHeaderState(): Promise<HeaderState> {
   const response = await fetch("/api/member/profile", {
@@ -46,9 +75,14 @@ export function HomeHeaderActions({
   initialCanAccessAdmin,
 }: HomeHeaderActionsProps) {
   const router = useRouter();
-  const [state, setState] = useState<HeaderState>({
-    authenticated: initialAuthenticated,
-    canAccessAdmin: initialCanAccessAdmin,
+  const [state, setState] = useState<HeaderState>(() => {
+    const cachedAuthenticated = readCachedFlag(HEADER_AUTH_STORAGE_KEY);
+    const cachedCanAccessAdmin = readCachedFlag(HEADER_ADMIN_STORAGE_KEY);
+
+    return {
+      authenticated: initialAuthenticated || cachedAuthenticated,
+      canAccessAdmin: initialCanAccessAdmin || cachedCanAccessAdmin,
+    };
   });
 
   useEffect(() => {
@@ -57,6 +91,7 @@ export function HomeHeaderActions({
     const syncState = async () => {
       const nextState = await fetchHeaderState();
       setState(nextState);
+      writeCachedState(nextState);
     };
 
     void syncState();
@@ -65,14 +100,22 @@ export function HomeHeaderActions({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
+        const optimisticState = {
+          authenticated: true,
+          canAccessAdmin: readCachedFlag(HEADER_ADMIN_STORAGE_KEY),
+        };
+        setState(optimisticState);
+        writeCachedState(optimisticState);
         void syncState();
       }
 
       if (event === "SIGNED_OUT") {
-        setState({
+        const signedOutState = {
           authenticated: false,
           canAccessAdmin: false,
-        });
+        };
+        setState(signedOutState);
+        clearCachedState();
       }
     });
 
