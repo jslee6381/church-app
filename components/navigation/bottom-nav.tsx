@@ -154,7 +154,6 @@ export function BottomNav() {
     event.preventDefault();
     if (currentNavKey === navKey) return;
     setOptimisticNavKey(navKey);
-    navigationTransition?.showTemporaryLaunch(180);
     router.push(href);
   }
 

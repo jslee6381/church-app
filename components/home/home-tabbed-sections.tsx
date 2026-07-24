@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
+import { useNavigationTransition } from "@/components/navigation/navigation-transition";
 import type { AnnouncementListItem } from "@/lib/announcements";
 import type { EventListItem } from "@/lib/events";
 
@@ -28,10 +30,17 @@ type Props = {
 
 export function HomeTabbedSections({ announcements, events, headerAction, wordmark }: Props) {
   const bottomNavVisibility = useBottomNavVisibility();
+  const navigationTransition = useNavigationTransition();
+  const router = useRouter();
 
   useEffect(() => {
     bottomNavVisibility?.setVisible(true);
   }, [bottomNavVisibility]);
+
+  function openWithLaunch(href: string) {
+    navigationTransition?.showTemporaryLaunch(220);
+    router.push(href);
+  }
 
   return (
     <div className="mt-2 space-y-8">
@@ -42,9 +51,14 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
               <Link className="ui-text inline-flex min-h-11 items-center px-4 transition" href="/home" style={{ color: "#DDDDDD", fontWeight: 700 }}>
                 Home
               </Link>
-              <Link className="ui-text inline-flex min-h-11 items-center px-4 transition" href="/fellowship" style={{ color: "#7A7A7A", fontWeight: 700 }}>
+              <button
+                className="ui-text inline-flex min-h-11 items-center px-4 transition"
+                onClick={() => openWithLaunch('/fellowship')}
+                style={{ color: "#7A7A7A", fontWeight: 700 }}
+                type="button"
+              >
                 Fellowship
-              </Link>
+              </button>
             </div>
             {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
           </div>
@@ -63,13 +77,14 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
           <div className="grid grid-cols-3 gap-2">
             {quickActions.map((action) => {
               const Icon = action.icon;
-              return (
+              const isLaunchAction = action.href === '/events' || action.href === '/prayer';
+              return action.external ? (
                 <Link
                   key={action.href}
                   className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 transition hover:bg-card"
                   href={action.href}
-                  rel={action.external ? "noreferrer" : undefined}
-                  target={action.external ? "_blank" : undefined}
+                  rel="noreferrer"
+                  target="_blank"
                 >
                   <div className="flex min-h-[88px] flex-col items-center justify-center gap-2 text-center">
                     <div className="quick-action-icon inline-flex size-[40px] shrink-0 items-center justify-center text-accent-foreground">
@@ -78,6 +93,20 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
                     <p className="ui-text m-0 whitespace-nowrap text-[0.95rem] font-semibold leading-tight text-foreground">{action.title}</p>
                   </div>
                 </Link>
+              ) : (
+                <button
+                  key={action.href}
+                  className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 text-left transition hover:bg-card"
+                  onClick={() => isLaunchAction ? openWithLaunch(action.href) : router.push(action.href)}
+                  type="button"
+                >
+                  <div className="flex min-h-[88px] flex-col items-center justify-center gap-2 text-center">
+                    <div className="quick-action-icon inline-flex size-[40px] shrink-0 items-center justify-center text-accent-foreground">
+                      <Icon className="size-[33px]" />
+                    </div>
+                    <p className="ui-text m-0 whitespace-nowrap text-[0.95rem] font-semibold leading-tight text-foreground">{action.title}</p>
+                  </div>
+                </button>
               );
             })}
           </div>
