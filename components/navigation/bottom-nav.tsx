@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type MouseEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, House, Settings } from "lucide-react";
+import { House, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
 import { useNavigationTransition } from "@/components/navigation/navigation-transition";
@@ -24,6 +24,26 @@ function FellowshipIcon({ className }: { className?: string }) {
         WebkitMaskPosition: 'center',
         WebkitMaskRepeat: 'no-repeat',
         WebkitMaskSize: 'contain',
+      }}
+    />
+  );
+}
+
+function GalleryIcon({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={className}
+      style={{
+        backgroundColor: "currentColor",
+        maskImage: "url('/gallery-icon.png')",
+        maskPosition: "center",
+        maskRepeat: "no-repeat",
+        maskSize: "contain",
+        WebkitMaskImage: "url('/gallery-icon.png')",
+        WebkitMaskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
       }}
     />
   );
@@ -70,8 +90,8 @@ const items = [
   },
   {
     href: "/study",
-    label: "Study",
-    icon: FileText,
+    label: "Gallery",
+    icon: GalleryIcon,
   },
   {
     href: "/video",

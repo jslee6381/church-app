@@ -526,12 +526,12 @@ export function PrayerPageClient({
         ))}
       </section>
 
-      <div className="prayer-composer-shell fixed inset-x-0 bottom-0 z-30 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+14px)] pt-3 backdrop-blur-2xl">
+      <div className="prayer-composer-shell fixed inset-x-0 bottom-0 z-30 bg-[linear-gradient(180deg,rgba(246,241,232,0.56)_0%,rgba(246,241,232,0.92)_18%,rgba(246,241,232,1)_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+22px)] pt-3 backdrop-blur-2xl">
         <div className="mx-auto w-full max-w-[560px]">
           {showSuccess ? (
             <div className="mb-3 rounded-[18px] border border-accent bg-accent/70 px-4 py-3 text-base leading-7 text-accent-foreground shadow-sm">
               <p className="m-0 font-semibold">Thank you.</p>
-              <p className="m-0">Your prayer request has been submitted.</p>
+              <p className="m-0">Your prayer request has been posted.</p>
             </div>
           ) : null}
 
