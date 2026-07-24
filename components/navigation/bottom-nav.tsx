@@ -298,7 +298,7 @@ export function BottomNav() {
   return (
     <div
       className={`pointer-events-none fixed inset-x-0 z-40 ${
-        isAndroid ? "bottom-0 px-0" : "bottom-4 px-3"
+        isAndroid ? "bottom-0 px-0" : "bottom-[calc(env(safe-area-inset-bottom)+28px)] px-3"
       }`}
     >
       <div className={`mx-auto w-full ${isAndroid ? "max-w-none" : "max-w-[460px]"}`}>
@@ -334,7 +334,7 @@ export function BottomNav() {
                 aria-label={item.label}
                 className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${
                   isActive ? "bottom-nav-item-active text-primary" : "bottom-nav-item-inactive text-accent-foreground"
-                } ${isAndroid ? "rounded-[12px] py-1.5" : "rounded-[19px] py-1.5"}`}
+                } ${isAndroid ? "rounded-[12px] py-0.5" : "rounded-[19px] py-0.5"}`}
                 href={item.href}
                 key={item.href}
                 onClick={(event) =>
@@ -345,7 +345,7 @@ export function BottomNav() {
               >
                 <Icon
                   className={`${
-                    item.label === "Video" ? "size-[1.55rem]" : item.label === "Fellowship" ? "size-[2.05rem]" : item.label === "Setting" ? "size-[1.3rem]" : "size-[1.35rem]"
+                    item.label === "Video" ? "size-[2rem]" : item.label === "Fellowship" ? "size-[2.5rem]" : item.label === "Setting" ? "size-[1.72rem]" : "size-[1.78rem]"
                   } ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`}
                 />
               </Link>
