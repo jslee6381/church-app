@@ -368,73 +368,7 @@ export function PrayerPageClient({
             className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-50" : "z-0"}`}
           >
             <div className="w-full min-w-0">
-              {editingId !== item.id && updatingPrayerId !== item.id ? (
-                <div className="mb-1 flex w-full items-start justify-end">
-                  <div
-                    ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                    className="relative"
-                  >
-                    <button
-                      aria-label="Prayer actions"
-                      className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
-                      onClick={() =>
-                        setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                      }
-                      type="button"
-                    >
-                      <MoreVertical className="size-4" />
-                    </button>
-                    {openMenuPrayerId === item.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
-                        {canUpdateItem(item) ? (
-                          <button
-                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                            onClick={() => startUpdating(item)}
-                            type="button"
-                          >
-                            Follow up
-                          </button>
-                        ) : null}
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                          onClick={() => toggleUpdates(item.id)}
-                          type="button"
-                        >
-                          {expandedUpdates[item.id] ? "Hide History" : "History"}
-                        </button>
-                        {canManageItem(item) ? (
-                          <button
-                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                            onClick={() => startEditing(item)}
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                        ) : null}
-                        {canManageItem(item) ? (
-                          <button
-                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                            disabled={deletingId === item.id}
-                            onClick={() => deletePrayer(item.id)}
-                            type="button"
-                          >
-                            {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-              <div className="w-full min-w-0 max-w-full">
-                {item.isOwner && getStatusLabel(item.status) ? (
-                  <div className="mb-2">
-                    <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                      {getStatusLabel(item.status)}
-                    </span>
-                  </div>
-                ) : null}
-                {editingId === item.id ? (
+              {editingId === item.id ? (
               <div className="space-y-3">
                 <div className="relative">
                   <textarea
@@ -468,10 +402,76 @@ export function PrayerPageClient({
                 </div>
               </div>
                 ) : (
-                  <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{item.body}</p>
+                  <div className="flex items-start gap-1">
+                    <div className="min-w-0 flex-1">
+                      {item.isOwner && getStatusLabel(item.status) ? (
+                        <div className="mb-2">
+                          <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                            {getStatusLabel(item.status)}
+                          </span>
+                        </div>
+                      ) : null}
+                      <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{item.body}</p>
+                    </div>
+                    {updatingPrayerId !== item.id ? (
+                      <div
+                        ref={openMenuPrayerId === item.id ? menuAreaRef : null}
+                        className="relative shrink-0"
+                      >
+                        <button
+                          aria-label="Prayer actions"
+                          className="inline-flex size-8 items-start justify-center bg-transparent pt-0.5 text-foreground"
+                          onClick={() =>
+                            setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                          }
+                          type="button"
+                        >
+                          <MoreVertical className="size-4" />
+                        </button>
+                        {openMenuPrayerId === item.id ? (
+                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white dark:bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                            {canUpdateItem(item) ? (
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                                onClick={() => startUpdating(item)}
+                                type="button"
+                              >
+                                Follow up
+                              </button>
+                            ) : null}
+                            <button
+                              className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                              onClick={() => toggleUpdates(item.id)}
+                              type="button"
+                            >
+                              {expandedUpdates[item.id] ? "Hide History" : "History"}
+                            </button>
+                            {canManageItem(item) ? (
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                                onClick={() => startEditing(item)}
+                                type="button"
+                              >
+                                Edit
+                              </button>
+                            ) : null}
+                            {canManageItem(item) ? (
+                              <button
+                                className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                                disabled={deletingId === item.id}
+                                onClick={() => deletePrayer(item.id)}
+                                type="button"
+                              >
+                                {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
                 )}
               </div>
-            </div>
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
                 <div className="relative">
