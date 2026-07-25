@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatEasternDateTimeLocalValue, formatEasternDayNumber, formatEasternEventDate, formatEasternEventTime, formatEasternWeekday } from "@/lib/eastern-time";
+import { formatEasternDateTimeLocalValue, formatEasternEventDate, formatEasternEventTime, formatEasternWeekday } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 const TITLE_LIMIT = 50;
@@ -16,6 +16,11 @@ const EASTERN_TIME_ZONE = "America/New_York";
 type Props = {
   canManage: boolean;
   initialEvents: EventListItem[];
+};
+
+type EventDisplayItem = {
+  event: EventListItem;
+  monthKey: string;
 };
 
 function resizeTextarea(textarea: HTMLTextAreaElement | null) {
@@ -45,6 +50,27 @@ function combineDateTimeValue(date: string, time: string) {
   }
 
   return `${date}T${time}`;
+}
+
+function addHoursToTimeValue(time: string, hours: number) {
+  if (!time || !time.includes(":")) {
+    return "";
+  }
+
+  const [hourText = "0", minuteText = "0"] = time.split(":");
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (Number.isNaN(hour) || Number.isNaN(minute)) {
+    return "";
+  }
+
+  const totalMinutes = ((hour + hours) * 60 + minute) % (24 * 60);
+  const normalized = totalMinutes < 0 ? totalMinutes + 24 * 60 : totalMinutes;
+  const nextHour = String(Math.floor(normalized / 60)).padStart(2, "0");
+  const nextMinute = String(normalized % 60).padStart(2, "0");
+
+  return `${nextHour}:${nextMinute}`;
 }
 
 function getMonthParts(value: string) {
@@ -79,6 +105,67 @@ function getMonthKey(value: string) {
 
 function getMonthLabel(value: string) {
   return getMonthParts(value).month;
+}
+
+function getNumericMonthDay(value: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: EASTERN_TIME_ZONE,
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.month}/${values.day}`;
+}
+
+function getDayNumber(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: EASTERN_TIME_ZONE,
+    day: "numeric",
+  }).format(new Date(value));
+}
+
+function hasDifferentStartAndEndDate(event: EventListItem) {
+  if (!event.endsAt) {
+    return false;
+  }
+
+  const start = formatEasternEventDate(event.startsAt);
+  const end = formatEasternEventDate(event.endsAt);
+  return start !== end;
+}
+
+function spansMultipleMonths(event: EventListItem) {
+  return Boolean(event.endsAt && getMonthKey(event.startsAt) !== getMonthKey(event.endsAt));
+}
+
+function getEventDisplayItems(items: EventListItem[]) {
+  const displayItems: EventDisplayItem[] = [];
+
+  for (const event of items) {
+    const startMonthKey = getMonthKey(event.startsAt);
+    displayItems.push({ event, monthKey: startMonthKey });
+
+    if (spansMultipleMonths(event) && event.endsAt) {
+      const endMonthKey = getMonthKey(event.endsAt);
+      if (endMonthKey != startMonthKey) {
+        displayItems.push({ event, monthKey: endMonthKey });
+      }
+    }
+  }
+
+  return displayItems.sort((left, right) => {
+    const monthCompare = left.monthKey.localeCompare(right.monthKey);
+    if (monthCompare != 0) {
+      return monthCompare;
+    }
+    return new Date(left.event.startsAt).getTime() - new Date(right.event.startsAt).getTime();
+  });
 }
 
 function getEventReferenceTime(event: EventListItem) {
@@ -183,11 +270,14 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     };
   }, [imageFile]);
 
+  const displayItems = getEventDisplayItems(events);
   const monthGroups: Array<{ key: string; label: string }> = [];
-  for (const event of events) {
-    const key = getMonthKey(event.startsAt);
-    if (!monthGroups.some((group) => group.key === key)) {
-      monthGroups.push({ key, label: getMonthLabel(event.startsAt) });
+  for (const item of displayItems) {
+    if (!monthGroups.some((group) => group.key === item.monthKey)) {
+      const monthSource = item.monthKey === getMonthKey(item.event.startsAt)
+        ? item.event.startsAt
+        : item.event.endsAt ?? item.event.startsAt;
+      monthGroups.push({ key: item.monthKey, label: getMonthLabel(monthSource) });
     }
   }
 
@@ -203,12 +293,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   }, [monthGroups.length, selectedMonthIndex]);
 
   const selectedMonth = monthGroups[Math.min(selectedMonthIndex, Math.max(monthGroups.length - 1, 0))] ?? null;
-  const visibleEvents = selectedMonth ? events.filter((event) => getMonthKey(event.startsAt) === selectedMonth.key) : events;
+  const visibleEvents = selectedMonth ? displayItems.filter((item) => item.monthKey === selectedMonth.key) : displayItems;
   const canGoPreviousMonth = selectedMonthIndex > 0;
   const canGoNextMonth = selectedMonthIndex < monthGroups.length - 1;
   const currentMonthKey = getMonthKey(new Date().toISOString());
   const isCurrentMonthView = Boolean(selectedMonth && selectedMonth.key === currentMonthKey);
-  const hasPastEventsInSelectedMonth = isCurrentMonthView && visibleEvents.some((event) => isPastEvent(event));
+  const hasPastEventsInSelectedMonth = isCurrentMonthView && visibleEvents.some((item) => isPastEvent(item.event));
 
   function resetForm() {
     setEditingEventId(null);
@@ -249,6 +339,19 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         setEndDate(nextDate);
       }
       return nextDate;
+    });
+  }
+
+  function handleStartTimeChange(nextTime: string) {
+    setStartTime((previousTime) => {
+      const previousSuggestedEndTime = addHoursToTimeValue(previousTime, 2);
+      const nextSuggestedEndTime = addHoursToTimeValue(nextTime, 2);
+
+      if (!endTime || endTime === previousTime || endTime === previousSuggestedEndTime) {
+        setEndTime(nextSuggestedEndTime);
+      }
+
+      return nextTime;
     });
   }
 
@@ -479,7 +582,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               <span className="px-1 text-xs text-muted-foreground">Time</span>
               <input
                 className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-                onChange={(event) => setStartTime(event.target.value)}
+                onChange={(event) => handleStartTimeChange(event.target.value)}
                 placeholder="Time"
                 type="time"
                 value={startTime}
@@ -672,17 +775,23 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         </div>
       ) : null}
 
-      {visibleEvents.map((eventItem) => {
+      {visibleEvents.map((item, index) => {
+        const eventItem = item.event;
         const isPast = isPastEvent(eventItem);
         const isHiddenPastEvent = isCurrentMonthView && isPast && arePastEventsCollapsed && editingEventId !== eventItem.id;
-
+        const displayedMonthKey = item.monthKey;
+        const startMonthKey = getMonthKey(eventItem.startsAt);
+        const endDateValue = eventItem.endsAt ?? eventItem.startsAt;
+        const endMonthKey = getMonthKey(endDateValue);
+        const startDisplayValue = displayedMonthKey === startMonthKey ? getDayNumber(eventItem.startsAt) : getNumericMonthDay(eventItem.startsAt);
+        const endDisplayValue = displayedMonthKey === endMonthKey ? getDayNumber(endDateValue) : getNumericMonthDay(endDateValue);
         if (isHiddenPastEvent) {
           return null;
         }
 
         return (
         <article
-          key={eventItem.id}
+          key={`${eventItem.id}-${item.monthKey}-${index}`}
           id={`event-${eventItem.id}`}
           className={`event-surface relative scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl ? "pb-0" : "pb-4"}`}
         >
@@ -732,8 +841,20 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
           <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-4">
             <div className="flex flex-col items-center justify-start pt-1 text-center">
-              <p className="m-0 font-sans text-[2rem] font-semibold leading-none text-foreground">{formatEasternDayNumber(eventItem.startsAt)}</p>
-              <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatEasternWeekday(eventItem.startsAt)}</p>
+              {hasDifferentStartAndEndDate(eventItem) ? (
+                <>
+                  <p className={`m-0 font-sans font-semibold leading-none text-foreground ${startDisplayValue.includes("/") ? "text-[1.45rem]" : "text-[2rem]"}`}>{startDisplayValue}</p>
+                  <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatEasternWeekday(eventItem.startsAt)}</p>
+                  <p className="my-1 text-sm font-medium text-muted-foreground">|</p>
+                  <p className={`m-0 font-sans font-semibold leading-none text-foreground ${endDisplayValue.includes("/") ? "text-[1.45rem]" : "text-[2rem]"}`}>{endDisplayValue}</p>
+                  <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatEasternWeekday(endDateValue)}</p>
+                </>
+              ) : (
+                <>
+                  <p className={`m-0 font-sans font-semibold leading-none text-foreground ${startDisplayValue.includes("/") ? "text-[1.45rem]" : "text-[2rem]"}`}>{startDisplayValue}</p>
+                  <p className="mt-1 mb-0 text-sm font-medium uppercase tracking-[0.06em] text-muted-foreground">{formatEasternWeekday(eventItem.startsAt)}</p>
+                </>
+              )}
             </div>
 
             <div className="min-w-0 overflow-hidden">
@@ -835,10 +956,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <h2 className="ui-text m-0 min-w-0 pr-10 font-sans font-semibold leading-tight text-foreground">
                     {eventItem.title}
                   </h2>
-                  <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                    <CalendarDays className="size-4 shrink-0 text-current" />
-                    <span>{formatEasternEventDate(eventItem.startsAt)} · {formatEasternEventTime(eventItem.startsAt)}</span>
-                  </p>
+                  <div className="mt-2 space-y-2 text-muted-foreground">
+                    <p className="ui-text m-0 flex items-center gap-2">
+                      <CalendarDays className="size-4 shrink-0 text-current" />
+                      <span>{formatEasternEventDate(eventItem.startsAt)} · {formatEasternEventTime(eventItem.startsAt)}</span>
+                    </p>
+                    {eventItem.endsAt ? (
+                      <p className="ui-text m-0 flex items-center gap-2">
+                        <CalendarDays className="size-4 shrink-0 text-current" />
+                        <span>{formatEasternEventDate(eventItem.endsAt)} · {formatEasternEventTime(eventItem.endsAt)}</span>
+                      </p>
+                    ) : null}
+                  </div>
                   {eventItem.locationName ? (
                     <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
                       <MapPin className="size-4 shrink-0 text-current" />
