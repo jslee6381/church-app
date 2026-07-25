@@ -367,64 +367,66 @@ export function PrayerPageClient({
             key={item.id}
             className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-50" : "z-0"}`}
           >
-            <div className="relative min-w-0 pr-8">
+            <div className="w-full min-w-0">
               {editingId !== item.id && updatingPrayerId !== item.id ? (
-                <div
-                  ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                  className="absolute right-0 top-0"
-                >
-                  <button
-                    aria-label="Prayer actions"
-                    className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
-                    onClick={() =>
-                      setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
-                    }
-                    type="button"
+                <div className="mb-1 flex w-full items-start justify-end">
+                  <div
+                    ref={openMenuPrayerId === item.id ? menuAreaRef : null}
+                    className="relative"
                   >
-                    <MoreVertical className="size-4" />
-                  </button>
-                  {openMenuPrayerId === item.id ? (
-                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
-                      {canUpdateItem(item) ? (
+                    <button
+                      aria-label="Prayer actions"
+                      className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
+                      onClick={() =>
+                        setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
+                      }
+                      type="button"
+                    >
+                      <MoreVertical className="size-4" />
+                    </button>
+                    {openMenuPrayerId === item.id ? (
+                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                        {canUpdateItem(item) ? (
+                          <button
+                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                            onClick={() => startUpdating(item)}
+                            type="button"
+                          >
+                            Follow up
+                          </button>
+                        ) : null}
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                          onClick={() => startUpdating(item)}
+                          onClick={() => toggleUpdates(item.id)}
                           type="button"
                         >
-                          Follow up
+                          {expandedUpdates[item.id] ? "Hide History" : "History"}
                         </button>
-                      ) : null}
-                      <button
-                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                        onClick={() => toggleUpdates(item.id)}
-                        type="button"
-                      >
-                        {expandedUpdates[item.id] ? "Hide History" : "History"}
-                      </button>
-                      {canManageItem(item) ? (
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                          onClick={() => startEditing(item)}
-                          type="button"
-                        >
-                          Edit
-                        </button>
-                      ) : null}
-                      {canManageItem(item) ? (
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                          disabled={deletingId === item.id}
-                          onClick={() => deletePrayer(item.id)}
-                          type="button"
-                        >
-                          {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : null}
+                        {canManageItem(item) ? (
+                          <button
+                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                            onClick={() => startEditing(item)}
+                            type="button"
+                          >
+                            Edit
+                          </button>
+                        ) : null}
+                        {canManageItem(item) ? (
+                          <button
+                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                            disabled={deletingId === item.id}
+                            onClick={() => deletePrayer(item.id)}
+                            type="button"
+                          >
+                            {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
-              <div className="min-w-0">
+              <div className="w-full min-w-0 max-w-full">
                 {item.isOwner && getStatusLabel(item.status) ? (
                   <div className="mb-2">
                     <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
@@ -466,7 +468,7 @@ export function PrayerPageClient({
                 </div>
               </div>
                 ) : (
-                  <p className="ui-text m-0 leading-[1.5] break-words text-foreground">{item.body}</p>
+                  <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{item.body}</p>
                 )}
               </div>
             </div>
@@ -514,7 +516,7 @@ export function PrayerPageClient({
                   {[...getAllUpdates(item)].reverse().map((followUp, followUpIndex) => (
                     <div key={followUp.id} className={followUpIndex > 0 ? "border-t border-border/40 pt-3" : ""}>
                       <div className="relative pr-16">
-                        <p className="ui-text m-0 leading-[1.5] text-foreground">{followUp.message}</p>
+                        <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{followUp.message}</p>
                         {followUp.createdAtLabel ? (
                           <p className="m-0 absolute right-0 top-0 text-[0.7rem] font-normal leading-5 text-muted-foreground">{followUp.createdAtLabel}</p>
                         ) : null}
