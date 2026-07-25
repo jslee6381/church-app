@@ -68,7 +68,7 @@ export default async function FellowshipPage() {
                     Home
                   </Link>
                   <Link className="top-route-tab top-route-tab-active ui-text inline-flex min-h-11 items-center px-4 transition" href="/fellowship">
-                    Fellowship
+                    Moments
                   </Link>
                 </div>
                 <div className="shrink-0">
