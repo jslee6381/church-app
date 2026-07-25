@@ -1491,44 +1491,9 @@ export function CommunityUpdatesSection({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-1">
-                  <div className="min-w-0 flex-1">
-                    <p className="ui-text m-0 w-full max-w-full break-words text-foreground">{getUpdateContent(update)}</p>
-                  </div>
-                  {(update.isOwner || canManage) ? (
-                    <div ref={openMenuUpdateId === update.id ? menuAreaRef : null} className="relative shrink-0">
-                      <button
-                        aria-label="Update actions"
-                        className="inline-flex size-8 items-start justify-center bg-transparent pt-0.5 text-foreground"
-                        onClick={() =>
-                          setOpenMenuUpdateId((current) => (current === update.id ? null : update.id))
-                        }
-                        type="button"
-                      >
-                        <MoreVertical className="size-4" />
-                      </button>
-                      {openMenuUpdateId === update.id ? (
-                        <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
-                          <button
-                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                            onClick={() => startEditing(update)}
-                            type="button"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                            disabled={deletingId === update.id}
-                            onClick={() => deleteUpdate(update.id)}
-                            type="button"
-                          >
-                            {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
+                <>
+                  <p className="ui-text m-0 block w-full max-w-full break-words text-foreground">{getUpdateContent(update)}</p>
+                </>
               )}
             </div>
             <div className="mt-2 flex items-center justify-between gap-3 px-2">
@@ -1579,7 +1544,41 @@ export function CommunityUpdatesSection({
                   </span>
                 ) : null}
               </div>
-              <div className="relative flex items-center gap-2" />
+              <div className="relative flex items-center gap-1">
+                {(update.isOwner || canManage) && editingId !== update.id ? (
+                  <div ref={openMenuUpdateId === update.id ? menuAreaRef : null} className="relative">
+                    <button
+                      aria-label="Update actions"
+                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                      onClick={() =>
+                        setOpenMenuUpdateId((current) => (current === update.id ? null : update.id))
+                      }
+                      type="button"
+                    >
+                      <MoreVertical className="size-4" />
+                    </button>
+                    {openMenuUpdateId === update.id ? (
+                      <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                          onClick={() => startEditing(update)}
+                          type="button"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                          disabled={deletingId === update.id}
+                          onClick={() => deleteUpdate(update.id)}
+                          type="button"
+                        >
+                          {deletingId === update.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
             {expandedComments[update.id] ? (
               <div className="px-4 pt-3">

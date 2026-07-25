@@ -402,21 +402,11 @@ export function PrayerPageClient({
                 </div>
               </div>
                 ) : (
-                  <div className="flex items-start gap-1">
-                    <div className="min-w-0 flex-1">
-                      {item.isOwner && getStatusLabel(item.status) ? (
-                        <div className="mb-2">
-                          <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                            {getStatusLabel(item.status)}
-                          </span>
-                        </div>
-                      ) : null}
-                      <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{item.body}</p>
-                    </div>
+                  <div className="min-w-0">
                     {updatingPrayerId !== item.id ? (
                       <div
                         ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                        className="relative shrink-0"
+                        className="relative float-right ml-1"
                       >
                         <button
                           aria-label="Prayer actions"
@@ -429,7 +419,7 @@ export function PrayerPageClient({
                           <MoreVertical className="size-4" />
                         </button>
                         {openMenuPrayerId === item.id ? (
-                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white dark:bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                             {canUpdateItem(item) ? (
                               <button
                                 className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
@@ -469,6 +459,15 @@ export function PrayerPageClient({
                         ) : null}
                       </div>
                     ) : null}
+                    {item.isOwner && getStatusLabel(item.status) ? (
+                      <div className="mb-2">
+                        <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                          {getStatusLabel(item.status)}
+                        </span>
+                      </div>
+                    ) : null}
+                    <p className="ui-text m-0 w-full max-w-full leading-[1.5] break-words text-foreground">{item.body}</p>
+                    <div className="clear-both" />
                   </div>
                 )}
               </div>
