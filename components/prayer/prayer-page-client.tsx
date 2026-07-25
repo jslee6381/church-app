@@ -391,7 +391,7 @@ export function PrayerPageClient({
                           onClick={() => startUpdating(item)}
                           type="button"
                         >
-                          Update
+                          Follow up
                         </button>
                       ) : null}
                       <button
@@ -426,7 +426,7 @@ export function PrayerPageClient({
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-10">
+              <div className="mb-2 pr-8">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -466,7 +466,7 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-10 leading-[1.5] break-words text-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-8 leading-[1.5] break-words text-foreground">{item.body}</p>
             )}
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">

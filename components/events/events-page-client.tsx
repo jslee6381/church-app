@@ -866,7 +866,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <MoreVertical className="size-4" />
                 </button>
                 {openMenuEventId === eventItem.id ? (
-                  <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background opacity-100 shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                  <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-[var(--card)] opacity-100 shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                     <button
                       className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                       onClick={() => beginEdit(eventItem)}
