@@ -5,7 +5,7 @@ import { EventsPageClient } from "@/components/events/events-page-client";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
-import { getUpcomingEvents } from "@/lib/events";
+import { getEventsForBoard } from "@/lib/events";
 
 export default async function EventsPage() {
   const authSession = await getAuthenticatedMemberSession();
@@ -13,7 +13,7 @@ export default async function EventsPage() {
   const churchIdPromise = authSession?.member.church_id
     ? Promise.resolve(authSession.member.church_id)
     : getDefaultChurchId();
-  const eventsPromise = churchIdPromise.then((churchId) => getUpcomingEvents(churchId));
+  const eventsPromise = churchIdPromise.then((churchId) => getEventsForBoard(churchId));
   const [roles, events] = await Promise.all([rolesPromise, eventsPromise]);
   const canManage = roles.includes("admin") || roles.includes("leader");
 

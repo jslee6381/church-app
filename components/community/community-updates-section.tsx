@@ -225,9 +225,6 @@ export function CommunityUpdatesSection({
     );
     setCurrentImageIndexes({});
     setUpdateImageRatios({});
-    setExpandedComments({});
-    setCommentDrafts({});
-    setOpenCommentComposerId(null);
   }, [initialUpdates]);
 
   useEffect(() => {
@@ -831,7 +828,12 @@ export function CommunityUpdatesSection({
         ...current,
         [updateId]: true,
       }));
-      setOpenCommentComposerId(null);
+      setOpenCommentComposerId(updateId);
+      window.requestAnimationFrame(() => {
+        const textarea = commentTextareaRefs.current[updateId];
+        textarea?.focus();
+        resizeTextarea(textarea ?? null);
+      });
       router.refresh();
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Unable to post comment.");
@@ -1530,7 +1532,7 @@ export function CommunityUpdatesSection({
                         onClick={() => toggleComments(update.id)}
                         type="button"
                       >
-                        <MessageCircle className="size-[1.4rem]" />
+                        <MessageCircle className="size-[1.4rem] -scale-x-100" />
                         <span className="text-[1rem] font-semibold">{update.commentCount}</span>
                       </button>
                     </div>
@@ -1556,7 +1558,7 @@ export function CommunityUpdatesSection({
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuUpdateId === update.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                      <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(update)}
@@ -1667,7 +1669,7 @@ export function CommunityUpdatesSection({
                                   <MoreVertical className="size-4" />
                                 </button>
                                 {openCommentMenuId === comment.id ? (
-                                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                                  <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                                     <button
                                       className="flex min-h-10 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                                       onClick={() => startEditingComment(comment)}

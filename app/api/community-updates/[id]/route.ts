@@ -128,9 +128,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         body: normalizedSummary,
         image_url: finalImageUrls[0] ?? null,
         status: "approved",
-        approved_at: new Date().toISOString(),
         approved_by_member_id: session.member.id,
-        published_at: new Date().toISOString(),
       })
       .eq("id", id)
       .select("id, title, summary, body, status")

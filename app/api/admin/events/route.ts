@@ -21,11 +21,20 @@ export async function POST(request: Request) {
     const summary = normalizeText(String(formData.get("summary") ?? ""));
     const locationName = normalizeText(String(formData.get("locationName") ?? ""));
     const startsAt = normalizeText(String(formData.get("startsAt") ?? ""));
+    const endsAt = normalizeText(String(formData.get("endsAt") ?? ""));
     const isLiveStream = String(formData.get("isLiveStream") ?? "") === "true";
     const image = formData.get("image");
 
     if (!startsAt) {
-      return NextResponse.json({ error: "Date is required." }, { status: 400 });
+      return NextResponse.json({ error: "Start date and time are required." }, { status: 400 });
+    }
+
+    if (!endsAt) {
+      return NextResponse.json({ error: "End date and time are required." }, { status: 400 });
+    }
+
+    if (endsAt < startsAt) {
+      return NextResponse.json({ error: "End time must be after the start time." }, { status: 400 });
     }
 
     if (title.length > TITLE_LIMIT) {
@@ -47,6 +56,7 @@ export async function POST(request: Request) {
           summary,
           location_name: locationName,
           starts_at: startsAt,
+          ends_at: endsAt,
           image_url: null,
           is_live_stream: isLiveStream,
           live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
@@ -68,6 +78,7 @@ export async function POST(request: Request) {
         description: summary || null,
         location_name: locationName || null,
         starts_at: easternLocalDateTimeToIso(startsAt),
+        ends_at: easternLocalDateTimeToIso(endsAt),
         image_url: imageUrl,
         is_live_stream: isLiveStream,
         live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
@@ -75,7 +86,7 @@ export async function POST(request: Request) {
         published_at: new Date().toISOString(),
         published_by_member_id: session.member.id,
       })
-      .select("id, title, summary, location_name, starts_at, image_url, is_live_stream, live_stream_url")
+      .select("id, title, summary, location_name, starts_at, ends_at, image_url, is_live_stream, live_stream_url")
       .single();
 
     if (error || !data) {
@@ -90,6 +101,7 @@ export async function POST(request: Request) {
       action: "create",
       metadata: {
         startsAt: data.starts_at,
+        endsAt: data.ends_at,
         isLiveStream: data.is_live_stream,
       },
     });

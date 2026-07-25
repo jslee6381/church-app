@@ -12,6 +12,7 @@ export async function POST(
     const { id } = await params;
 
     if (!hasAdminEnvironment()) {
+      const now = new Date().toISOString();
       return NextResponse.json({
         success: true,
         event: {
@@ -19,7 +20,8 @@ export async function POST(
           title: "Duplicated event",
           summary: "",
           location_name: null,
-          starts_at: new Date().toISOString(),
+          starts_at: now,
+          ends_at: now,
           image_url: null,
           is_live_stream: false,
           live_stream_url: null,
@@ -30,7 +32,7 @@ export async function POST(
     const admin = createAdminClient();
     const { data: sourceEvent, error: sourceError } = await admin
       .from("events")
-      .select("title, summary, description, location_name, starts_at, image_url, is_live_stream, live_stream_url, visibility")
+      .select("title, summary, description, location_name, starts_at, ends_at, image_url, is_live_stream, live_stream_url, visibility")
       .eq("id", id)
       .eq("church_id", session.member.church_id)
       .single();
@@ -48,6 +50,7 @@ export async function POST(
         description: sourceEvent.description,
         location_name: sourceEvent.location_name,
         starts_at: sourceEvent.starts_at,
+        ends_at: sourceEvent.ends_at,
         image_url: sourceEvent.image_url,
         is_live_stream: sourceEvent.is_live_stream ?? false,
         live_stream_url: sourceEvent.is_live_stream ? sourceEvent.live_stream_url ?? DEFAULT_LIVE_STREAM_URL : null,
@@ -55,7 +58,7 @@ export async function POST(
         published_at: new Date().toISOString(),
         published_by_member_id: session.member.id,
       })
-      .select("id, title, summary, location_name, starts_at, image_url, is_live_stream, live_stream_url")
+      .select("id, title, summary, location_name, starts_at, ends_at, image_url, is_live_stream, live_stream_url")
       .single();
 
     if (insertError || !duplicatedEvent) {
@@ -71,6 +74,7 @@ export async function POST(
       metadata: {
         sourceEventId: id,
         startsAt: duplicatedEvent.starts_at,
+        endsAt: duplicatedEvent.ends_at,
         isLiveStream: duplicatedEvent.is_live_stream,
       },
     });

@@ -25,12 +25,21 @@ export async function PATCH(
     const summary = normalizeText(String(formData.get("summary") ?? ""));
     const locationName = normalizeText(String(formData.get("locationName") ?? ""));
     const startsAt = normalizeText(String(formData.get("startsAt") ?? ""));
+    const endsAt = normalizeText(String(formData.get("endsAt") ?? ""));
     const isLiveStream = String(formData.get("isLiveStream") ?? "") === "true";
     const removeImage = String(formData.get("removeImage") ?? "") === "true";
     const image = formData.get("image");
 
     if (!startsAt) {
-      return NextResponse.json({ error: "Date is required." }, { status: 400 });
+      return NextResponse.json({ error: "Start date and time are required." }, { status: 400 });
+    }
+
+    if (!endsAt) {
+      return NextResponse.json({ error: "End date and time are required." }, { status: 400 });
+    }
+
+    if (endsAt < startsAt) {
+      return NextResponse.json({ error: "End time must be after the start time." }, { status: 400 });
     }
 
     if (title.length > TITLE_LIMIT) {
@@ -50,6 +59,7 @@ export async function PATCH(
           summary,
           location_name: locationName,
           starts_at: startsAt,
+          ends_at: endsAt,
           image_url: null,
           is_live_stream: isLiveStream,
           live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
@@ -71,6 +81,7 @@ export async function PATCH(
       description: string | null;
       location_name: string | null;
       starts_at: string;
+      ends_at: string;
       is_live_stream: boolean;
       live_stream_url: string | null;
       image_url?: string | null;
@@ -80,6 +91,7 @@ export async function PATCH(
       description: summary || null,
       location_name: locationName || null,
       starts_at: easternLocalDateTimeToIso(startsAt),
+      ends_at: easternLocalDateTimeToIso(endsAt),
       is_live_stream: isLiveStream,
       live_stream_url: isLiveStream ? DEFAULT_LIVE_STREAM_URL : null,
     };
@@ -97,7 +109,7 @@ export async function PATCH(
       .update(updates)
       .eq("id", id)
       .eq("church_id", session.member.church_id)
-      .select("id, title, summary, location_name, starts_at, image_url, is_live_stream, live_stream_url")
+      .select("id, title, summary, location_name, starts_at, ends_at, image_url, is_live_stream, live_stream_url")
       .single();
 
     if (error || !data) {
@@ -107,7 +119,7 @@ export async function PATCH(
     const previousImageUrl = existingEvent?.image_url ?? null;
     const nextImageUrl = data.image_url ?? null;
 
-    if (previousImageUrl && previousImageUrl !== nextImageUrl && hasAdminEnvironment()) {
+    if (previousImageUrl && previousImageUrl != nextImageUrl && hasAdminEnvironment()) {
       await removePublicImage(previousImageUrl);
     }
 
@@ -119,6 +131,7 @@ export async function PATCH(
       action: "update",
       metadata: {
         startsAt: data.starts_at,
+        endsAt: data.ends_at,
         isLiveStream: data.is_live_stream,
       },
     });
