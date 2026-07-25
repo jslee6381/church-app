@@ -370,12 +370,12 @@ export function PrayerPageClient({
             {editingId !== item.id && updatingPrayerId !== item.id ? (
               <div
                 ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                className="absolute right-0 top-1 z-50"
+                className="absolute right-[-2px] top-1 z-50"
               >
                 <div className="relative">
                   <button
                     aria-label="Prayer actions"
-                    className="inline-flex size-9 items-center justify-center bg-transparent text-foreground"
+                    className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
                     onClick={() =>
                       setOpenMenuPrayerId((current) => (current === item.id ? null : item.id))
                     }
@@ -426,7 +426,7 @@ export function PrayerPageClient({
               </div>
             ) : null}
             {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-8">
+              <div className="mb-2 pr-6">
                 <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
                   {getStatusLabel(item.status)}
                 </span>
@@ -466,7 +466,7 @@ export function PrayerPageClient({
                 </div>
               </div>
             ) : (
-              <p className="ui-text m-0 pr-8 leading-[1.5] break-words text-foreground">{item.body}</p>
+              <p className="ui-text m-0 pr-6 leading-[1.5] break-words text-foreground">{item.body}</p>
             )}
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
