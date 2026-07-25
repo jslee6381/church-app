@@ -851,7 +851,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         <article
           key={`${eventItem.id}-${item.monthKey}-${index}`}
           id={`event-${eventItem.id}`}
-          className={`event-surface relative scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl ? "pb-0" : "pb-4"}`}
+          className={`event-surface relative isolate scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl ? "pb-0" : "pb-4"} ${openMenuEventId === eventItem.id ? "z-[80] overflow-visible" : "z-0 overflow-hidden"}`}
         >
           <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
             {canManage && editingEventId !== eventItem.id ? (
@@ -866,7 +866,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <MoreVertical className="size-4" />
                 </button>
                 {openMenuEventId === eventItem.id ? (
-                  <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-[var(--card)] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                  <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[90] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white dark:bg-[var(--card)] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                     <button
                       className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                       onClick={() => beginEdit(eventItem)}

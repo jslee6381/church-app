@@ -365,7 +365,7 @@ export function PrayerPageClient({
         {feed.map((item, index) => (
           <article
             key={item.id}
-            className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-50" : "z-0"}`}
+            className={`relative isolate py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-[80] overflow-visible" : "z-0"}`}
           >
             <div className="w-full min-w-0">
               {editingId === item.id ? (
@@ -419,7 +419,7 @@ export function PrayerPageClient({
                           <MoreVertical className="size-4" />
                         </button>
                         {openMenuPrayerId === item.id ? (
-                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[90] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                             {canUpdateItem(item) ? (
                               <button
                                 className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
