@@ -6,6 +6,24 @@ import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { formatEasternEventDateTime } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
+function isAllDayEvent(event: EventListItem) {
+  const start = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(event.startsAt));
+  const end = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(event.endsAt ?? event.startsAt));
+  const startValues = Object.fromEntries(start.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  const endValues = Object.fromEntries(end.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return startValues.hour === "00" && startValues.minute === "00" && endValues.hour === "23" && endValues.minute === "59";
+}
+
 type Props = {
   events: EventListItem[];
 };
@@ -100,7 +118,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             <div className="mt-2 space-y-2 text-left">
               <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                 <CalendarDays className="size-4 shrink-0 text-current" />
-<span>{formatEasternEventDateTime(currentEvent.startsAt)}</span>
+<span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
               </p>
               {currentEvent.locationName ? (
                 <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">

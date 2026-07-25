@@ -73,6 +73,16 @@ function addHoursToTimeValue(time: string, hours: number) {
   return `${nextHour}:${nextMinute}`;
 }
 
+function isAllDayRange(startTime: string, endTime: string) {
+  return startTime === "00:00" && endTime === "23:59";
+}
+
+function isAllDayEvent(event: EventListItem) {
+  const start = splitDateTimeValue(event.startsAt);
+  const end = splitDateTimeValue(event.endsAt ?? event.startsAt);
+  return isAllDayRange(start.time, end.time || "23:59");
+}
+
 function getMonthParts(value: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: EASTERN_TIME_ZONE,
@@ -206,6 +216,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [isAllDay, setIsAllDay] = useState(false);
   const [isLiveStream, setIsLiveStream] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
@@ -309,6 +320,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartTime("");
     setEndDate("");
     setEndTime("");
+    setIsAllDay(false);
     setIsLiveStream(false);
     setImageFile(null);
     setExistingImageUrl(null);
@@ -326,6 +338,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartTime("");
     setEndDate("");
     setEndTime("");
+    setIsAllDay(false);
     setIsLiveStream(false);
     setImageFile(null);
     setExistingImageUrl(null);
@@ -355,6 +368,26 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     });
   }
 
+  function handleAllDayChange(checked: boolean) {
+    setIsAllDay(checked);
+
+    if (checked) {
+      if (startDate && !endDate) {
+        setEndDate(startDate);
+      }
+      setStartTime("00:00");
+      setEndTime("23:59");
+      return;
+    }
+
+    const nextStartTime = startTime && startTime !== "00:00" ? startTime : "09:00";
+    setStartTime(nextStartTime);
+    setEndTime(endTime && endTime !== "23:59" ? endTime : addHoursToTimeValue(nextStartTime, 2));
+    if (startDate && !endDate) {
+      setEndDate(startDate);
+    }
+  }
+
   function beginEdit(event: EventListItem) {
     if (!UUID_PATTERN.test(event.id)) {
       setFeedback("Only saved events can be edited here.");
@@ -363,6 +396,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
     const start = splitDateTimeValue(event.startsAt);
     const end = splitDateTimeValue(event.endsAt ?? event.startsAt);
+    const nextIsAllDay = isAllDayRange(start.time, end.time || "23:59");
 
     setEditingEventId(event.id);
     setTitle(event.title);
@@ -371,7 +405,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setStartDate(start.date);
     setStartTime(start.time);
     setEndDate(end.date || start.date);
-    setEndTime(end.time || start.time);
+    setEndTime(nextIsAllDay ? "23:59" : end.time || start.time);
+    setIsAllDay(nextIsAllDay);
+    setStartTime(nextIsAllDay ? "00:00" : start.time);
     setIsLiveStream(Boolean(event.isLiveStream));
     setImageFile(null);
     setExistingImageUrl(event.imageUrl ?? event.posterSrc ?? null);
@@ -387,15 +423,15 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     setFeedback("");
 
     try {
-      const normalizedStartsAt = combineDateTimeValue(startDate, startTime);
-      const normalizedEndsAt = combineDateTimeValue(endDate || startDate, endTime);
+      const normalizedStartsAt = combineDateTimeValue(startDate, isAllDay ? "00:00" : startTime);
+      const normalizedEndsAt = combineDateTimeValue(endDate || startDate, isAllDay ? "23:59" : endTime);
 
       if (!normalizedStartsAt) {
-        throw new Error("Start date and time are required.");
+        throw new Error(isAllDay ? "Start date is required." : "Start date and time are required.");
       }
 
       if (!normalizedEndsAt) {
-        throw new Error("End date and time are required.");
+        throw new Error(isAllDay ? "End date is required." : "End date and time are required.");
       }
 
       if (normalizedEndsAt < normalizedStartsAt) {
@@ -566,52 +602,65 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   function renderDateTimeFields() {
     return (
       <div className="grid gap-3">
+        <label className="event-form-input inline-flex min-h-10 items-center gap-3 rounded-[14px] border border-input bg-white px-3 py-2 text-sm font-medium text-foreground">
+          <input
+            checked={isAllDay}
+            className="size-4 accent-[var(--primary)]"
+            onChange={(event) => handleAllDayChange(event.target.checked)}
+            type="checkbox"
+          />
+          No time
+        </label>
         <div className="grid gap-2">
           <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Start</p>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1.5">
+          <div className={`grid gap-2.5 ${isAllDay ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]"}`}>
+            <label className="grid gap-1">
               <span className="px-1 text-xs text-muted-foreground">Date</span>
               <input
-                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                className="event-form-input min-h-10 rounded-[14px] border border-input bg-white px-3 py-2 text-sm"
                 onChange={(event) => handleStartDateChange(event.target.value)}
                 type="date"
                 value={startDate}
               />
             </label>
-            <label className="grid gap-1.5">
-              <span className="px-1 text-xs text-muted-foreground">Time</span>
-              <input
-                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-                onChange={(event) => handleStartTimeChange(event.target.value)}
-                placeholder="Time"
-                type="time"
-                value={startTime}
-              />
-            </label>
+            {!isAllDay ? (
+              <label className="grid gap-1">
+                <span className="px-1 text-xs text-muted-foreground">Time</span>
+                <input
+                  className="event-form-input min-h-10 rounded-[14px] border border-input bg-white px-3 py-2 text-sm"
+                  onChange={(event) => handleStartTimeChange(event.target.value)}
+                  placeholder="Time"
+                  type="time"
+                  value={startTime}
+                />
+              </label>
+            ) : null}
           </div>
         </div>
         <div className="grid gap-2">
           <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">End</p>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1.5">
+          <div className={`grid gap-2.5 ${isAllDay ? "grid-cols-1" : "grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]"}`}>
+            <label className="grid gap-1">
               <span className="px-1 text-xs text-muted-foreground">Date</span>
               <input
-                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                className="event-form-input min-h-10 rounded-[14px] border border-input bg-white px-3 py-2 text-sm"
                 onChange={(event) => setEndDate(event.target.value)}
                 type="date"
                 value={endDate}
               />
             </label>
-            <label className="grid gap-1.5">
-              <span className="px-1 text-xs text-muted-foreground">Time</span>
-              <input
-                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-                onChange={(event) => setEndTime(event.target.value)}
-                placeholder="Time"
-                type="time"
-                value={endTime}
-              />
-            </label>
+            {!isAllDay ? (
+              <label className="grid gap-1">
+                <span className="px-1 text-xs text-muted-foreground">Time</span>
+                <input
+                  className="event-form-input min-h-10 rounded-[14px] border border-input bg-white px-3 py-2 text-sm"
+                  onChange={(event) => setEndTime(event.target.value)}
+                  placeholder="Time"
+                  type="time"
+                  value={endTime}
+                />
+              </label>
+            ) : null}
           </div>
         </div>
       </div>
@@ -721,13 +770,22 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   </button>
                 </div>
               ) : null}
-              <button
-                className="inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
-                disabled={isSaving}
-                type="submit"
-              >
-                {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Publish event"}
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  className="event-form-input inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
+                  onClick={resetForm}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
+                  disabled={isSaving}
+                  type="submit"
+                >
+                  {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Publish event"}
+                </button>
+              </div>
             </form>
           ) : null}
 
@@ -808,7 +866,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <MoreVertical className="size-4" />
                 </button>
                 {openMenuEventId === eventItem.id ? (
-                  <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                  <div className="event-card-surface absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background opacity-100 shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                     <button
                       className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                       onClick={() => beginEdit(eventItem)}
@@ -959,12 +1017,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <div className="mt-2 space-y-2 text-muted-foreground">
                     <p className="ui-text m-0 flex items-center gap-2">
                       <CalendarDays className="size-4 shrink-0 text-current" />
-                      <span>{formatEasternEventDate(eventItem.startsAt)} · {formatEasternEventTime(eventItem.startsAt)}</span>
+                      <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.startsAt) : `${formatEasternEventDate(eventItem.startsAt)} · ${formatEasternEventTime(eventItem.startsAt)}`}</span>
                     </p>
-                    {eventItem.endsAt ? (
+                    {eventItem.endsAt && (isAllDayEvent(eventItem) ? hasDifferentStartAndEndDate(eventItem) : true) ? (
                       <p className="ui-text m-0 flex items-center gap-2">
                         <CalendarDays className="size-4 shrink-0 text-current" />
-                        <span>{formatEasternEventDate(eventItem.endsAt)} · {formatEasternEventTime(eventItem.endsAt)}</span>
+                        <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.endsAt) : `${formatEasternEventDate(eventItem.endsAt)} · ${formatEasternEventTime(eventItem.endsAt)}`}</span>
                       </p>
                     ) : null}
                   </div>
