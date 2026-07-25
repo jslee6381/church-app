@@ -130,7 +130,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const [feedback, setFeedback] = useState("");
   const [openMenuEventId, setOpenMenuEventId] = useState<string | null>(null);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(() => getInitialMonthIndex(initialEvents));
-  const [expandedPastEventIds, setExpandedPastEventIds] = useState<Record<string, boolean>>({});
+  const [arePastEventsCollapsed, setArePastEventsCollapsed] = useState(true);
 
   useEffect(() => {
     setEvents(sortEvents(initialEvents));
@@ -206,6 +206,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const visibleEvents = selectedMonth ? events.filter((event) => getMonthKey(event.startsAt) === selectedMonth.key) : events;
   const canGoPreviousMonth = selectedMonthIndex > 0;
   const canGoNextMonth = selectedMonthIndex < monthGroups.length - 1;
+  const currentMonthKey = getMonthKey(new Date().toISOString());
+  const isCurrentMonthView = Boolean(selectedMonth && selectedMonth.key === currentMonthKey);
+  const hasPastEventsInSelectedMonth = isCurrentMonthView && visibleEvents.some((event) => isPastEvent(event));
 
   function resetForm() {
     setEditingEventId(null);
@@ -457,50 +460,55 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
     return getEventReferenceTime(event) < Date.now();
   }
 
-  function togglePastEvent(eventId: string) {
-    setExpandedPastEventIds((current) => ({
-      ...current,
-      [eventId]: !current[eventId],
-    }));
-  }
-
   function renderDateTimeFields() {
     return (
       <div className="grid gap-3">
         <div className="grid gap-2">
           <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Start</p>
           <div className="grid grid-cols-2 gap-3">
-            <input
-              className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-              onChange={(event) => handleStartDateChange(event.target.value)}
-              type="date"
-              value={startDate}
-            />
-            <input
-              className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-              onChange={(event) => setStartTime(event.target.value)}
-              placeholder="Time"
-              type="time"
-              value={startTime}
-            />
+            <label className="grid gap-1.5">
+              <span className="px-1 text-xs text-muted-foreground">Date</span>
+              <input
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                onChange={(event) => handleStartDateChange(event.target.value)}
+                type="date"
+                value={startDate}
+              />
+            </label>
+            <label className="grid gap-1.5">
+              <span className="px-1 text-xs text-muted-foreground">Time</span>
+              <input
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                onChange={(event) => setStartTime(event.target.value)}
+                placeholder="Time"
+                type="time"
+                value={startTime}
+              />
+            </label>
           </div>
         </div>
         <div className="grid gap-2">
           <p className="m-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">End</p>
           <div className="grid grid-cols-2 gap-3">
-            <input
-              className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-              onChange={(event) => setEndDate(event.target.value)}
-              type="date"
-              value={endDate}
-            />
-            <input
-              className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
-              onChange={(event) => setEndTime(event.target.value)}
-              placeholder="Time"
-              type="time"
-              value={endTime}
-            />
+            <label className="grid gap-1.5">
+              <span className="px-1 text-xs text-muted-foreground">Date</span>
+              <input
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                onChange={(event) => setEndDate(event.target.value)}
+                type="date"
+                value={endDate}
+              />
+            </label>
+            <label className="grid gap-1.5">
+              <span className="px-1 text-xs text-muted-foreground">Time</span>
+              <input
+                className="event-form-input min-h-12 rounded-[16px] border border-input bg-white px-4 py-3"
+                onChange={(event) => setEndTime(event.target.value)}
+                placeholder="Time"
+                type="time"
+                value={endTime}
+              />
+            </label>
           </div>
         </div>
       </div>
@@ -637,7 +645,19 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
               <ChevronLeft className="size-4" />
             </button>
           </div>
-          <div className="ui-text py-1 text-center font-sans font-semibold text-foreground">{selectedMonth.label}</div>
+          <div className="flex items-center justify-center gap-2">
+            <div className="ui-text py-1 text-center font-sans font-semibold text-foreground">{selectedMonth.label}</div>
+            {hasPastEventsInSelectedMonth ? (
+              <button
+                aria-label={arePastEventsCollapsed ? "Expand past events" : "Collapse past events"}
+                className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
+                onClick={() => setArePastEventsCollapsed((current) => !current)}
+                type="button"
+              >
+                <ChevronDown className={`size-4 transition-transform ${arePastEventsCollapsed ? "rotate-0" : "rotate-180"}`} />
+              </button>
+            ) : null}
+          </div>
           <div className="flex justify-end">
             <button
               aria-label="Next month"
@@ -654,26 +674,19 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
 
       {visibleEvents.map((eventItem) => {
         const isPast = isPastEvent(eventItem);
-        const isExpandedPast = expandedPastEventIds[eventItem.id] ?? false;
-        const showEventContent = !isPast || isExpandedPast || editingEventId === eventItem.id;
+        const isHiddenPastEvent = isCurrentMonthView && isPast && arePastEventsCollapsed && editingEventId !== eventItem.id;
+
+        if (isHiddenPastEvent) {
+          return null;
+        }
 
         return (
         <article
           key={eventItem.id}
           id={`event-${eventItem.id}`}
-          className={`event-surface relative scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl && showEventContent ? "pb-0" : "pb-4"}`}
+          className={`event-surface relative scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl ? "pb-0" : "pb-4"}`}
         >
           <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
-            {isPast && editingEventId !== eventItem.id ? (
-              <button
-                aria-label={showEventContent ? "Collapse past event" : "Expand past event"}
-                className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                onClick={() => togglePastEvent(eventItem.id)}
-                type="button"
-              >
-                <ChevronDown className={`size-4 transition-transform ${showEventContent ? "rotate-180" : "rotate-0"}`} />
-              </button>
-            ) : null}
             {canManage && editingEventId !== eventItem.id ? (
             <div ref={openMenuEventId === eventItem.id ? menuAreaRef : null} className="relative">
               <div className="relative">
@@ -724,7 +737,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
             </div>
 
             <div className="min-w-0 overflow-hidden">
-              {showEventContent ? (editingEventId === eventItem.id ? (
+              {editingEventId === eventItem.id ? (
                 <form className="grid min-w-0 max-w-full gap-3 overflow-hidden" onSubmit={handleSubmit}>
                   <div className="relative">
                     <input
@@ -834,27 +847,11 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   ) : null}
                   {eventItem.summary ? <p className="ui-text mt-3 mb-0 text-muted-foreground">{eventItem.summary}</p> : null}
                 </>
-              )) : (
-                <>
-                  <h2 className="ui-text m-0 min-w-0 pr-10 font-sans font-semibold leading-tight text-foreground">
-                    {eventItem.title}
-                  </h2>
-                  <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                    <CalendarDays className="size-4 shrink-0 text-current" />
-                    <span>{formatEasternEventDate(eventItem.startsAt)} · {formatEasternEventTime(eventItem.startsAt)}</span>
-                  </p>
-                  {eventItem.locationName ? (
-                    <p className="ui-text mt-2 mb-0 flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="size-4 shrink-0 text-current" />
-                      <span>{eventItem.locationName}</span>
-                    </p>
-                  ) : null}
-                </>
               )}
             </div>
           </div>
 
-          {eventItem.imageUrl && showEventContent ? (
+          {eventItem.imageUrl ? (
             <div className="mt-4 -mx-4">
               {eventItem.isLiveStream && eventItem.liveStreamUrl ? (
                 <a href={eventItem.liveStreamUrl} rel="noreferrer" target="_blank">
