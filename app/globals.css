@@ -851,6 +851,16 @@ h2 {
   background: #1E1E1E;
 }
 
+:root[data-theme="light"] .menu-surface {
+  background: #ffffff;
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .menu-surface {
+  background: #1E1E1E;
+  opacity: 1;
+}
+
 .quick-action-icon {
   color: #000000;
 }

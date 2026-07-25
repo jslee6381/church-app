@@ -370,7 +370,7 @@ export function AnnouncementsPageClient({ initialAnnouncements, canCompose }: Pr
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuAnnouncementId === item.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border menu-surface shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(item)}

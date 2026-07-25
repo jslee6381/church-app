@@ -419,7 +419,7 @@ export function PrayerPageClient({
                           <MoreVertical className="size-4" />
                         </button>
                         {openMenuPrayerId === item.id ? (
-                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[70] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white dark:bg-white opacity-100 dark:bg-[#1E1E1E] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                          <div className="absolute right-0 top-[calc(100%+0.25rem)] z-[120] min-w-[148px] overflow-hidden rounded-[14px] border border-border menu-surface shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                             {canUpdateItem(item) ? (
                               <button
                                 className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
