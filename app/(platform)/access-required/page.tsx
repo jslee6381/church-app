@@ -21,7 +21,7 @@ function getCopy(context?: string, mode?: string) {
     context === "prayer"
       ? "Prayer"
       : context === "community-feed"
-        ? "Community Feed"
+        ? "Moments"
         : context === "gallery"
           ? "Gallery"
           : context === "video"

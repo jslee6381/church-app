@@ -367,12 +367,57 @@ export function PrayerPageClient({
             key={item.id}
             className={`relative py-4 ${index < feed.length - 1 ? "border-b border-border/60" : ""} ${openMenuPrayerId === item.id ? "z-50" : "z-0"}`}
           >
-            {editingId !== item.id && updatingPrayerId !== item.id ? (
-              <div
-                ref={openMenuPrayerId === item.id ? menuAreaRef : null}
-                className="absolute right-[-2px] top-1 z-50"
-              >
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 gap-y-2">
+              <div className="min-w-0">
+                {item.isOwner && getStatusLabel(item.status) ? (
+                  <div className="mb-2">
+                    <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                      {getStatusLabel(item.status)}
+                    </span>
+                  </div>
+                ) : null}
+                {editingId === item.id ? (
+              <div className="space-y-3">
                 <div className="relative">
+                  <textarea
+                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-2.5 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                    maxLength={CONTENT_LIMIT}
+                    onChange={(event) => { resizeTextarea(event.currentTarget); setEditingText(event.target.value); }}
+                    ref={(node) => resizeTextarea(node)}
+                    rows={1}
+                    value={editingText}
+                  />
+                  <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                    {editingText.length}/{CONTENT_LIMIT}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    className="prayer-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
+                    onClick={() => setEditingId(null)}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                    disabled={isSavingEdit}
+                    onClick={() => saveEdit(item.id)}
+                    type="button"
+                  >
+                    {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Update"}
+                  </button>
+                </div>
+              </div>
+                ) : (
+                  <p className="ui-text m-0 leading-[1.5] break-words text-foreground">{item.body}</p>
+                )}
+              </div>
+              {editingId !== item.id && updatingPrayerId !== item.id ? (
+                <div
+                  ref={openMenuPrayerId === item.id ? menuAreaRef : null}
+                  className="relative row-span-2"
+                >
                   <button
                     aria-label="Prayer actions"
                     className="inline-flex size-8 items-center justify-center bg-transparent text-foreground"
@@ -423,51 +468,8 @@ export function PrayerPageClient({
                     </div>
                   ) : null}
                 </div>
-              </div>
-            ) : null}
-            {item.isOwner && getStatusLabel(item.status) ? (
-              <div className="mb-2 pr-6">
-                <span className="prayer-card-surface rounded-full border border-border/70 bg-white/88 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  {getStatusLabel(item.status)}
-                </span>
-              </div>
-            ) : null}
-            {editingId === item.id ? (
-              <div className="space-y-3">
-                <div className="relative">
-                  <textarea
-                    className="prayer-form-input min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-2.5 pb-8 outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
-                    maxLength={CONTENT_LIMIT}
-                    onChange={(event) => { resizeTextarea(event.currentTarget); setEditingText(event.target.value); }}
-                    ref={(node) => resizeTextarea(node)}
-                    rows={1}
-                    value={editingText}
-                  />
-                  <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
-                    {editingText.length}/{CONTENT_LIMIT}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    className="prayer-form-input inline-flex min-h-11 w-full items-center justify-center rounded-[14px] border border-border/70 bg-white px-4 text-sm font-semibold text-foreground"
-                    onClick={() => setEditingId(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="inline-flex min-h-11 w-full items-center justify-center rounded-[14px] bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-                    disabled={isSavingEdit}
-                    onClick={() => saveEdit(item.id)}
-                    type="button"
-                  >
-                    {isSavingEdit ? <LoaderCircle className="size-4 animate-spin" /> : "Update"}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p className="ui-text m-0 pr-6 leading-[1.5] break-words text-foreground">{item.body}</p>
-            )}
+              ) : null}
+            </div>
             {updatingPrayerId === item.id ? (
               <div className="mt-3 space-y-3">
                 <div className="relative">

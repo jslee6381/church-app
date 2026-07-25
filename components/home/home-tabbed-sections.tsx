@@ -95,7 +95,7 @@ export function HomeTabbedSections({ announcements, events, headerAction, wordma
                 onClick={() => void openFellowshipRoute()}
                 type="button"
               >
-                Fellowship
+                Moments
               </button>
             </div>
             {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
