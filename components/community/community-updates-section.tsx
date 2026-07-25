@@ -1296,7 +1296,7 @@ export function CommunityUpdatesSection({
         {updates.map((update, index) => (
           <article
             key={update.id}
-            className={`relative isolate pb-2 last:pb-0 ${index > 0 ? "pt-2" : ""} ${openMenuUpdateId === update.id || update.comments.some((comment) => comment.id === openCommentMenuId) ? "z-[80] overflow-visible" : "z-0 overflow-hidden"}`}
+            className={`relative pb-2 last:pb-0 ${index > 0 ? "pt-2" : ""} ${openMenuUpdateId === update.id || update.comments.some((comment) => comment.id === openCommentMenuId) ? "z-30 overflow-visible" : "z-0 overflow-hidden"}`}
           >
             <div className="px-4 pt-1 pb-2">
               <div className="flex min-h-[36px] items-center justify-between gap-3">
@@ -1558,7 +1558,7 @@ export function CommunityUpdatesSection({
                       <MoreVertical className="size-4" />
                     </button>
                     {openMenuUpdateId === update.id ? (
-                      <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-[90] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-[#1E1E1E] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                      <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-[#1E1E1E] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                           onClick={() => startEditing(update)}
@@ -1585,7 +1585,7 @@ export function CommunityUpdatesSection({
                 {update.comments.length > 0 ? (
                   <div className="space-y-3 pb-3">
                     {update.comments.map((comment) => (
-                      <div key={comment.id} className={`relative flex items-start gap-3 ${openCommentMenuId === comment.id ? "z-[85]" : "z-0"}`}>
+                      <div key={comment.id} className="flex items-start gap-3">
                         {getCommentAvatar(comment)}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
@@ -1669,7 +1669,7 @@ export function CommunityUpdatesSection({
                                   <MoreVertical className="size-4" />
                                 </button>
                                 {openCommentMenuId === comment.id ? (
-                                  <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-[90] min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-[#1E1E1E] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
+                                  <div className="absolute right-0 bottom-[calc(100%+0.25rem)] z-20 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-white opacity-100 dark:bg-[#1E1E1E] shadow-[0_4px_12px_rgba(68,52,35,0.08)]">
                                     <button
                                       className="flex min-h-10 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
                                       onClick={() => startEditingComment(comment)}
