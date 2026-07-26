@@ -31,16 +31,16 @@ export default async function MaterialDocumentPage({
   const materialPost = postId && churchId
     ? await getVideoPostById(postId, churchId)
     : null;
-  const documentText =
-    kind === "Question"
-      ? materialPost?.questionDocText ?? null
-      : kind === "Message Manuscript"
-        ? materialPost?.manuscriptDocText ?? null
-        : null;
 
   if (!postId || !materialPost) {
     notFound();
   }
+
+  const documentText = kind === "Question"
+    ? materialPost.questionDocText ?? null
+    : kind === "Message Manuscript"
+      ? materialPost.manuscriptDocText ?? null
+      : null;
 
   return (
     <main className="shell py-6">
@@ -68,7 +68,7 @@ export default async function MaterialDocumentPage({
               dangerouslySetInnerHTML={{ __html: documentText }}
             />
           ) : (
-            <p className="ui-text m-0 text-sm text-muted-foreground">Document text is not available yet.</p>
+            <p className="ui-text m-0 text-sm text-muted-foreground">This document is still processing. Please reopen it in a moment.</p>
           )}
         </div>
       </section>
