@@ -114,7 +114,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const passageVerses = await fetchPassageVerses(passageReference);
     const questionDocText =
       questionDocument instanceof File && questionDocument.size > 0
-        ? await extractPdfDocumentMarkupFromFile(questionDocument, "Question")
+        ? isWordDocumentFile(questionDocument)
+          ? await extractDocxTextFromFile(questionDocument, "Question")
+          : await extractPdfDocumentMarkupFromFile(questionDocument, "Question")
         : null;
     const manuscriptDocText =
       manuscriptDocument instanceof File && manuscriptDocument.size > 0
