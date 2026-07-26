@@ -27,6 +27,10 @@ type ParsedLine = {
   indentLevel: number;
 };
 
+type RawParsedLine = ParsedLine & {
+  y: number;
+};
+
 type DOMMatrixLike = {
   a: number;
   b: number;
@@ -152,6 +156,58 @@ function renderLineContent(text: string) {
   return `<span class="material-doc-prefix">${escapeHtml(match[1])}</span><span class="material-doc-body">${escapeHtml(match[2])}</span>`;
 }
 
+function startsStructuredBlock(text: string) {
+  return /^((?:\d+|[IVXLC]+|[A-Z])\.)\s+/.test(text);
+}
+
+function isMergeableBodyLine(line: ParsedLine) {
+  return !line.center && line.fontSize < 13.5;
+}
+
+function joinLineText(previous: string, current: string) {
+  return `${previous} ${current}`
+    .replace(/\s+/g, " ")
+    .replace(/-\s+(\d+)/g, "-$1")
+    .replace(/\(\s+/g, "(")
+    .replace(/\s+\)/g, ")")
+    .replace(/\s+([,.;:?])/g, "$1")
+    .trim();
+}
+
+function coalesceLines(lines: RawParsedLine[], kind: MaterialDocumentKind) {
+  const merged: ParsedLine[] = [];
+
+  for (const line of lines) {
+    const previous = merged.at(-1);
+    const startsBlock = startsStructuredBlock(line.text);
+
+    if (
+      previous &&
+      isMergeableBodyLine(previous) &&
+      isMergeableBodyLine(line) &&
+      line.gapBefore <= 16 &&
+      !startsBlock &&
+      (kind === "Message Manuscript" || !startsStructuredBlock(previous.text) || line.xStart >= previous.xStart)
+    ) {
+      previous.text = joinLineText(previous.text, line.text);
+      previous.xEnd = Math.max(previous.xEnd, line.xEnd);
+      continue;
+    }
+
+    merged.push({
+      text: line.text,
+      xStart: line.xStart,
+      xEnd: line.xEnd,
+      center: line.center,
+      fontSize: line.fontSize,
+      gapBefore: line.gapBefore,
+      indentLevel: line.indentLevel,
+    });
+  }
+
+  return merged;
+}
+
 function renderMarkup(lines: ParsedLine[], kind: MaterialDocumentKind) {
   return lines
     .map((line) => {
@@ -223,7 +279,7 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
     data: new Uint8Array(arrayBuffer),
     useWorkerFetch: false,
   }).promise;
-  const lines: ParsedLine[] = [];
+  const lines: RawParsedLine[] = [];
 
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
@@ -288,10 +344,11 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
         fontSize: line.fontSize,
         gapBefore,
         indentLevel: getIndentLevel(line.xStart, baseLeft),
+        y: line.y,
       });
     }
   }
 
-  const markup = renderMarkup(lines, kind);
+  const markup = renderMarkup(coalesceLines(lines, kind), kind);
   return markup.length > 0 ? markup : null;
 }

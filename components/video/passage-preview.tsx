@@ -13,6 +13,10 @@ type BiblePassageResponse = {
   error?: string;
 };
 
+function normalizeVerseText(text: string) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
 export function PassagePreview({
   reference,
   initialVerses,
@@ -91,9 +95,9 @@ export function PassagePreview({
           ) : verses.length > 0 ? (
             <div className="flex flex-col gap-4">
               {verses.map((verse) => (
-                <p className="ui-text m-0 whitespace-pre-wrap text-sm leading-7 text-foreground" key={`${reference}-${verse.verse}`}>
+                <p className="ui-text m-0 text-sm leading-7 text-foreground" key={`${reference}-${verse.verse}`}>
                   <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
-                  {verse.text.trim()}
+                  {normalizeVerseText(verse.text)}
                 </p>
               ))}
             </div>
