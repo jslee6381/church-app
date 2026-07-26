@@ -1119,7 +1119,7 @@ export function CommunityUpdatesSection({
 
   function getReactionClassName(kind: ReactionKind, active: boolean) {
     if (!active) {
-      return "text-muted-foreground";
+      return "text-foreground";
     }
 
     switch (kind) {
@@ -1631,7 +1631,7 @@ export function CommunityUpdatesSection({
                                   </div>
                                 </div>
                               ) : (
-                                <p className="ui-text m-0 text-muted-foreground">{comment.message}</p>
+                                <p className="ui-text m-0 text-foreground">{comment.message}</p>
                               )}
                               {editingCommentId !== comment.id ? (
                                 <div className="mt-1 flex items-center gap-2">
@@ -1648,7 +1648,7 @@ export function CommunityUpdatesSection({
                                         onClick={() => toggleCommentReaction(update.id, comment.id, kind)}
                                         type="button"
                                       >
-                                        <span className={`inline-flex h-4 w-4 items-center justify-center ${active ? "text-foreground" : "text-muted-foreground"}`}>
+                                        <span className={`inline-flex h-4 w-4 items-center justify-center ${active ? "text-foreground" : "text-foreground"}`}>
                                           <span className="scale-[0.7]">{savingCommentReactionKey === reactionKey ? <LoaderCircle className="size-3 animate-spin" /> : renderSmallCommentReactionIcon(kind, active)}</span>
                                         </span>
                                         <span className="text-[0.8rem] font-medium text-muted-foreground">{count}</span>
