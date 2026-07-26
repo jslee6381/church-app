@@ -205,7 +205,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               <div className="relative">
                 <input
                   autoFocus
-                  className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
+                  className="event-form-input ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
                   maxLength={TITLE_LIMIT}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Title"
@@ -218,7 +218,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
               <div className="relative">
                 <textarea
-                  className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
+                  className="event-form-input ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
                   maxLength={CONTENT_LIMIT}
                   onChange={(event) => {
                     resizeTextarea(event.currentTarget);
@@ -235,7 +235,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               </div>
 
               <input
-                className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                className="event-form-input ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                 onChange={(event) => setDriveLink(event.target.value)}
                 placeholder="Google Drive folder link"
                 type="url"
@@ -244,7 +244,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
+                  className="event-form-input inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
                   onClick={resetForm}
                   type="button"
                 >
@@ -279,7 +279,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   <div className="relative">
                     <button
                       aria-label="Gallery post actions"
-                      className="inline-flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm backdrop-blur"
+                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
                       onClick={() => setOpenMenuPostId((current) => (current === item.id ? null : item.id))}
                       type="button"
                     >
@@ -310,12 +310,12 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 </div>
               ) : null}
 
-              <div className="p-4">
+              <div className="bg-white/95 p-4 dark:bg-[#1E1E1E]">
                 {editingId === item.id ? (
                   <form className="grid gap-3" onSubmit={handleSubmit}>
                     <div className="relative">
                       <input
-                        className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
+                        className="event-form-input ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 pr-16 text-foreground"
                         maxLength={TITLE_LIMIT}
                         onChange={(event) => setTitle(event.target.value)}
                         placeholder="Title"
@@ -328,7 +328,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
                     <div className="relative">
                       <textarea
-                        className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
+                        className="event-form-input ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-white px-4 py-3 pb-8 text-foreground"
                         maxLength={CONTENT_LIMIT}
                         onChange={(event) => {
                           resizeTextarea(event.currentTarget);
@@ -345,7 +345,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                     </div>
 
                     <input
-                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                      className="event-form-input ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                       onChange={(event) => setDriveLink(event.target.value)}
                       placeholder="Google Drive folder link"
                       type="url"
@@ -354,7 +354,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
                     <div className="grid grid-cols-2 gap-3">
                       <button
-                        className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
+                        className="event-form-input inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
                         onClick={resetInlineEdit}
                         type="button"
                       >
@@ -380,7 +380,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               </div>
 
               {editingId !== item.id ? (
-                <div className="border-t border-border/70">
+                <div className="border-t border-border/70 bg-white/95 dark:bg-[#1E1E1E]">
                   <iframe
                     allow="fullscreen"
                     className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
