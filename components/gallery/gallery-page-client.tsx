@@ -187,12 +187,12 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
       {canCompose ? (
         <div
           ref={composerRef}
-          className="study-video-surface rounded-[18px] border border-border/80 bg-card p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="event-form-surface rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex items-center justify-center">
             <button
               aria-label={isComposerOpen ? "Close gallery form" : "Create gallery post"}
-              className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-background text-foreground"
+              className="event-form-input inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-white text-foreground"
               onClick={() => setIsComposerOpen((current) => !current)}
               type="button"
             >
@@ -271,7 +271,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
         ) : (
           posts.map((item) => (
             <article
-              className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-card shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+              className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] dark:bg-[linear-gradient(180deg,rgba(31,29,27,0.96),rgba(24,22,21,0.94))]"
               key={item.id}
             >
               {canCompose && editingId !== item.id ? (
@@ -279,7 +279,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   <div className="relative">
                     <button
                       aria-label="Gallery post actions"
-                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                      className="inline-flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm backdrop-blur"
                       onClick={() => setOpenMenuPostId((current) => (current === item.id ? null : item.id))}
                       type="button"
                     >
@@ -287,8 +287,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                     </button>
                     {openMenuPostId === item.id ? (
                       <div
-                        className="absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border shadow-[0_10px_24px_rgba(68,52,35,0.08)]"
-                        style={{ background: "var(--paper-strong)" }}
+                        className="menu-surface absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border shadow-[0_10px_24px_rgba(68,52,35,0.08)]"
                       >
                         <button
                           className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
@@ -372,7 +371,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   </form>
                 ) : (
                   <>
-                    <h2 className="ui-text m-0 pr-10 font-sans font-semibold leading-tight text-foreground">
+                    <h2 className="ui-text m-0 pr-12 font-sans font-semibold leading-tight text-foreground">
                       {item.title}
                     </h2>
                     {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
@@ -384,7 +383,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 <div className="border-t border-border/70">
                   <iframe
                     allow="fullscreen"
-                    className="block h-[420px] w-full border-0 bg-background"
+                    className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
                     loading="lazy"
                     src={item.embedUrl}
                     title={item.title}
