@@ -4,7 +4,7 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { PassagePreview } from "@/components/video/passage-preview";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getDefaultChurchId } from "@/lib/church-context";
-import { ensureVideoPostDocumentText, getVideoPostById } from "@/lib/videos";
+import { getVideoPostById } from "@/lib/videos";
 
 type SearchParams = Promise<{
   kind?: string;
@@ -37,9 +37,9 @@ export default async function MaterialDocumentPage({
   }
 
   const documentText = kind === "Question"
-    ? materialPost.questionDocText ?? (churchId ? await ensureVideoPostDocumentText(postId, churchId, "Question") : null)
+    ? materialPost.questionDocText ?? null
     : kind === "Message Manuscript"
-      ? materialPost.manuscriptDocText ?? (churchId ? await ensureVideoPostDocumentText(postId, churchId, "Message Manuscript") : null)
+      ? materialPost.manuscriptDocText ?? null
       : null;
 
   return (
@@ -68,7 +68,7 @@ export default async function MaterialDocumentPage({
               dangerouslySetInnerHTML={{ __html: documentText }}
             />
           ) : (
-            <p className="ui-text m-0 text-sm text-muted-foreground">This document is still processing. Please reopen it in a moment.</p>
+            <p className="ui-text m-0 text-sm text-muted-foreground">This document has not been processed yet. Re-upload or update the post to regenerate it.</p>
           )}
         </div>
       </section>
