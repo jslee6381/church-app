@@ -185,22 +185,134 @@ function extractParagraphText(paragraphXml: string) {
   return decodeXmlEntities(textParts.join("")).replace(/\u00a0/g, " ");
 }
 
+function formatTwipsToRem(value: number) {
+  return `${(value / 1440) * 1.45}rem`;
+}
+
+function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
+  const beforeMatch = paragraphXml.match(/<w:spacing\b[^>]*w:before="(\d+)"/);
+  const afterMatch = paragraphXml.match(/<w:spacing\b[^>]*w:after="(\d+)"/);
+  const leftMatch = paragraphXml.match(/<w:ind\b[^>]*w:left="(\d+)"/);
+  const firstLineMatch = paragraphXml.match(/<w:ind\b[^>]*w:firstLine="(\d+)"/);
+  const hangingMatch = paragraphXml.match(/<w:ind\b[^>]*w:hanging="(\d+)"/);
+  const alignMatch = paragraphXml.match(/<w:jc\b[^>]*w:val="([^"]+)"/);
+
+  const styles: string[] = [];
+  const classNames: string[] = ["ui-text", "m-0", "text-[15px]", "leading-7", "text-foreground"];
+
+  const before = beforeMatch ? Number.parseInt(beforeMatch[1], 10) : 0;
+  const after = afterMatch ? Number.parseInt(afterMatch[1], 10) : 0;
+  const left = leftMatch ? Number.parseInt(leftMatch[1], 10) : 0;
+  const firstLine = firstLineMatch ? Number.parseInt(firstLineMatch[1], 10) : 0;
+  const hanging = hangingMatch ? Number.parseInt(hangingMatch[1], 10) : 0;
+  const align = alignMatch?.[1] ?? "left";
+
+  if (before > 0) {
+    styles.push(`margin-top:${formatTwipsToRem(before)}`);
+  }
+
+  if (after > 0) {
+    styles.push(`margin-bottom:${formatTwipsToRem(after)}`);
+  } else {
+    styles.push("margin-bottom:0.55rem");
+  }
+
+  if (left > 0) {
+    styles.push(`margin-left:${formatTwipsToRem(left)}`);
+  }
+
+  if (!hasPrefix && firstLine > 0) {
+    styles.push(`text-indent:${formatTwipsToRem(firstLine)}`);
+  }
+
+  if (!hasPrefix && hanging > 0) {
+    styles.push(`padding-left:${formatTwipsToRem(hanging)}`);
+    styles.push(`text-indent:-${formatTwipsToRem(hanging)}`);
+  }
+
+  if (align === "center") {
+    classNames.push("text-center");
+  } else if (align === "right") {
+    classNames.push("text-right");
+  } else if (align === "both") {
+    classNames.push("text-justify");
+  }
+
+  return {
+    className: classNames.join(" "),
+    style: styles.join(";"),
+  };
+}
+
+function extractFormattedRuns(paragraphXml: string) {
+  const runs = Array.from(paragraphXml.matchAll(/<w:r\b[\s\S]*?<\/w:r>/g)).map((match) => match[0]);
+
+  return runs
+    .map((runXml) => {
+      const fragments = Array.from(
+        runXml.matchAll(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:br\b[^>]*\/>|<w:cr\b[^>]*\/>|<w:tab\b[^>]*\/>/g),
+      );
+
+      if (fragments.length === 0) {
+        return "";
+      }
+
+      const text = fragments
+        .map((fragment) => {
+          if (fragment[0].startsWith("<w:tab")) {
+            return "\t";
+          }
+
+          if (fragment[0].startsWith("<w:br") || fragment[0].startsWith("<w:cr")) {
+            return "\n";
+          }
+
+          return decodeXmlEntities(fragment[1] ?? "").replace(/\u00a0/g, " ");
+        })
+        .join("");
+
+      if (!text) {
+        return "";
+      }
+
+      const isBold = /<w:b(?:\b|\/>)/.test(runXml);
+      const isItalic = /<w:i(?:\b|\/>)/.test(runXml);
+      const isUnderline = /<w:u\b[^>]*w:val="(?!none)[^"]+"/.test(runXml) || /<w:u\/>/.test(runXml);
+      const escaped = escapeHtml(text).replace(/\n/g, "<br />");
+
+      if (!isBold && !isItalic && !isUnderline) {
+        return escaped;
+      }
+
+      const classes = [
+        isBold ? "font-semibold" : "",
+        isItalic ? "italic" : "",
+        isUnderline ? "underline" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      return `<span class="${classes}">${escaped}</span>`;
+    })
+    .join("");
+}
+
 function renderParagraph(paragraphXml: string, numberingMap: NumberingMap, counters: Map<string, number[]>) {
   const prefix = getParagraphNumberPrefix(paragraphXml, numberingMap, counters);
   const text = extractParagraphText(paragraphXml);
   const trimmed = text.trim();
-  const indentStyle = prefix && prefix.level > 0 ? ` style="margin-left:${prefix.level * 1.25}rem"` : "";
+  const { className, style } = extractParagraphStyles(paragraphXml, Boolean(prefix));
 
   if (!trimmed && !prefix) {
-    return `<div class="h-4"></div>`;
+    return `<div style="height:0.9rem"></div>`;
   }
 
   const prefixHtml = prefix
     ? `<span class="inline-block min-w-[2rem] pr-2 align-top font-semibold text-foreground">${escapeHtml(prefix.text)}</span>`
     : "";
-  const textHtml = escapeHtml(text).replace(/\n/g, "<br />");
+  const textHtml = extractFormattedRuns(paragraphXml) || `${escapeHtml(text).replace(/\n/g, "<br />")}`;
 
-  return `<p class="ui-text m-0 whitespace-normal text-[15px] leading-7 text-foreground"${indentStyle}>${prefixHtml}<span>${textHtml || "&nbsp;"}</span></p>`;
+  return `<p class="${className}" style="${style}">${prefixHtml}<span>${textHtml || "&nbsp;"}</span></p>`;
 }
 
 function renderTableCell(cellXml: string, numberingMap: NumberingMap, counters: Map<string, number[]>) {
