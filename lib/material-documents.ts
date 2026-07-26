@@ -185,8 +185,8 @@ function extractParagraphText(paragraphXml: string) {
   return decodeXmlEntities(textParts.join("")).replace(/\u00a0/g, " ");
 }
 
-function formatTwipsToRem(value: number) {
-  return `${value / 240}rem`;
+function formatTwipsToRem(value: number, divisor = 800) {
+  return `${value / divisor}rem`;
 }
 
 function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
@@ -217,17 +217,17 @@ function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
     styles.push("margin-bottom:0.55rem");
   }
 
-  if (left > 0) {
+  if (!hasPrefix && left > 0) {
     styles.push(`margin-left:${formatTwipsToRem(left)}`);
   }
 
   if (!hasPrefix && firstLine > 0) {
-    styles.push(`text-indent:${formatTwipsToRem(firstLine)}`);
+    styles.push(`text-indent:${formatTwipsToRem(firstLine, 900)}`);
   }
 
   if (!hasPrefix && hanging > 0) {
-    styles.push(`padding-left:${formatTwipsToRem(hanging)}`);
-    styles.push(`text-indent:-${formatTwipsToRem(hanging)}`);
+    styles.push(`padding-left:${formatTwipsToRem(hanging, 900)}`);
+    styles.push(`text-indent:-${formatTwipsToRem(hanging, 900)}`);
   }
 
   if (align === "center") {
