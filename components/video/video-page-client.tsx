@@ -51,6 +51,7 @@ type BibleChapterResponse = {
 };
 
 const DEFAULT_BOOK = "Genesis";
+const MULTI_DOCUMENT_REQUEST_LIMIT_BYTES = 4 * 1024 * 1024;
 
 function formatMaterialDate(dateString: string) {
   const date = new Date(`${dateString}T00:00:00`);
@@ -102,6 +103,23 @@ function getDocumentViewerHref(postId: string, kind: "Question" | "Message Manus
   }
 
   return `/video/document?${params.toString()}`;
+}
+
+async function readApiPayload(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  const rawText = await response.text();
+  const normalizedText = rawText.trim();
+
+  if (normalizedText.includes("Request Entity Too Large")) {
+    throw new Error("The attached documents are too large to upload together, so please try saving again.");
+  }
+
+  throw new Error(normalizedText || "Unable to save material.");
 }
 
 async function fetchVerseCount(book: string, chapter: number) {
@@ -324,6 +342,45 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     setIsComposerOpen(true);
   }
 
+  function buildMaterialFormData(options?: {
+    questionDocument?: File | null;
+    manuscriptDocument?: File | null;
+  }) {
+    const formData = new FormData();
+    formData.set("scheduledAt", scheduledAt);
+    formData.set("messengerName", messengerName.trim());
+    formData.set("passageBook", passageBook);
+    formData.set("passageStartChapter", String(passageStartChapter));
+    formData.set("passageStartVerse", String(passageStartVerse));
+    formData.set("passageEndChapter", String(passageEndChapter));
+    formData.set("passageEndVerse", String(passageEndVerse));
+    formData.set("videoLink", videoLink.trim());
+
+    if (options?.questionDocument) {
+      formData.set("questionDocument", options.questionDocument);
+    }
+
+    if (options?.manuscriptDocument) {
+      formData.set("manuscriptDocument", options.manuscriptDocument);
+    }
+
+    return formData;
+  }
+
+  async function submitMaterialRequest(method: "POST" | "PATCH", formData: FormData, postId?: string) {
+    const response = await fetch(postId ? `/api/videos/${postId}` : "/api/videos", {
+      method,
+      body: formData,
+    });
+    const payload = await readApiPayload(response);
+
+    if (!response.ok) {
+      throw new Error(payload.error ?? "Unable to save material.");
+    }
+
+    return payload;
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
@@ -341,32 +398,33 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     setIsSaving(true);
 
     try {
-      const formData = new FormData();
-      formData.set("scheduledAt", scheduledAt);
-      formData.set("messengerName", messengerName.trim());
-      formData.set("passageBook", passageBook);
-      formData.set("passageStartChapter", String(passageStartChapter));
-      formData.set("passageStartVerse", String(passageStartVerse));
-      formData.set("passageEndChapter", String(passageEndChapter));
-      formData.set("passageEndVerse", String(passageEndVerse));
-      formData.set("videoLink", videoLink.trim());
+      const totalNewDocumentSize = (questionDocument?.size ?? 0) + (manuscriptDocument?.size ?? 0);
+      const shouldSplitUploads =
+        Boolean(questionDocument) &&
+        Boolean(manuscriptDocument) &&
+        totalNewDocumentSize > MULTI_DOCUMENT_REQUEST_LIMIT_BYTES;
 
-      if (questionDocument) {
-        formData.set("questionDocument", questionDocument);
-      }
+      let payload;
 
-      if (manuscriptDocument) {
-        formData.set("manuscriptDocument", manuscriptDocument);
-      }
+      if (shouldSplitUploads) {
+        const firstPayload = await submitMaterialRequest(
+          editingId ? "PATCH" : "POST",
+          buildMaterialFormData({ questionDocument }),
+          editingId ?? undefined,
+        );
+        const postId = editingId ?? firstPayload.post.id;
 
-      const response = await fetch(editingId ? `/api/videos/${editingId}` : "/api/videos", {
-        method: editingId ? "PATCH" : "POST",
-        body: formData,
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to save material.");
+        payload = await submitMaterialRequest(
+          "PATCH",
+          buildMaterialFormData({ manuscriptDocument }),
+          postId,
+        );
+      } else {
+        payload = await submitMaterialRequest(
+          editingId ? "PATCH" : "POST",
+          buildMaterialFormData({ questionDocument, manuscriptDocument }),
+          editingId ?? undefined,
+        );
       }
 
       const nextPost: VideoPostItem = {
@@ -413,7 +471,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
       const response = await fetch(`/api/videos/${postId}`, {
         method: "DELETE",
       });
-      const payload = await response.json();
+      const payload = await readApiPayload(response);
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Unable to delete material.");
