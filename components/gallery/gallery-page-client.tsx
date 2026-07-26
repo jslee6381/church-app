@@ -380,7 +380,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   </form>
                 ) : (
                   <>
-                    <h2 className="ui-text m-0 pr-12 font-sans font-semibold leading-tight text-foreground">
+                    <h2 className="m-0 pr-12 text-[1.02rem] font-semibold leading-[1.35] tracking-[-0.015em] text-foreground sm:text-[1.08rem]">
                       {item.title}
                     </h2>
                     {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
