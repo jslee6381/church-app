@@ -189,6 +189,10 @@ function formatTwipsToRem(value: number, divisor = 800) {
   return `${value / divisor}rem`;
 }
 
+function formatSpacingTwipsToRem(value: number) {
+  return `${value / 160}rem`;
+}
+
 function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
   const beforeMatch = paragraphXml.match(/<w:spacing\b[^>]*w:before="(\d+)"/);
   const afterMatch = paragraphXml.match(/<w:spacing\b[^>]*w:after="(\d+)"/);
@@ -208,26 +212,17 @@ function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
   const align = alignMatch?.[1] ?? "left";
 
   if (before > 0) {
-    styles.push(`margin-top:${formatTwipsToRem(before)}`);
+    styles.push(`margin-top:${formatSpacingTwipsToRem(before)}`);
   }
 
   if (after > 0) {
-    styles.push(`margin-bottom:${formatTwipsToRem(after)}`);
+    styles.push(`margin-bottom:${formatSpacingTwipsToRem(after)}`);
   } else {
-    styles.push("margin-bottom:0.55rem");
+    styles.push("margin-bottom:0.9rem");
   }
 
   if (!hasPrefix && left > 0) {
     styles.push(`margin-left:${formatTwipsToRem(left)}`);
-  }
-
-  if (!hasPrefix && firstLine > 0) {
-    styles.push(`text-indent:${formatTwipsToRem(firstLine, 900)}`);
-  }
-
-  if (!hasPrefix && hanging > 0) {
-    styles.push(`padding-left:${formatTwipsToRem(hanging, 900)}`);
-    styles.push(`text-indent:-${formatTwipsToRem(hanging, 900)}`);
   }
 
   if (align === "center") {
@@ -304,7 +299,7 @@ function renderParagraph(paragraphXml: string, numberingMap: NumberingMap, count
   const { className, style } = extractParagraphStyles(paragraphXml, Boolean(prefix));
 
   if (!trimmed && !prefix) {
-    return `<div style="height:0.9rem"></div>`;
+    return `<div style="height:1.25rem"></div>`;
   }
 
   const prefixHtml = prefix

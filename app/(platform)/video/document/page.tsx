@@ -17,6 +17,10 @@ function getSafeString(value?: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function getViewerUrl(sourceUrl: string) {
+  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sourceUrl)}`;
+}
+
 export default async function MaterialDocumentPage({
   searchParams,
 }: {
@@ -36,14 +40,14 @@ export default async function MaterialDocumentPage({
     notFound();
   }
 
-  const documentText = kind === "Question"
-    ? materialPost.questionDocText ?? null
+  const sourceUrl = kind === "Question"
+    ? materialPost.questionDocUrl ?? null
     : kind === "Message Manuscript"
-      ? materialPost.manuscriptDocText ?? null
+      ? materialPost.manuscriptDocUrl ?? null
       : null;
 
   return (
-    <main className="shell py-6">
+    <main className="shell max-w-none py-6">
       <header className="mb-5">
         <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/video">
           <ArrowLeft className="size-4" />
@@ -61,14 +65,15 @@ export default async function MaterialDocumentPage({
           <PassagePreview initialVerses={materialPost?.passageVerses ?? null} reference={reference} />
         ) : null}
 
-        <div className="pb-10">
-          {documentText ? (
-            <div
-              className="space-y-4 [&_.ui-text]:font-inherit [&_br]:block [&_br]:content-[''] [&_div]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap [&_p]:whitespace-pre-wrap [&_span]:whitespace-pre-wrap [&_table]:rounded-none [&_td]:bg-transparent [&_td]:whitespace-pre-wrap"
-              dangerouslySetInnerHTML={{ __html: documentText }}
+        <div className="-mx-4 pb-10 sm:-mx-5">
+          {sourceUrl ? (
+            <iframe
+              className="min-h-[82vh] w-full border-0 bg-transparent"
+              src={getViewerUrl(sourceUrl)}
+              title={kind}
             />
           ) : (
-            <p className="ui-text m-0 text-sm text-muted-foreground">This document has not been processed yet. Re-upload or update the post to regenerate it.</p>
+            <p className="ui-text m-0 px-4 text-sm text-muted-foreground">Document is unavailable.</p>
           )}
         </div>
       </section>
