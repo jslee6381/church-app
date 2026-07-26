@@ -4,12 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, MoreVertical, Plus } from "lucide-react";
 
+type GalleryImageItem = {
+  id: string;
+  imageUrl: string;
+  viewUrl: string;
+};
+
 type GalleryPostItem = {
   id: string;
   title: string;
   body: string | null;
   driveLink: string;
   embedUrl: string;
+  images: GalleryImageItem[];
   createdAt: string | null;
 };
 
@@ -118,6 +125,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
     setIsSaving(true);
 
     try {
+      const existingPost = editingId ? posts.find((item) => item.id === editingId) ?? null : null;
       const response = await fetch(editingId ? `/api/gallery/${editingId}` : "/api/gallery", {
         method: editingId ? "PATCH" : "POST",
         headers: {
@@ -141,6 +149,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
         body: payload.post.body ?? null,
         driveLink: payload.post.drive_link,
         embedUrl: payload.post.embed_url,
+        images: existingPost && existingPost.driveLink === payload.post.drive_link ? existingPost.images : [],
         createdAt: payload.post.created_at ?? null,
       };
 
@@ -380,16 +389,33 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               </div>
 
               {editingId !== item.id ? (
-                <div className="gallery-card-frame relative overflow-hidden border-t border-border/70">
-                  <iframe
-                    allow="fullscreen"
-                    className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
-                    loading="lazy"
-                    src={item.embedUrl}
-                    title={item.title}
-                  />
-                  <div className="gallery-card-header pointer-events-none absolute inset-x-0 top-0 h-14" />
-                </div>
+                item.images.length > 0 ? (
+                  <div className="gallery-card-frame border-t border-border/70 px-4 py-4">
+                    <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
+                      {item.images.map((image, index) => (
+                        <a
+                          className="block min-w-[84%] snap-center overflow-hidden rounded-[16px] border border-border/70 bg-white/80 dark:bg-[#232323] sm:min-w-[340px]"
+                          href={image.viewUrl}
+                          key={image.id}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <img
+                            alt={`${item.title} photo ${index + 1}`}
+                            className="block h-[220px] w-full object-cover sm:h-[240px]"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            src={image.imageUrl}
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="gallery-card-frame border-t border-border/70 px-4 py-6">
+                    <p className="ui-text m-0 text-center text-muted-foreground">Unable to load gallery images right now.</p>
+                  </div>
+                )
               ) : null}
             </article>
           ))

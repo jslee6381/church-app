@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getGoogleDriveGalleryImages, type GoogleDriveGalleryImage } from "@/lib/google-drive-gallery";
 import { getEmbeddedGoogleDriveFolderUrl } from "@/lib/google-drive-public";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -9,6 +10,7 @@ export type GalleryPostListItem = {
   body: string | null;
   driveLink: string;
   embedUrl: string;
+  images: GoogleDriveGalleryImage[];
   createdAt: string | null;
 };
 
@@ -29,13 +31,15 @@ export async function getGalleryPosts(churchId?: string | null): Promise<Gallery
       return [];
     }
 
-    return data
-      .map((item) => {
+    const items = await Promise.all(
+      data.map(async (item) => {
         const embedUrl = getEmbeddedGoogleDriveFolderUrl(item.drive_link, "grid");
 
         if (!embedUrl) {
           return null;
         }
+
+        const images = await getGoogleDriveGalleryImages(item.drive_link);
 
         return {
           id: item.id,
@@ -43,9 +47,13 @@ export async function getGalleryPosts(churchId?: string | null): Promise<Gallery
           body: item.body ?? null,
           driveLink: item.drive_link,
           embedUrl,
+          images,
           createdAt: item.created_at ?? null,
         };
-      })
+      }),
+    );
+
+    return items
       .filter((item): item is GalleryPostListItem => Boolean(item));
   } catch {
     return [];
