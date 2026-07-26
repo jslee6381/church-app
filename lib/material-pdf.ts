@@ -402,7 +402,7 @@ function buildBlocks(lines: RawParsedLine[], kind: MaterialDocumentKind) {
     while (nextIndex < lines.length) {
       const nextLine = lines[nextIndex];
 
-      if (nextLine.gapBefore > 18 || nextLine.center || nextLine.cells.length < 3) {
+      if (nextLine.gapBefore > 42 || nextLine.center || nextLine.cells.length < 3) {
         break;
       }
 
