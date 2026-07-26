@@ -190,6 +190,26 @@ function renderMarkup(lines: ParsedLine[], kind: MaterialDocumentKind) {
     .join("");
 }
 
+function shouldCenterLine(
+  xStart: number,
+  xEnd: number,
+  viewportWidth: number,
+  fontSize: number,
+  text: string,
+) {
+  const width = xEnd - xStart;
+  const lineCenter = (xStart + xEnd) / 2;
+  const centerDelta = Math.abs(lineCenter - viewportWidth / 2);
+
+  return (
+    fontSize >= 13.5 &&
+    xStart >= viewportWidth * 0.22 &&
+    width <= viewportWidth * 0.6 &&
+    text.length <= 72 &&
+    centerDelta <= 20
+  );
+}
+
 export async function extractPdfDocumentMarkupFromFile(file: File, kind: MaterialDocumentKind) {
   const arrayBuffer = await file.arrayBuffer();
   ensureDomMatrixPolyfill();
@@ -256,8 +276,7 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
     let previousY = 0;
 
     for (const line of pageLines) {
-      const lineCenter = (line.xStart + line.xEnd) / 2;
-      const isCentered = Math.abs(lineCenter - viewport.width / 2) <= 28 && line.xEnd - line.xStart < viewport.width * 0.75;
+      const isCentered = shouldCenterLine(line.xStart, line.xEnd, viewport.width, line.fontSize, line.text);
       const gapBefore = previousY === 0 ? 0 : Math.max(0, previousY - line.y);
       previousY = line.y;
 
