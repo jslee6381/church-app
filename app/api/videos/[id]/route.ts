@@ -65,15 +65,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const manuscriptDocument = formData.get("manuscriptDocument");
 
     const book = getBibleBook(passageBook);
-    const thumbnailUrl = getYouTubeThumbnailUrl(videoLink);
-    const watchUrl = getYouTubeWatchUrl(videoLink);
+    const thumbnailUrl = videoLink ? getYouTubeThumbnailUrl(videoLink) : null;
+    const watchUrl = videoLink ? getYouTubeWatchUrl(videoLink) : null;
 
     if (!scheduledAt || Number.isNaN(Date.parse(`${scheduledAt}T00:00:00Z`))) {
       return NextResponse.json({ error: "Please select a valid material date." }, { status: 400 });
     }
 
-    if (!messengerName || !book || !passageStartChapter || !passageStartVerse || !passageEndChapter || !passageEndVerse || !videoLink) {
-      return NextResponse.json({ error: "Please complete the messenger, passage, and message link fields." }, { status: 400 });
+    if (!messengerName || !book || !passageStartChapter || !passageStartVerse || !passageEndChapter || !passageEndVerse) {
+      return NextResponse.json({ error: "Please complete the messenger and passage fields." }, { status: 400 });
     }
 
     if (passageStartChapter > book.chapterCount || passageEndChapter > book.chapterCount) {
@@ -84,7 +84,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Please keep the passage end after the start." }, { status: 400 });
     }
 
-    if (!thumbnailUrl || !watchUrl) {
+    if (videoLink && (!thumbnailUrl || !watchUrl)) {
       return NextResponse.json({ error: "Please use a valid YouTube link." }, { status: 400 });
     }
 
@@ -112,7 +112,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           passage_start_verse: passageStartVerse,
           passage_end_chapter: passageEndChapter,
           passage_end_verse: passageEndVerse,
-          video_link: videoLink,
+          video_link: videoLink || null,
           thumbnail_url: thumbnailUrl,
           watch_url: watchUrl,
           question_doc_url: null,
@@ -165,7 +165,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         passage_start_verse: passageStartVerse,
         passage_end_chapter: passageEndChapter,
         passage_end_verse: passageEndVerse,
-        video_link: videoLink,
+        video_link: videoLink || null,
         question_doc_url: nextQuestionDocUrl,
         question_doc_name: nextQuestionDocName,
         manuscript_doc_url: nextManuscriptDocUrl,

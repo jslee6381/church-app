@@ -53,4 +53,5 @@ alter table public.video_posts
   alter column passage_start_chapter set not null,
   alter column passage_start_verse set not null,
   alter column passage_end_chapter set not null,
-  alter column passage_end_verse set not null;
+  alter column passage_end_verse set not null,
+  alter column video_link drop not null;

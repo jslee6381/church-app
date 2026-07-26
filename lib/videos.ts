@@ -14,9 +14,9 @@ export type VideoPostListItem = {
   passageStartVerse: number;
   passageEndChapter: number;
   passageEndVerse: number;
-  videoLink: string;
-  thumbnailUrl: string;
-  watchUrl: string;
+  videoLink: string | null;
+  thumbnailUrl: string | null;
+  watchUrl: string | null;
   questionDocUrl: string | null;
   questionDocName: string | null;
   manuscriptDocUrl: string | null;
@@ -46,12 +46,8 @@ export async function getVideoPosts(churchId?: string | null): Promise<VideoPost
 
     return data
       .map((item) => {
-        const thumbnailUrl = getYouTubeThumbnailUrl(item.video_link);
-        const watchUrl = getYouTubeWatchUrl(item.video_link);
-
-        if (!thumbnailUrl || !watchUrl) {
-          return null;
-        }
+        const thumbnailUrl = item.video_link ? getYouTubeThumbnailUrl(item.video_link) : null;
+        const watchUrl = item.video_link ? getYouTubeWatchUrl(item.video_link) : null;
 
         return {
           id: item.id,
@@ -64,7 +60,7 @@ export async function getVideoPosts(churchId?: string | null): Promise<VideoPost
           passageStartVerse: item.passage_start_verse,
           passageEndChapter: item.passage_end_chapter,
           passageEndVerse: item.passage_end_verse,
-          videoLink: item.video_link,
+          videoLink: item.video_link ?? null,
           thumbnailUrl,
           watchUrl,
           questionDocUrl: item.question_doc_url ?? null,

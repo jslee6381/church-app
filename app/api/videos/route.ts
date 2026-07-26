@@ -64,15 +64,15 @@ export async function POST(request: Request) {
     const manuscriptDocument = formData.get("manuscriptDocument");
 
     const book = getBibleBook(passageBook);
-    const thumbnailUrl = getYouTubeThumbnailUrl(videoLink);
-    const watchUrl = getYouTubeWatchUrl(videoLink);
+    const thumbnailUrl = videoLink ? getYouTubeThumbnailUrl(videoLink) : null;
+    const watchUrl = videoLink ? getYouTubeWatchUrl(videoLink) : null;
 
     if (!scheduledAt || Number.isNaN(Date.parse(`${scheduledAt}T00:00:00Z`))) {
       return NextResponse.json({ error: "Please select a valid material date." }, { status: 400 });
     }
 
-    if (!messengerName || !book || !passageStartChapter || !passageStartVerse || !passageEndChapter || !passageEndVerse || !videoLink) {
-      return NextResponse.json({ error: "Please complete the messenger, passage, and message link fields." }, { status: 400 });
+    if (!messengerName || !book || !passageStartChapter || !passageStartVerse || !passageEndChapter || !passageEndVerse) {
+      return NextResponse.json({ error: "Please complete the messenger and passage fields." }, { status: 400 });
     }
 
     if (passageStartChapter > book.chapterCount || passageEndChapter > book.chapterCount) {
@@ -83,16 +83,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please keep the passage end after the start." }, { status: 400 });
     }
 
-    if (!thumbnailUrl || !watchUrl) {
+    if (videoLink && (!thumbnailUrl || !watchUrl)) {
       return NextResponse.json({ error: "Please use a valid YouTube link." }, { status: 400 });
-    }
-
-    if (!(questionDocument instanceof File) || questionDocument.size === 0) {
-      return NextResponse.json({ error: "Please upload the Bible question DOCX file." }, { status: 400 });
-    }
-
-    if (!(manuscriptDocument instanceof File) || manuscriptDocument.size === 0) {
-      return NextResponse.json({ error: "Please upload the message manuscript DOCX file." }, { status: 400 });
     }
 
     if (messengerName.length > MESSENGER_LIMIT) {
@@ -120,20 +112,26 @@ export async function POST(request: Request) {
           passage_start_verse: passageStartVerse,
           passage_end_chapter: passageEndChapter,
           passage_end_verse: passageEndVerse,
-          video_link: videoLink,
+          video_link: videoLink || null,
           thumbnail_url: thumbnailUrl,
           watch_url: watchUrl,
           question_doc_url: null,
-          question_doc_name: questionDocument.name,
+          question_doc_name: questionDocument instanceof File && questionDocument.size > 0 ? questionDocument.name : null,
           manuscript_doc_url: null,
-          manuscript_doc_name: manuscriptDocument.name,
+          manuscript_doc_name: manuscriptDocument instanceof File && manuscriptDocument.size > 0 ? manuscriptDocument.name : null,
           created_at: now,
         },
       });
     }
 
-    const uploadedQuestionDocument = await uploadPublicDocument(questionDocument, "materials/questions");
-    const uploadedManuscriptDocument = await uploadPublicDocument(manuscriptDocument, "materials/manuscripts");
+    const uploadedQuestionDocument =
+      questionDocument instanceof File && questionDocument.size > 0
+        ? await uploadPublicDocument(questionDocument, "materials/questions")
+        : null;
+    const uploadedManuscriptDocument =
+      manuscriptDocument instanceof File && manuscriptDocument.size > 0
+        ? await uploadPublicDocument(manuscriptDocument, "materials/manuscripts")
+        : null;
 
     const admin = createAdminClient();
     const { data, error } = await admin
@@ -150,11 +148,11 @@ export async function POST(request: Request) {
         passage_start_verse: passageStartVerse,
         passage_end_chapter: passageEndChapter,
         passage_end_verse: passageEndVerse,
-        video_link: videoLink,
-        question_doc_url: uploadedQuestionDocument.publicUrl,
-        question_doc_name: uploadedQuestionDocument.fileName,
-        manuscript_doc_url: uploadedManuscriptDocument.publicUrl,
-        manuscript_doc_name: uploadedManuscriptDocument.fileName,
+        video_link: videoLink || null,
+        question_doc_url: uploadedQuestionDocument?.publicUrl ?? null,
+        question_doc_name: uploadedQuestionDocument?.fileName ?? null,
+        manuscript_doc_url: uploadedManuscriptDocument?.publicUrl ?? null,
+        manuscript_doc_name: uploadedManuscriptDocument?.fileName ?? null,
       })
       .select(
         "id, title, body, scheduled_at, messenger_name, passage_book, passage_start_chapter, passage_start_verse, passage_end_chapter, passage_end_verse, video_link, question_doc_url, question_doc_name, manuscript_doc_url, manuscript_doc_name, created_at",

@@ -31,9 +31,9 @@ type VideoPostItem = {
   passageStartVerse: number;
   passageEndChapter: number;
   passageEndVerse: number;
-  videoLink: string;
-  thumbnailUrl: string;
-  watchUrl: string;
+  videoLink: string | null;
+  thumbnailUrl: string | null;
+  watchUrl: string | null;
   questionDocUrl: string | null;
   questionDocName: string | null;
   manuscriptDocUrl: string | null;
@@ -402,7 +402,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     setPassageStartVerse(item.passageStartVerse);
     setPassageEndChapter(item.passageEndChapter);
     setPassageEndVerse(item.passageEndVerse);
-    setVideoLink(item.videoLink);
+    setVideoLink(item.videoLink ?? "");
     setQuestionDocument(null);
     setManuscriptDocument(null);
     setExistingQuestionDocName(item.questionDocName);
@@ -416,23 +416,13 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     event.preventDefault();
     setErrorMessage(null);
 
-    if (!messengerName.trim() || !videoLink.trim()) {
-      setErrorMessage("Please complete the messenger and message link fields.");
+    if (!messengerName.trim()) {
+      setErrorMessage("Please complete the messenger field.");
       return;
     }
 
     if (comparePassagePoints(passageStartChapter, passageStartVerse, passageEndChapter, passageEndVerse) > 0) {
       setErrorMessage("Please keep the passage end after the start.");
-      return;
-    }
-
-    if (!editingId && !questionDocument) {
-      setErrorMessage("Please upload the Bible question DOCX file.");
-      return;
-    }
-
-    if (!editingId && !manuscriptDocument) {
-      setErrorMessage("Please upload the message manuscript DOCX file.");
       return;
     }
 
@@ -478,9 +468,9 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
         passageStartVerse: payload.post.passage_start_verse,
         passageEndChapter: payload.post.passage_end_chapter,
         passageEndVerse: payload.post.passage_end_verse,
-        videoLink: payload.post.video_link,
-        thumbnailUrl: payload.post.thumbnail_url,
-        watchUrl: payload.post.watch_url,
+        videoLink: payload.post.video_link ?? null,
+        thumbnailUrl: payload.post.thumbnail_url ?? null,
+        watchUrl: payload.post.watch_url ?? null,
         questionDocUrl: payload.post.question_doc_url ?? null,
         questionDocName: payload.post.question_doc_name ?? null,
         manuscriptDocUrl: payload.post.manuscript_doc_url ?? null,
@@ -886,15 +876,21 @@ function MaterialSection({
                       <h3 className="ui-text m-0 text-sm font-semibold text-foreground">Message</h3>
                     </div>
 
-                    <a className="mt-4 block overflow-hidden rounded-[16px] border border-border/70 bg-card" href={item.watchUrl} rel="noreferrer" target="_blank">
-                      <div className="relative overflow-hidden bg-background">
-                        <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
-                        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
-                          <ExternalLink className="size-3.5" />
-                          YouTube
-                        </span>
+                    {item.watchUrl && item.thumbnailUrl ? (
+                      <a className="mt-4 block overflow-hidden rounded-[16px] border border-border/70 bg-card" href={item.watchUrl} rel="noreferrer" target="_blank">
+                        <div className="relative overflow-hidden bg-background">
+                          <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
+                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
+                            <ExternalLink className="size-3.5" />
+                            YouTube
+                          </span>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="mt-4 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
+                        <p className="ui-text m-0 text-sm text-muted-foreground">Message video not attached.</p>
                       </div>
-                    </a>
+                    )}
 
                     {item.manuscriptDocUrl ? (
                       <a
