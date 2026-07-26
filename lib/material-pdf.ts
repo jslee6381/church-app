@@ -7,6 +7,7 @@ type PdfTextItem = {
   transform: number[];
   width: number;
   height: number;
+  fontName: string;
   hasEOL?: boolean;
 };
 
@@ -15,21 +16,37 @@ type LineSegment = {
   x: number;
   width: number;
   fontSize: number;
+  fontName: string;
+  isBold: boolean;
+  isItalic: boolean;
 };
 
 type ParsedLine = {
   text: string;
+  html: string;
   xStart: number;
   xEnd: number;
   center: boolean;
   fontSize: number;
   gapBefore: number;
   indentLevel: number;
+  cells: TableCell[];
 };
 
 type RawParsedLine = ParsedLine & {
   y: number;
 };
+
+type TableCell = {
+  text: string;
+  html: string;
+  xStart: number;
+  xEnd: number;
+};
+
+type ParsedBlock =
+  | { type: "line"; line: ParsedLine }
+  | { type: "table"; rows: TableCell[][] };
 
 type DOMMatrixLike = {
   a: number;
@@ -80,6 +97,20 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
+function renderInlineHtml(text: string, isBold: boolean, isItalic: boolean) {
+  let result = escapeHtml(text);
+
+  if (isItalic) {
+    result = `<em>${result}</em>`;
+  }
+
+  if (isBold) {
+    result = `<strong>${result}</strong>`;
+  }
+
+  return result;
+}
+
 function normalizeText(value: string) {
   return value
     .replace(/\u00a0/g, " ")
@@ -88,12 +119,26 @@ function normalizeText(value: string) {
 }
 
 function isPdfTextItem(item: unknown): item is PdfTextItem {
-  return Boolean(item) && typeof item === "object" && "str" in (item as PdfTextItem) && "transform" in (item as PdfTextItem);
+  return (
+    Boolean(item) &&
+    typeof item === "object" &&
+    "str" in (item as PdfTextItem) &&
+    "transform" in (item as PdfTextItem) &&
+    "fontName" in (item as PdfTextItem)
+  );
 }
 
-function buildLineText(segments: LineSegment[]) {
+function getFontTraits(fontName: string) {
+  return {
+    isBold: fontName === "g_d0_f3" || fontName === "g_d0_f5" || fontName === "g_d0_f4",
+    isItalic: fontName === "g_d0_f4" || fontName === "g_d0_f7",
+  };
+}
+
+function buildCell(segments: LineSegment[]) {
   const sorted = [...segments].sort((left, right) => left.x - right.x);
   let text = "";
+  let html = "";
   let lastEnd: number | null = null;
   let firstX = 0;
   let endX = 0;
@@ -108,17 +153,24 @@ function buildLineText(segments: LineSegment[]) {
     } else {
       const gap = segment.x - lastEnd;
 
-      if (gap > Math.max(3, segment.fontSize * 0.22) && !text.endsWith(" ")) {
-        text += " ";
+      if (gap > Math.max(3, segment.fontSize * 0.22)) {
+        if (!text.endsWith(" ")) {
+          text += " ";
+          html += " ";
+        }
       }
     }
 
-    if (segment.text.trim().length === 0) {
+    const normalizedSegment = segment.text.replace(/\u00a0/g, " ");
+
+    if (normalizedSegment.trim().length === 0) {
       if (!text.endsWith(" ")) {
         text += " ";
+        html += " ";
       }
     } else {
-      text += segment.text;
+      text += normalizedSegment;
+      html += renderInlineHtml(normalizedSegment, segment.isBold, segment.isItalic);
       endX = segment.x + segment.width;
     }
 
@@ -127,8 +179,49 @@ function buildLineText(segments: LineSegment[]) {
 
   return {
     text: normalizeText(text),
+    html,
     xStart: firstX,
     xEnd: endX || firstX,
+  };
+}
+
+function buildLineText(segments: LineSegment[]) {
+  const sorted = [...segments].sort((left, right) => left.x - right.x);
+  const cellGroups: LineSegment[][] = [];
+  let currentCell: LineSegment[] = [];
+
+  for (const segment of sorted) {
+    if (!segment.text) {
+      continue;
+    }
+
+    const previous = currentCell.at(-1);
+
+    if (previous) {
+      const gap = segment.x - (previous.x + previous.width);
+
+      if (gap > 26) {
+        cellGroups.push(currentCell);
+        currentCell = [];
+      }
+    }
+
+    currentCell.push(segment);
+  }
+
+  if (currentCell.length > 0) {
+    cellGroups.push(currentCell);
+  }
+
+  const cells = cellGroups.map((group) => buildCell(group)).filter((cell) => cell.text.length > 0);
+  const lineCell = buildCell(sorted);
+
+  return {
+    text: lineCell.text,
+    html: lineCell.html,
+    xStart: lineCell.xStart,
+    xEnd: lineCell.xEnd,
+    cells,
   };
 }
 
@@ -156,8 +249,23 @@ function renderLineContent(text: string) {
   return `<span class="material-doc-prefix">${escapeHtml(match[1])}</span><span class="material-doc-body">${escapeHtml(match[2])}</span>`;
 }
 
+function renderLineHtml(line: ParsedLine, kind: MaterialDocumentKind) {
+  if (kind !== "Question") {
+    return line.html;
+  }
+
+  return renderLineContent(line.text);
+}
+
 function startsStructuredBlock(text: string) {
   return /^((?:\d+|[IVXLC]+|[A-Z])\.)\s+/.test(text);
+}
+
+function isStandaloneReferenceLine(text: string) {
+  return (
+    /^Key Verse\b/i.test(text) ||
+    /^[1-3]?\s?[A-Za-z]+\s+\d+:\d+(?:-\d+)?$/i.test(text)
+  );
 }
 
 function isMergeableBodyLine(line: ParsedLine) {
@@ -187,9 +295,11 @@ function coalesceLines(lines: RawParsedLine[], kind: MaterialDocumentKind) {
       isMergeableBodyLine(line) &&
       line.gapBefore <= 16 &&
       !startsBlock &&
+      !(kind === "Question" && (isStandaloneReferenceLine(previous.text) || isStandaloneReferenceLine(line.text))) &&
       (kind === "Message Manuscript" || !startsStructuredBlock(previous.text) || line.xStart >= previous.xStart)
     ) {
       previous.text = joinLineText(previous.text, line.text);
+      previous.html = `${previous.html} ${line.html}`.replace(/\s+/g, " ");
       previous.xEnd = Math.max(previous.xEnd, line.xEnd);
       continue;
     }
@@ -202,15 +312,143 @@ function coalesceLines(lines: RawParsedLine[], kind: MaterialDocumentKind) {
       fontSize: line.fontSize,
       gapBefore: line.gapBefore,
       indentLevel: line.indentLevel,
+      html: line.html,
+      cells: line.cells,
     });
   }
 
   return merged;
 }
 
-function renderMarkup(lines: ParsedLine[], kind: MaterialDocumentKind) {
-  return lines
-    .map((line) => {
+function isLikelyTableLine(line: RawParsedLine) {
+  return !line.center && line.fontSize <= 12.5 && line.cells.length >= 4;
+}
+
+function appendCellText(cell: TableCell, extra: TableCell) {
+  cell.text = joinLineText(cell.text, extra.text);
+  cell.html = `${cell.html}<br />${extra.html}`;
+  cell.xEnd = Math.max(cell.xEnd, extra.xEnd);
+}
+
+function buildTableRows(lines: RawParsedLine[]) {
+  const rows: TableCell[][] = [];
+  const leftEdge = Math.min(...lines.flatMap((line) => line.cells.map((cell) => cell.xStart)));
+
+  for (const line of lines) {
+    const firstCell = line.cells[0];
+    const startsNewRow = !firstCell || firstCell.xStart <= leftEdge + 16;
+
+    if (startsNewRow || rows.length === 0) {
+      rows.push(line.cells.map((cell) => ({ ...cell })));
+      continue;
+    }
+
+    const currentRow = rows.at(-1);
+
+    if (!currentRow) {
+      continue;
+    }
+
+    for (const cell of line.cells) {
+      let bestIndex = 0;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      for (let index = 0; index < currentRow.length; index += 1) {
+        const distance = Math.abs(currentRow[index].xStart - cell.xStart);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      }
+
+      appendCellText(currentRow[bestIndex], cell);
+    }
+  }
+
+  return rows.filter((row) => row.length >= 4);
+}
+
+function buildBlocks(lines: RawParsedLine[], kind: MaterialDocumentKind) {
+  if (kind !== "Message Manuscript") {
+    return coalesceLines(lines, kind).map((line) => ({ type: "line", line }) satisfies ParsedBlock);
+  }
+
+  const blocks: ParsedBlock[] = [];
+  let buffer: RawParsedLine[] = [];
+
+  const flushBuffer = () => {
+    if (buffer.length === 0) {
+      return;
+    }
+
+    blocks.push(...coalesceLines(buffer, kind).map((line) => ({ type: "line", line }) satisfies ParsedBlock));
+    buffer = [];
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+
+    if (!isLikelyTableLine(line)) {
+      buffer.push(line);
+      continue;
+    }
+
+    flushBuffer();
+
+    const tableLines: RawParsedLine[] = [line];
+    let nextIndex = index + 1;
+
+    while (nextIndex < lines.length) {
+      const nextLine = lines[nextIndex];
+
+      if (nextLine.gapBefore > 18 || nextLine.center || nextLine.cells.length < 3) {
+        break;
+      }
+
+      tableLines.push(nextLine);
+      nextIndex += 1;
+    }
+
+    const rows = buildTableRows(tableLines);
+
+    if (rows.length >= 2) {
+      blocks.push({ type: "table", rows });
+      index = nextIndex - 1;
+      continue;
+    }
+
+    buffer.push(...tableLines);
+    index = nextIndex - 1;
+  }
+
+  flushBuffer();
+  return blocks;
+}
+
+function renderMarkup(lines: RawParsedLine[], kind: MaterialDocumentKind) {
+  return buildBlocks(lines, kind)
+    .map((block) => {
+      if (block.type === "table") {
+        return `
+          <div class="material-doc-table-wrap gap-lg">
+            <table class="material-doc-table">
+              <tbody>
+                ${block.rows
+                  .map(
+                    (row) => `
+                      <tr>
+                        ${row.map((cell) => `<td>${cell.html}</td>`).join("")}
+                      </tr>`,
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      const line = block.line;
       const classes = ["material-doc-line"];
 
       if (line.center) {
@@ -241,7 +479,7 @@ function renderMarkup(lines: ParsedLine[], kind: MaterialDocumentKind) {
         classes.push("is-question-row");
       }
 
-      return `<div class="${classes.join(" ")}">${renderLineContent(line.text)}</div>`;
+      return `<div class="${classes.join(" ")}">${renderLineHtml(line, kind)}</div>`;
     })
     .join("");
 }
@@ -292,17 +530,22 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
         continue;
       }
 
-      const rawText = item.str ?? "";
-      const x = item.transform[4] ?? 0;
-      const y = item.transform[5] ?? 0;
-      const fontSize = Math.max(Math.abs(item.transform[0] ?? 0), Math.abs(item.height ?? 0), 12);
+      const textItem = item as PdfTextItem;
+      const rawText = textItem.str ?? "";
+      const x = textItem.transform[4] ?? 0;
+      const y = textItem.transform[5] ?? 0;
+      const fontSize = Math.max(Math.abs(textItem.transform[0] ?? 0), Math.abs(textItem.height ?? 0), 12);
       const key = Math.round(y * 2) / 2;
       const bucket: { y: number; segments: LineSegment[] } = lineMap.get(key) ?? { y, segments: [] };
+      const traits = getFontTraits(textItem.fontName);
       bucket.segments.push({
         text: rawText,
         x,
-        width: item.width ?? 0,
+        width: textItem.width ?? 0,
         fontSize,
+        fontName: textItem.fontName,
+        isBold: traits.isBold,
+        isItalic: traits.isItalic,
       });
       lineMap.set(key, bucket);
     }
@@ -314,11 +557,13 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
         const fontSize = Math.max(...line.segments.map((segment) => segment.fontSize), 12);
         return {
           text: built.text,
-          xStart: built.xStart,
-          xEnd: built.xEnd,
-          y: line.y,
-          fontSize,
-        };
+        xStart: built.xStart,
+        xEnd: built.xEnd,
+        html: built.html,
+        y: line.y,
+        fontSize,
+        cells: built.cells,
+      };
       })
       .filter((line) => line.text.length > 0)
       .filter((line) => !(line.y < 55 && /^\d+$/.test(line.text)));
@@ -345,10 +590,12 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
         gapBefore,
         indentLevel: getIndentLevel(line.xStart, baseLeft),
         y: line.y,
+        html: line.html,
+        cells: line.cells,
       });
     }
   }
 
-  const markup = renderMarkup(coalesceLines(lines, kind), kind);
+  const markup = renderMarkup(lines, kind);
   return markup.length > 0 ? markup : null;
 }

@@ -97,6 +97,14 @@ export default async function MaterialDocumentPage({
           overflow-wrap: anywhere;
         }
 
+        .material-doc-line strong {
+          font-weight: 700;
+        }
+
+        .material-doc-line em {
+          font-style: italic;
+        }
+
         .material-doc-line + .material-doc-line {
           margin-top: 0.1rem;
         }
@@ -137,6 +145,37 @@ export default async function MaterialDocumentPage({
         .material-doc-line.indent-1,
         .material-doc-line.indent-2 {
           padding-left: 0;
+        }
+
+        .material-doc-table-wrap {
+          margin-top: 1.35rem;
+          overflow-x: auto;
+        }
+
+        .material-doc-table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
+        }
+
+        .material-doc-table td {
+          border: 1px solid color-mix(in srgb, hsl(var(--foreground)) 26%, transparent);
+          padding: 0.7rem 0.45rem;
+          vertical-align: top;
+          color: hsl(var(--foreground));
+          font-size: 0.92rem;
+          line-height: 1.45;
+          text-align: center;
+          word-break: keep-all;
+          overflow-wrap: anywhere;
+        }
+
+        .material-doc-table td strong {
+          font-weight: 700;
+        }
+
+        .material-doc-table td em {
+          font-style: italic;
         }
 
         @media (min-width: 640px) {
