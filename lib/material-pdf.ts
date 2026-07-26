@@ -194,6 +194,11 @@ export async function extractPdfDocumentMarkupFromFile(file: File, kind: Materia
   const arrayBuffer = await file.arrayBuffer();
   ensureDomMatrixPolyfill();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const worker = await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  Object.defineProperty(pdfjs.PDFWorker, "_setupFakeWorkerGlobal", {
+    value: Promise.resolve(worker.WorkerMessageHandler),
+    configurable: true,
+  });
   const document = await pdfjs.getDocument({
     data: new Uint8Array(arrayBuffer),
     useWorkerFetch: false,
