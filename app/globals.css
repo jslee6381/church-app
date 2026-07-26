@@ -834,6 +834,7 @@ h2 {
 :root[data-theme="light"] .event-surface-sub,
 :root[data-theme="light"] .event-card-surface,
 :root[data-theme="light"] .event-form-surface,
+:root[data-theme="light"] .gallery-form-surface,
 :root[data-theme="light"] .prayer-form-surface,
 :root[data-theme="light"] .prayer-card-surface,
 :root[data-theme="light"] .community-form-surface,
@@ -845,6 +846,15 @@ h2 {
 :root[data-theme="light"] .settings-action-surface,
 :root[data-theme="light"] .admin-role-input {
   background: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme="light"] .gallery-card-surface {
+  background: linear-gradient(180deg, rgba(255, 254, 251, 0.96), rgba(255, 252, 247, 0.9));
+}
+
+:root[data-theme="light"] .gallery-card-header,
+:root[data-theme="light"] .gallery-card-frame {
+  background: rgba(255, 255, 255, 0.95);
 }
 
 :root[data-theme="dark"] .announcement-card-surface {
@@ -872,14 +882,20 @@ h2 {
 :root[data-theme="dark"] .event-surface,
 :root[data-theme="dark"] .event-surface-sub,
 :root[data-theme="dark"] .event-card-surface,
-:root[data-theme="dark"] .study-video-surface,
+:root[data-theme="dark"] .gallery-card-surface,
 :root[data-theme="dark"] .event-form-surface,
+:root[data-theme="dark"] .gallery-form-surface,
 :root[data-theme="dark"] .prayer-form-surface,
 :root[data-theme="dark"] .prayer-card-surface,
 :root[data-theme="dark"] .community-form-surface,
 :root[data-theme="dark"] .event-form-input,
 :root[data-theme="dark"] .prayer-form-input,
 :root[data-theme="dark"] .community-form-input {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .gallery-card-header,
+:root[data-theme="dark"] .gallery-card-frame {
   background: #1E1E1E;
 }
 

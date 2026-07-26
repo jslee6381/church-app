@@ -187,7 +187,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
       {canCompose ? (
         <div
           ref={composerRef}
-          className="event-form-surface rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="gallery-form-surface rounded-[18px] border border-border/80 p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex items-center justify-center">
             <button
@@ -265,13 +265,13 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
       <div className="space-y-4">
         {posts.length === 0 ? (
-          <article className="study-video-surface rounded-[18px] border border-border/80 bg-card px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+          <article className="gallery-card-surface rounded-[18px] border border-border/80 px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="ui-text m-0 text-center text-muted-foreground">No gallery posts yet</p>
           </article>
         ) : (
           posts.map((item) => (
             <article
-              className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] dark:bg-[linear-gradient(180deg,rgba(31,29,27,0.96),rgba(24,22,21,0.94))]"
+              className="gallery-card-surface relative overflow-hidden rounded-[18px] border border-border/80 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
               key={item.id}
             >
               {canCompose && editingId !== item.id ? (
@@ -310,7 +310,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 </div>
               ) : null}
 
-              <div className="bg-white/95 p-4 dark:bg-[#1E1E1E]">
+              <div className="gallery-card-header p-4">
                 {editingId === item.id ? (
                   <form className="grid gap-3" onSubmit={handleSubmit}>
                     <div className="relative">
@@ -380,15 +380,15 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               </div>
 
               {editingId !== item.id ? (
-                <div className="overflow-hidden border-t border-border/70 bg-white/95 dark:bg-[#1E1E1E]">
+                <div className="gallery-card-frame relative overflow-hidden border-t border-border/70">
                   <iframe
                     allow="fullscreen"
                     className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
                     loading="lazy"
                     src={item.embedUrl}
-                    style={{ transform: "translateY(-72px)", height: "calc(100% + 72px)" }}
                     title={item.title}
                   />
+                  <div className="gallery-card-header pointer-events-none absolute inset-x-0 top-0 h-14" />
                 </div>
               ) : null}
             </article>
