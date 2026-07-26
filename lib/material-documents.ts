@@ -1,13 +1,10 @@
 import "server-only";
 
-import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { promisify } from "node:util";
-
-const execFileAsync = promisify(execFile);
+import { inflateRawSync } from "node:zlib";
 
 export type MaterialDocumentKind = "Question" | "Message Manuscript";
 
@@ -257,67 +254,106 @@ function isLegacyDocPath(filePath: string) {
   return filePath.toLowerCase().endsWith(".doc");
 }
 
-async function unzipFileEntry(tempPath: string, filePath: string) {
-  try {
-    const { stdout } = await execFileAsync("unzip", ["-p", tempPath, filePath], {
-      maxBuffer: 12 * 1024 * 1024,
-    });
-
-    return stdout;
-  } catch {
-    return "";
-  }
+function readUInt16(buffer: Buffer, offset: number) {
+  return buffer.readUInt16LE(offset);
 }
 
-async function extractMarkupWithTextutil(tempPath: string) {
-  try {
-    const { stdout } = await execFileAsync("/usr/bin/textutil", ["-convert", "html", "-stdout", tempPath], {
-      maxBuffer: 16 * 1024 * 1024,
-    });
-
-    const markup = extractHtmlBody(stdout);
-    return markup.length > 0 ? markup : null;
-  } catch {
-    return null;
-  }
+function readUInt32(buffer: Buffer, offset: number) {
+  return buffer.readUInt32LE(offset);
 }
 
-async function extractDocxMarkupFromPath(tempPath: string, kind: MaterialDocumentKind) {
+function extractZipEntry(buffer: Buffer, targetPath: string) {
+  const targetBytes = Buffer.from(targetPath, "utf8");
+  const eocdSignature = 0x06054b50;
+  const centralSignature = 0x02014b50;
+  const localSignature = 0x04034b50;
+
+  for (let i = buffer.length - 22; i >= 0; i -= 1) {
+    if (readUInt32(buffer, i) !== eocdSignature) {
+      continue;
+    }
+
+    const centralDirectoryOffset = readUInt32(buffer, i + 16);
+    const totalEntries = readUInt16(buffer, i + 10);
+    let offset = centralDirectoryOffset;
+
+    for (let entryIndex = 0; entryIndex < totalEntries; entryIndex += 1) {
+      if (readUInt32(buffer, offset) !== centralSignature) {
+        return null;
+      }
+
+      const compressionMethod = readUInt16(buffer, offset + 10);
+      const compressedSize = readUInt32(buffer, offset + 20);
+      const fileNameLength = readUInt16(buffer, offset + 28);
+      const extraLength = readUInt16(buffer, offset + 30);
+      const commentLength = readUInt16(buffer, offset + 32);
+      const localHeaderOffset = readUInt32(buffer, offset + 42);
+      const fileNameStart = offset + 46;
+      const fileNameEnd = fileNameStart + fileNameLength;
+      const fileNameBytes = buffer.subarray(fileNameStart, fileNameEnd);
+
+      if (fileNameBytes.equals(targetBytes)) {
+        if (readUInt32(buffer, localHeaderOffset) !== localSignature) {
+          return null;
+        }
+
+        const localFileNameLength = readUInt16(buffer, localHeaderOffset + 26);
+        const localExtraLength = readUInt16(buffer, localHeaderOffset + 28);
+        const dataStart = localHeaderOffset + 30 + localFileNameLength + localExtraLength;
+        const dataEnd = dataStart + compressedSize;
+        const compressed = buffer.subarray(dataStart, dataEnd);
+
+        if (compressionMethod === 0) {
+          return compressed.toString("utf8");
+        }
+
+        if (compressionMethod === 8) {
+          return inflateRawSync(compressed).toString("utf8");
+        }
+
+        return null;
+      }
+
+      offset = fileNameEnd + extraLength + commentLength;
+    }
+  }
+
+  return null;
+}
+
+function extractDocxMarkupFromBuffer(buffer: Buffer, kind: MaterialDocumentKind) {
   try {
-    if (isLegacyDocPath(tempPath)) {
-      return await extractMarkupWithTextutil(tempPath);
+    const documentXml = extractZipEntry(buffer, "word/document.xml");
+    const numberingXml = extractZipEntry(buffer, "word/numbering.xml") ?? "";
+    if (!documentXml) {
+      return null;
     }
 
     if (kind === "Message Manuscript") {
-      const textutilMarkup = await extractMarkupWithTextutil(tempPath);
-
-      if (textutilMarkup) {
-        return textutilMarkup;
+      const extracted = extractDocumentMarkup(documentXml, numberingXml);
+      if (extracted.length > 0) {
+        return extracted;
       }
-    }
-
-    const [documentXml, numberingXml] = await Promise.all([
-      unzipFileEntry(tempPath, "word/document.xml"),
-      unzipFileEntry(tempPath, "word/numbering.xml"),
-    ]);
-
-    if (!documentXml) {
-      return await extractMarkupWithTextutil(tempPath);
+      return null;
     }
 
     const extracted = extractDocumentMarkup(documentXml, numberingXml);
     if (extracted.length > 0) {
       return extracted;
     }
-
-    return await extractMarkupWithTextutil(tempPath);
   } catch {
-    return await extractMarkupWithTextutil(tempPath);
+    return null;
   }
+
+  return null;
 }
 
 export async function extractDocxTextFromFile(file: File, kind: MaterialDocumentKind) {
   if (!isSupportedWordFile(file) || file.size === 0) {
+    return null;
+  }
+
+  if (file.name.toLowerCase().endsWith(".doc") || file.type === "application/msword") {
     return null;
   }
 
@@ -326,7 +362,7 @@ export async function extractDocxTextFromFile(file: File, kind: MaterialDocument
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(tempPath, buffer);
-    return await extractDocxMarkupFromPath(tempPath, kind);
+    return extractDocxMarkupFromBuffer(buffer, kind);
   } finally {
     await rm(tempPath, { force: true }).catch(() => undefined);
   }
@@ -347,8 +383,9 @@ export async function extractDocxTextFromUrl(url: string, kind: MaterialDocument
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    await writeFile(tempPath, Buffer.from(arrayBuffer));
-    return await extractDocxMarkupFromPath(tempPath, kind);
+    const buffer = Buffer.from(arrayBuffer);
+    await writeFile(tempPath, buffer);
+    return extractDocxMarkupFromBuffer(buffer, kind);
   } finally {
     await rm(tempPath, { force: true }).catch(() => undefined);
   }
