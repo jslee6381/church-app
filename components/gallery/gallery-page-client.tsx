@@ -383,9 +383,10 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 <div className="overflow-hidden border-t border-border/70 bg-white/95 dark:bg-[#1E1E1E]">
                   <iframe
                     allow="fullscreen"
-                    className="-mt-14 block h-[316px] w-full border-0 bg-background sm:h-[356px]"
+                    className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
                     loading="lazy"
                     src={item.embedUrl}
+                    style={{ transform: "translateY(-72px)", height: "calc(100% + 72px)" }}
                     title={item.title}
                   />
                 </div>
