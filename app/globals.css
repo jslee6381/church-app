@@ -865,6 +865,10 @@ h2 {
   background: rgba(255, 255, 255, 0.95);
 }
 
+:root[data-theme="light"] .material-action-button {
+  color: #ffffff;
+}
+
 :root[data-theme="dark"] .announcement-card-surface {
   background: #1E1E1E;
 }
@@ -910,6 +914,10 @@ h2 {
 
 :root[data-theme="dark"] .material-frame-surface {
   background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .material-action-button {
+  color: #000000;
 }
 
 :root[data-theme="dark"] .prayer-composer-shell {

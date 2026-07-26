@@ -1,8 +1,9 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle, MoreVertical, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, Plus, X } from "lucide-react";
 
 type GalleryImageItem = {
   id: string;
@@ -41,6 +42,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
   const router = useRouter();
   const composerRef = useRef<HTMLDivElement | null>(null);
   const menuAreaRef = useRef<HTMLDivElement | null>(null);
+  const lightboxTouchStartXRef = useRef<number | null>(null);
   const [posts, setPosts] = useState(initialPosts);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -50,10 +52,16 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setPosts(initialPosts);
   }, [initialPosts]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!isComposerOpen) {
@@ -88,6 +96,52 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
     };
   }, [openMenuPostId]);
 
+  useEffect(() => {
+    if (!lightboxState) {
+      document.body.style.removeProperty("overflow");
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setLightboxState(null);
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        setLightboxState((current) =>
+          current
+            ? {
+                ...current,
+                index: current.index === 0 ? current.imageUrls.length - 1 : current.index - 1,
+              }
+            : current,
+        );
+      }
+
+      if (event.key === "ArrowRight") {
+        setLightboxState((current) =>
+          current
+            ? {
+                ...current,
+                index: current.index === current.imageUrls.length - 1 ? 0 : current.index + 1,
+              }
+            : current,
+        );
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightboxState]);
+
   function resetForm() {
     setTitle("");
     setBody("");
@@ -109,6 +163,58 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
     setBody(item.body ?? "");
     setDriveLink(item.driveLink);
     setOpenMenuPostId(null);
+  }
+
+  function openLightbox(imageUrls: string[], index: number) {
+    setLightboxState({ imageUrls, index });
+  }
+
+  function showPreviousLightboxImage() {
+    setLightboxState((current) =>
+      current
+        ? {
+            ...current,
+            index: current.index === 0 ? current.imageUrls.length - 1 : current.index - 1,
+          }
+        : current,
+    );
+  }
+
+  function showNextLightboxImage() {
+    setLightboxState((current) =>
+      current
+        ? {
+            ...current,
+            index: current.index === current.imageUrls.length - 1 ? 0 : current.index + 1,
+          }
+        : current,
+    );
+  }
+
+  function handleLightboxTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    lightboxTouchStartXRef.current = event.touches[0]?.clientX ?? null;
+  }
+
+  function handleLightboxTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    if (lightboxTouchStartXRef.current === null || !lightboxState || lightboxState.imageUrls.length < 2) {
+      lightboxTouchStartXRef.current = null;
+      return;
+    }
+
+    const endX = event.changedTouches[0]?.clientX ?? lightboxTouchStartXRef.current;
+    const deltaX = endX - lightboxTouchStartXRef.current;
+    lightboxTouchStartXRef.current = null;
+
+    if (Math.abs(deltaX) < 36) {
+      return;
+    }
+
+    if (deltaX > 0) {
+      showPreviousLightboxImage();
+      return;
+    }
+
+    showNextLightboxImage();
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -392,23 +498,26 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 item.images.length > 0 ? (
                   <div className="mt-4">
                     <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
-                      {item.images.map((image, index) => (
-                        <a
-                          className="block min-w-[88%] snap-center overflow-hidden rounded-[16px] sm:min-w-[380px]"
-                          href={image.viewUrl}
-                          key={image.id}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          <img
-                            alt={`${item.title} photo ${index + 1}`}
-                            className="block h-[220px] w-full object-cover sm:h-[240px]"
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                            src={image.imageUrl}
-                          />
-                        </a>
-                      ))}
+                      {(() => {
+                        const imageUrls = item.images.map((image) => image.imageUrl);
+
+                        return item.images.map((image, index) => (
+                          <button
+                            className="block min-w-[88%] snap-center overflow-hidden rounded-[16px] sm:min-w-[380px]"
+                            key={image.id}
+                            onClick={() => openLightbox(imageUrls, index)}
+                            type="button"
+                          >
+                            <img
+                              alt={`${item.title} photo ${index + 1}`}
+                              className="block h-[220px] w-full object-cover sm:h-[240px]"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                              src={image.imageUrl}
+                            />
+                          </button>
+                        ));
+                      })()}
                     </div>
                   </div>
                 ) : (
@@ -421,6 +530,73 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
           ))
         )}
       </div>
+      {isClient && lightboxState
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[100] bg-black"
+              onClick={() => setLightboxState(null)}
+            >
+              <div className="absolute right-3 top-3 z-20">
+                <button
+                  aria-label="Close image viewer"
+                  className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 text-white"
+                  onClick={() => setLightboxState(null)}
+                  type="button"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <div
+                className="relative flex h-screen w-screen items-center justify-center px-0 py-16"
+                onClick={(event) => event.stopPropagation()}
+                onTouchEnd={handleLightboxTouchEnd}
+                onTouchStart={handleLightboxTouchStart}
+              >
+                {lightboxState.imageUrls.length > 1 ? (
+                  <button
+                    aria-label="Previous image"
+                    className="absolute left-1 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    onClick={showPreviousLightboxImage}
+                    type="button"
+                  >
+                    <ChevronLeft className="size-5" />
+                  </button>
+                ) : null}
+                <div className="flex h-full w-full items-center justify-center">
+                  <img
+                    alt={`Expanded gallery image ${lightboxState.index + 1}`}
+                    className="block max-h-full max-w-full object-contain object-center"
+                    src={lightboxState.imageUrls[lightboxState.index]}
+                  />
+                </div>
+                {lightboxState.imageUrls.length > 1 ? (
+                  <button
+                    aria-label="Next image"
+                    className="absolute right-1 top-1/2 z-10 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white"
+                    onClick={showNextLightboxImage}
+                    type="button"
+                  >
+                    <ChevronRight className="size-5" />
+                  </button>
+                ) : null}
+                {lightboxState.imageUrls.length > 1 ? (
+                  <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center justify-center gap-2">
+                    {lightboxState.imageUrls.map((_, index) => (
+                      <span
+                        key={`gallery-lightbox-dot-${index}`}
+                        aria-hidden="true"
+                        className={`size-2 rounded-full ${
+                          lightboxState.index === index ? "bg-white" : "bg-white/30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }

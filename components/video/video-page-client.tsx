@@ -827,7 +827,7 @@ function MaterialSection({
                 <div className={`mt-4 grid gap-2 ${actionCount > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
                   {item.questionDocUrl ? (
                     <Link
-                      className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
+                      className="material-action-button flex min-h-[52px] items-center justify-center rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
                       href={getDocumentViewerHref(item.id, "Question", passageReference)}
                     >
                       <span className="ui-text text-xs font-semibold leading-4">Question</span>
@@ -836,10 +836,10 @@ function MaterialSection({
 
                   {item.manuscriptDocUrl ? (
                     <Link
-                      className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
+                      className="material-action-button flex min-h-[52px] items-center justify-center rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
                       href={getDocumentViewerHref(item.id, "Message Manuscript")}
                     >
-                      <span className="ui-text text-xs font-semibold leading-4">Message</span>
+                      <span className="ui-text text-xs font-semibold leading-4">Manuscript</span>
                     </Link>
                   ) : null}
                 </div>
