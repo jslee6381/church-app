@@ -186,7 +186,7 @@ function extractParagraphText(paragraphXml: string) {
 }
 
 function formatTwipsToRem(value: number) {
-  return `${(value / 1440) * 1.45}rem`;
+  return `${value / 240}rem`;
 }
 
 function extractParagraphStyles(paragraphXml: string, hasPrefix: boolean) {
