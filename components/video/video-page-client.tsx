@@ -577,7 +577,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 </label>
               </div>
 
-              <div className="grid gap-3 rounded-[18px] border border-border/80 bg-white/70 p-4">
+              <div className="event-form-input grid gap-3 rounded-[18px] border border-border/80 bg-white/70 p-4">
                 <div className="flex items-center gap-2">
                   <BookOpen className="size-4 text-muted-foreground" />
                   <span className="ui-text text-sm font-semibold text-foreground">Passage</span>
