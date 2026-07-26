@@ -27,6 +27,46 @@ type ParsedLine = {
   indentLevel: number;
 };
 
+type DOMMatrixLike = {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+  scaleSelf(scaleX: number, scaleY?: number): DOMMatrixLike;
+  translateSelf(translateX?: number, translateY?: number): DOMMatrixLike;
+};
+
+function ensureDomMatrixPolyfill() {
+  if (typeof globalThis.DOMMatrix !== "undefined") {
+    return;
+  }
+
+  class SimpleDOMMatrix implements DOMMatrixLike {
+    a = 1;
+    b = 0;
+    c = 0;
+    d = 1;
+    e = 0;
+    f = 0;
+
+    scaleSelf(scaleX: number, scaleY = scaleX) {
+      this.a *= scaleX;
+      this.d *= scaleY;
+      return this;
+    }
+
+    translateSelf(translateX = 0, translateY = 0) {
+      this.e += translateX;
+      this.f += translateY;
+      return this;
+    }
+  }
+
+  globalThis.DOMMatrix = SimpleDOMMatrix as typeof DOMMatrix;
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -152,6 +192,7 @@ function renderMarkup(lines: ParsedLine[], kind: MaterialDocumentKind) {
 
 export async function extractPdfDocumentMarkupFromFile(file: File, kind: MaterialDocumentKind) {
   const arrayBuffer = await file.arrayBuffer();
+  ensureDomMatrixPolyfill();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const document = await pdfjs.getDocument({
     data: new Uint8Array(arrayBuffer),
