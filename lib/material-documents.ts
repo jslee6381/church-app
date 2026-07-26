@@ -44,6 +44,15 @@ function normalizeDocumentMarkup(value: string) {
   return value.trim();
 }
 
+function extractHtmlBody(html: string) {
+  const styleBlocks = Array.from(html.matchAll(/<style[^>]*>[\s\S]*?<\/style>/gi))
+    .map((match) => match[0])
+    .join("\n");
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  const bodyContent = bodyMatch?.[1] ?? html;
+  return normalizeDocumentMarkup(`${styleBlocks}${bodyContent}`);
+}
+
 function parseNumberingXml(xml: string) {
   const abstractLevels = new Map<string, Map<number, NumberingLevel>>();
   const abstractNums = Array.from(xml.matchAll(/<w:abstractNum\b[\s\S]*?<\/w:abstractNum>/g)).map((match) => match[0]);
@@ -232,9 +241,18 @@ function extractDocumentMarkup(documentXml: string, numberingXml: string) {
   return normalizeDocumentMarkup(rendered);
 }
 
-function isDocxFile(file: File) {
+function isSupportedWordFile(file: File) {
   const lowerName = file.name.toLowerCase();
-  return lowerName.endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  return (
+    lowerName.endsWith(".docx") ||
+    lowerName.endsWith(".doc") ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.type === "application/msword"
+  );
+}
+
+function isLegacyDocPath(filePath: string) {
+  return filePath.toLowerCase().endsWith(".doc");
 }
 
 async function unzipFileEntry(tempPath: string, filePath: string) {
@@ -249,26 +267,47 @@ async function unzipFileEntry(tempPath: string, filePath: string) {
   }
 }
 
+async function extractMarkupWithTextutil(tempPath: string) {
+  try {
+    const { stdout } = await execFileAsync("/usr/bin/textutil", ["-convert", "html", "-stdout", tempPath], {
+      maxBuffer: 16 * 1024 * 1024,
+    });
+
+    const markup = extractHtmlBody(stdout);
+    return markup.length > 0 ? markup : null;
+  } catch {
+    return null;
+  }
+}
+
 async function extractDocxMarkupFromPath(tempPath: string) {
   try {
+    if (isLegacyDocPath(tempPath)) {
+      return await extractMarkupWithTextutil(tempPath);
+    }
+
     const [documentXml, numberingXml] = await Promise.all([
       unzipFileEntry(tempPath, "word/document.xml"),
       unzipFileEntry(tempPath, "word/numbering.xml"),
     ]);
 
     if (!documentXml) {
-      return null;
+      return await extractMarkupWithTextutil(tempPath);
     }
 
     const extracted = extractDocumentMarkup(documentXml, numberingXml);
-    return extracted.length > 0 ? extracted : null;
+    if (extracted.length > 0) {
+      return extracted;
+    }
+
+    return await extractMarkupWithTextutil(tempPath);
   } catch {
-    return null;
+    return await extractMarkupWithTextutil(tempPath);
   }
 }
 
 export async function extractDocxTextFromFile(file: File) {
-  if (!isDocxFile(file) || file.size === 0) {
+  if (!isSupportedWordFile(file) || file.size === 0) {
     return null;
   }
 

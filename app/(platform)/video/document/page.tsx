@@ -64,7 +64,7 @@ export default async function MaterialDocumentPage({
         <div className="pb-10">
           {documentText ? (
             <div
-              className="space-y-4 [&_.ui-text]:font-inherit [&_table]:rounded-none [&_td]:bg-transparent"
+              className="space-y-4 [&_.ui-text]:font-inherit [&_br]:block [&_br]:content-[''] [&_div]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap [&_p]:whitespace-pre-wrap [&_span]:whitespace-pre-wrap [&_table]:rounded-none [&_td]:bg-transparent [&_td]:whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: documentText }}
             />
           ) : (
