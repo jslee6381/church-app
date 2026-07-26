@@ -705,7 +705,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
         <MaterialSection canCompose={canCompose} deletingId={deletingId} items={pastPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Past Bible Study" />
 
         {upcomingPosts.length === 0 && pastPosts.length === 0 ? (
-          <article className="study-video-surface rounded-[18px] border border-border/80 bg-card px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
+          <article className="material-card-surface rounded-[18px] border border-border/80 px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="ui-text m-0 text-center text-muted-foreground">No materials yet</p>
           </article>
         ) : null}
@@ -751,7 +751,7 @@ function MaterialSection({
 
         return (
           <article
-            className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-card shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            className="material-card-surface relative overflow-hidden rounded-[18px] border border-border/80 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
             key={item.id}
           >
             {canCompose ? (
@@ -767,8 +767,7 @@ function MaterialSection({
                   </button>
                   {openMenuPostId === item.id ? (
                     <div
-                      className="absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border shadow-[0_10px_24px_rgba(68,52,35,0.08)]"
-                      style={{ background: "var(--paper-strong)" }}
+                      className="menu-surface absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border shadow-[0_10px_24px_rgba(68,52,35,0.08)]"
                     >
                       <button
                         className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
@@ -809,7 +808,7 @@ function MaterialSection({
 
               {item.watchUrl && item.thumbnailUrl ? (
                 <a
-                  className="mt-4 block overflow-hidden rounded-[16px] border border-border/70 bg-card"
+                  className="material-frame-surface mt-4 block overflow-hidden rounded-[16px] border border-border/70"
                   href={item.watchUrl}
                   rel="noreferrer"
                   target="_blank"

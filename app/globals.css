@@ -852,8 +852,16 @@ h2 {
   background: linear-gradient(180deg, rgba(255, 254, 251, 0.96), rgba(255, 252, 247, 0.9));
 }
 
+:root[data-theme="light"] .material-card-surface {
+  background: linear-gradient(180deg, rgba(255, 254, 251, 0.96), rgba(255, 252, 247, 0.9));
+}
+
 :root[data-theme="light"] .gallery-card-header,
 :root[data-theme="light"] .gallery-card-frame {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="light"] .material-frame-surface {
   background: rgba(255, 255, 255, 0.95);
 }
 
@@ -883,6 +891,7 @@ h2 {
 :root[data-theme="dark"] .event-surface-sub,
 :root[data-theme="dark"] .event-card-surface,
 :root[data-theme="dark"] .gallery-card-surface,
+:root[data-theme="dark"] .material-card-surface,
 :root[data-theme="dark"] .event-form-surface,
 :root[data-theme="dark"] .gallery-form-surface,
 :root[data-theme="dark"] .prayer-form-surface,
@@ -896,6 +905,10 @@ h2 {
 
 :root[data-theme="dark"] .gallery-card-header,
 :root[data-theme="dark"] .gallery-card-frame {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .material-frame-surface {
   background: #1E1E1E;
 }
 
