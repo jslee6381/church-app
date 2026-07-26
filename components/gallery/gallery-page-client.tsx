@@ -319,7 +319,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 </div>
               ) : null}
 
-              <div className="gallery-card-header pr-12">
+              <div className="pr-12">
                 {editingId === item.id ? (
                   <form className="grid gap-3" onSubmit={handleSubmit}>
                     <div className="relative">
@@ -390,11 +390,11 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
               {editingId !== item.id ? (
                 item.images.length > 0 ? (
-                  <div className="gallery-card-frame mt-4">
+                  <div className="mt-4">
                     <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
                       {item.images.map((image, index) => (
                         <a
-                          className="block min-w-[84%] snap-center overflow-hidden rounded-[16px] border border-border/70 bg-white/80 dark:bg-[#232323] sm:min-w-[340px]"
+                          className="block min-w-[88%] snap-center overflow-hidden rounded-[16px] sm:min-w-[380px]"
                           href={image.viewUrl}
                           key={image.id}
                           rel="noreferrer"
@@ -412,7 +412,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="gallery-card-frame mt-4 py-2">
+                  <div className="mt-4 py-2">
                     <p className="ui-text m-0 text-center text-muted-foreground">Unable to load gallery images right now.</p>
                   </div>
                 )
