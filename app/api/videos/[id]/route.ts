@@ -103,11 +103,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const passageVerses = await fetchPassageVerses(passageReference);
     const questionDocText =
       questionDocument instanceof File && questionDocument.size > 0
-        ? await extractDocxTextFromFile(questionDocument)
+        ? await extractDocxTextFromFile(questionDocument, "Question")
         : null;
     const manuscriptDocText =
       manuscriptDocument instanceof File && manuscriptDocument.size > 0
-        ? await extractDocxTextFromFile(manuscriptDocument)
+        ? await extractDocxTextFromFile(manuscriptDocument, "Message Manuscript")
         : null;
 
     if (!hasAdminEnvironment()) {

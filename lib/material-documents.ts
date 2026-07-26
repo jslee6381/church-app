@@ -9,6 +9,8 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
+export type MaterialDocumentKind = "Question" | "Message Manuscript";
+
 type NumberingLevel = {
   format: string;
 };
@@ -280,10 +282,18 @@ async function extractMarkupWithTextutil(tempPath: string) {
   }
 }
 
-async function extractDocxMarkupFromPath(tempPath: string) {
+async function extractDocxMarkupFromPath(tempPath: string, kind: MaterialDocumentKind) {
   try {
     if (isLegacyDocPath(tempPath)) {
       return await extractMarkupWithTextutil(tempPath);
+    }
+
+    if (kind === "Message Manuscript") {
+      const textutilMarkup = await extractMarkupWithTextutil(tempPath);
+
+      if (textutilMarkup) {
+        return textutilMarkup;
+      }
     }
 
     const [documentXml, numberingXml] = await Promise.all([
@@ -306,7 +316,7 @@ async function extractDocxMarkupFromPath(tempPath: string) {
   }
 }
 
-export async function extractDocxTextFromFile(file: File) {
+export async function extractDocxTextFromFile(file: File, kind: MaterialDocumentKind) {
   if (!isSupportedWordFile(file) || file.size === 0) {
     return null;
   }
@@ -316,13 +326,13 @@ export async function extractDocxTextFromFile(file: File) {
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     await writeFile(tempPath, buffer);
-    return await extractDocxMarkupFromPath(tempPath);
+    return await extractDocxMarkupFromPath(tempPath, kind);
   } finally {
     await rm(tempPath, { force: true }).catch(() => undefined);
   }
 }
 
-export async function extractDocxTextFromUrl(url: string) {
+export async function extractDocxTextFromUrl(url: string, kind: MaterialDocumentKind) {
   if (!url.trim()) {
     return null;
   }
@@ -338,7 +348,7 @@ export async function extractDocxTextFromUrl(url: string) {
 
     const arrayBuffer = await response.arrayBuffer();
     await writeFile(tempPath, Buffer.from(arrayBuffer));
-    return await extractDocxMarkupFromPath(tempPath);
+    return await extractDocxMarkupFromPath(tempPath, kind);
   } finally {
     await rm(tempPath, { force: true }).catch(() => undefined);
   }

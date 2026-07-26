@@ -7,13 +7,11 @@ import {
   BookOpen,
   CalendarDays,
   ExternalLink,
-  FileText,
   LoaderCircle,
   MoreVertical,
   Plus,
   Upload,
   UserRound,
-  X,
 } from "lucide-react";
 
 import { BIBLE_BOOKS, formatPassageRange, getBibleBook } from "@/lib/bible";
@@ -691,6 +689,7 @@ function MaterialSection({
 
       {items.map((item) => {
         const passageReference = getPassageReference(item);
+        const actionCount = Number(Boolean(item.questionDocUrl)) + Number(Boolean(item.manuscriptDocUrl));
 
         return (
           <article
@@ -764,35 +763,27 @@ function MaterialSection({
                 </a>
               ) : null}
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                {item.questionDocUrl ? (
-                  <Link
-                    className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
-                    href={getDocumentViewerHref(item.id, "Question", passageReference)}
-                  >
-                    <span className="ui-text text-xs font-semibold leading-4">Question</span>
-                  </Link>
-                ) : (
-                  <div className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-dashed border-input bg-white px-3 py-2 text-center text-muted-foreground">
-                    <X className="size-5" />
-                    <span className="ui-text text-xs font-semibold leading-4">Question</span>
-                  </div>
-                )}
+              {actionCount > 0 ? (
+                <div className={`mt-4 grid gap-2 ${actionCount > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                  {item.questionDocUrl ? (
+                    <Link
+                      className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
+                      href={getDocumentViewerHref(item.id, "Question", passageReference)}
+                    >
+                      <span className="ui-text text-xs font-semibold leading-4">Question</span>
+                    </Link>
+                  ) : null}
 
-                {item.manuscriptDocUrl ? (
-                  <Link
-                    className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
-                    href={getDocumentViewerHref(item.id, "Message Manuscript")}
-                  >
-                    <span className="ui-text text-xs font-semibold leading-4">Message</span>
-                  </Link>
-                ) : (
-                  <div className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-dashed border-input bg-white px-3 py-2 text-center text-muted-foreground">
-                    <X className="size-5" />
-                    <span className="ui-text text-xs font-semibold leading-4">Message</span>
-                  </div>
-                )}
-              </div>
+                  {item.manuscriptDocUrl ? (
+                    <Link
+                      className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
+                      href={getDocumentViewerHref(item.id, "Message Manuscript")}
+                    >
+                      <span className="ui-text text-xs font-semibold leading-4">Message</span>
+                    </Link>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </article>
         );

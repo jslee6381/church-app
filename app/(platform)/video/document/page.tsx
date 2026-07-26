@@ -4,7 +4,7 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { PassagePreview } from "@/components/video/passage-preview";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getDefaultChurchId } from "@/lib/church-context";
-import { getVideoPostById } from "@/lib/videos";
+import { ensureVideoPostDocumentText, getVideoPostById } from "@/lib/videos";
 
 type SearchParams = Promise<{
   kind?: string;
@@ -37,9 +37,9 @@ export default async function MaterialDocumentPage({
   }
 
   const documentText = kind === "Question"
-    ? materialPost.questionDocText ?? null
+    ? materialPost.questionDocText ?? (churchId ? await ensureVideoPostDocumentText(postId, churchId, "Question") : null)
     : kind === "Message Manuscript"
-      ? materialPost.manuscriptDocText ?? null
+      ? materialPost.manuscriptDocText ?? (churchId ? await ensureVideoPostDocumentText(postId, churchId, "Message Manuscript") : null)
       : null;
 
   return (

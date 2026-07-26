@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { BibleVerse } from "@/lib/bible";
+import { extractDocxTextFromUrl } from "@/lib/material-documents";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { getYouTubeThumbnailUrl, getYouTubeWatchUrl } from "@/lib/youtube";
 
@@ -129,6 +130,74 @@ export async function getVideoPostById(postId: string, churchId?: string | null)
       manuscriptDocText: data.manuscript_doc_text ?? null,
       createdAt: data.created_at ?? null,
     };
+  } catch {
+    return null;
+  }
+}
+
+export async function ensureVideoPostDocumentText(
+  postId: string,
+  churchId: string,
+  kind: "Question" | "Message Manuscript",
+) {
+  if (!hasAdminEnvironment()) {
+    return null;
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("video_posts")
+      .select("id, church_id, question_doc_url, question_doc_text, manuscript_doc_url, manuscript_doc_text")
+      .eq("id", postId)
+      .eq("church_id", churchId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    if (kind === "Question") {
+      if (data.question_doc_text) {
+        return data.question_doc_text;
+      }
+
+      if (!data.question_doc_url) {
+        return null;
+      }
+
+      const extracted = await extractDocxTextFromUrl(data.question_doc_url, "Question");
+
+      if (extracted) {
+        await admin
+          .from("video_posts")
+          .update({ question_doc_text: extracted })
+          .eq("id", postId)
+          .eq("church_id", churchId);
+      }
+
+      return extracted;
+    }
+
+    if (data.manuscript_doc_text) {
+      return data.manuscript_doc_text;
+    }
+
+    if (!data.manuscript_doc_url) {
+      return null;
+    }
+
+    const extracted = await extractDocxTextFromUrl(data.manuscript_doc_url, "Message Manuscript");
+
+    if (extracted) {
+      await admin
+        .from("video_posts")
+        .update({ manuscript_doc_text: extracted })
+        .eq("id", postId)
+        .eq("church_id", churchId);
+    }
+
+    return extracted;
   } catch {
     return null;
   }
