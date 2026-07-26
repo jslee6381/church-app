@@ -599,14 +599,14 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript PDF</span>
+                  <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript DOCX</span>
                   <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
                     <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                       <Upload className="size-4" />
-                      <span className="block min-w-0 truncate">{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a PDF file"}</span>
+                      <span className="block min-w-0 truncate">{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
                     </div>
                     <input
-                      accept=".pdf,application/pdf"
+                      accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       className="mt-3 block w-full text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/12 file:px-3 file:py-2 file:font-semibold file:text-primary"
                       onChange={(event) => setManuscriptDocument(event.target.files?.[0] ?? null)}
                       type="file"

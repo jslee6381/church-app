@@ -20,6 +20,8 @@ export const ALLOWED_IMAGE_TYPES = [
 ] as const;
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
 ] as const;
 
 const EXTENSION_BY_TYPE: Record<(typeof ALLOWED_IMAGE_TYPES)[number], string> = {
@@ -43,10 +45,14 @@ const EXTENSION_BY_FILENAME = {
 } as const;
 const DOCUMENT_EXTENSION_BY_TYPE: Record<(typeof ALLOWED_DOCUMENT_TYPES)[number], string> = {
   "application/pdf": "pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/msword": "doc",
 };
 
 const DOCUMENT_EXTENSION_BY_FILENAME = {
   ".pdf": "pdf",
+  ".docx": "docx",
+  ".doc": "doc",
 } as const;
 
 function getNormalizedExtension(file: File) {
@@ -92,7 +98,7 @@ export function validateDocumentFile(file: File) {
   const normalizedMime = DOCUMENT_EXTENSION_BY_TYPE[file.type as keyof typeof DOCUMENT_EXTENSION_BY_TYPE];
 
   if (!normalizedExtension && !normalizedMime) {
-    throw new Error("Please upload a PDF file.");
+    throw new Error("Please upload a PDF or DOCX file.");
   }
 
   if (file.size > MAX_DOCUMENT_UPLOAD_BYTES) {
@@ -198,7 +204,9 @@ export async function uploadPublicDocument(file: File, folder: "materials/questi
   const contentType =
     extension === "pdf"
       ? "application/pdf"
-      : "application/octet-stream";
+      : extension === "docx"
+        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        : "application/msword";
 
   const admin = createAdminClient();
   const filePath = `${folder}/${new Date().getUTCFullYear()}/${randomUUID()}.${extension}`;

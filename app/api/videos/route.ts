@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { fetchPassageVerses, getBibleBook, formatPassageRange } from "@/lib/bible";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
+import { extractDocxTextFromFile } from "@/lib/material-documents";
 import { extractPdfDocumentMarkupFromFile } from "@/lib/material-pdf";
 import { uploadPublicDocument } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
@@ -31,6 +32,16 @@ function comparePassagePoints(
   }
 
   return startVerse - endVerse;
+}
+
+function isWordDocumentFile(file: File) {
+  const lowerName = file.name.toLowerCase();
+  return (
+    lowerName.endsWith(".docx") ||
+    lowerName.endsWith(".doc") ||
+    file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file.type === "application/msword"
+  );
 }
 
 export async function POST(request: Request) {
@@ -106,7 +117,9 @@ export async function POST(request: Request) {
         : null;
     const manuscriptDocText =
       manuscriptDocument instanceof File && manuscriptDocument.size > 0
-        ? await extractPdfDocumentMarkupFromFile(manuscriptDocument, "Message Manuscript")
+        ? isWordDocumentFile(manuscriptDocument)
+          ? await extractDocxTextFromFile(manuscriptDocument, "Message Manuscript")
+          : await extractPdfDocumentMarkupFromFile(manuscriptDocument, "Message Manuscript")
         : null;
 
     if (!hasAdminEnvironment()) {
