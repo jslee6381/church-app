@@ -73,7 +73,8 @@ function parseNumberingXml(xml: string) {
         continue;
       }
 
-      const formatValue = extractAttributeValue(levelXml, "w:val") ?? "decimal";
+      const formatMatch = levelXml.match(/<w:numFmt\b[^>]*w:val="([^"]+)"/);
+      const formatValue = formatMatch?.[1] ?? "decimal";
       levels.set(Number.parseInt(levelValue, 10), { format: formatValue });
     }
 
