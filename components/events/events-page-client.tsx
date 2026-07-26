@@ -1017,12 +1017,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                   <div className="mt-2 space-y-2 text-muted-foreground">
                     <p className="ui-text m-0 flex items-center gap-2">
                       <CalendarDays className="size-4 shrink-0 text-current" />
-                      <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.startsAt) : `${formatEasternEventDate(eventItem.startsAt)} · ${formatEasternEventTime(eventItem.startsAt)}`}</span>
+                      <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.startsAt) : `${formatEasternEventDate(eventItem.startsAt)} at ${formatEasternEventTime(eventItem.startsAt)}`}</span>
                     </p>
                     {eventItem.endsAt && (isAllDayEvent(eventItem) ? hasDifferentStartAndEndDate(eventItem) : true) ? (
                       <p className="ui-text m-0 flex items-center gap-2">
                         <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
-                        <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.endsAt) : `${formatEasternEventDate(eventItem.endsAt)} · ${formatEasternEventTime(eventItem.endsAt)}`}</span>
+                        <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.endsAt) : `${formatEasternEventDate(eventItem.endsAt)} at ${formatEasternEventTime(eventItem.endsAt)}`}</span>
                       </p>
                     ) : null}
                   </div>

@@ -58,7 +58,12 @@ export function FontSizeEditor() {
 
         <div className="mt-3 flex items-center justify-between text-xs font-semibold text-muted-foreground">
           {SIZE_STEPS.map((step) => (
-            <span key={step.label}>{step.label}</span>
+            <span
+              key={step.label}
+              style={{ fontSize: step.value }}
+            >
+              {step.label}
+            </span>
           ))}
         </div>
       </div>

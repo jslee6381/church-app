@@ -131,7 +131,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
               {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
                 <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                   <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
-                  <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} · ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
+                  <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} at ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
                 </p>
               ) : null}
               {currentEvent.locationName ? (
