@@ -69,9 +69,9 @@ export function PassagePreview({
   }, [isLoading, isOpen, reference, verses.length]);
 
   return (
-    <div className="rounded-[16px] border border-border/80 bg-background/70">
+    <div className="event-form-input rounded-[16px] border border-input bg-white">
       <button
-        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left"
+        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-foreground"
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
@@ -80,7 +80,7 @@ export function PassagePreview({
       </button>
 
       {isOpen ? (
-        <div className="border-t border-border/70 px-4 py-3">
+        <div className="border-t border-input px-4 py-3">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <LoaderCircle className="size-4 animate-spin" />
@@ -89,9 +89,9 @@ export function PassagePreview({
           ) : errorMessage ? (
             <p className="ui-text m-0 text-sm text-muted-foreground">{errorMessage}</p>
           ) : verses.length > 0 ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-4">
               {verses.map((verse) => (
-                <p className="ui-text m-0 text-sm leading-6 text-foreground" key={`${reference}-${verse.verse}`}>
+                <p className="ui-text m-0 whitespace-pre-wrap text-sm leading-7 text-foreground" key={`${reference}-${verse.verse}`}>
                   <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
                   {verse.text.trim()}
                 </p>

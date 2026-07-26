@@ -686,7 +686,7 @@ function MaterialSection({
   return (
     <section className="space-y-3">
       <div className="px-1">
-        <h2 className="ui-text m-0 text-sm font-semibold text-foreground">{title}</h2>
+        <p className="ui-text m-0 text-left text-foreground">{title}</p>
       </div>
 
       {items.map((item) => {
@@ -733,17 +733,17 @@ function MaterialSection({
 
             <div className="p-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground">
+                <span className="event-form-input inline-flex items-center gap-2 rounded-full border border-input bg-white px-3 py-1 text-xs font-semibold text-foreground">
                   <CalendarDays className="size-3.5" />
                   {formatMaterialDate(item.scheduledAt)}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground">
+                <span className="event-form-input inline-flex items-center gap-2 rounded-full border border-input bg-white px-3 py-1 text-xs font-semibold text-foreground">
                   <UserRound className="size-3.5" />
                   {item.messengerName}
                 </span>
               </div>
 
-              <div className="mt-4">
+              <div className="mt-4 pl-1">
                 <p className="ui-text m-0 text-sm font-semibold leading-6 text-foreground">{passageReference}</p>
               </div>
 
@@ -756,7 +756,7 @@ function MaterialSection({
                 >
                   <div className="relative overflow-hidden bg-background">
                     <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
-                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
+                    <span className="event-form-input absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-input bg-white px-3 py-1 text-xs font-semibold text-foreground">
                       <ExternalLink className="size-3.5" />
                       YouTube
                     </span>
@@ -764,51 +764,32 @@ function MaterialSection({
                 </a>
               ) : null}
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2">
                 {item.questionDocUrl ? (
                   <Link
-                    className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-border/80 bg-background px-3 py-3 text-center text-foreground"
+                    className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
                     href={getDocumentViewerHref(item.id, "Question", passageReference)}
                   >
-                    <FileText className="size-5 text-muted-foreground" />
                     <span className="ui-text text-xs font-semibold leading-4">Question</span>
                   </Link>
                 ) : (
-                  <div className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-dashed border-border/80 bg-background px-3 py-3 text-center text-muted-foreground">
+                  <div className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-dashed border-input bg-white px-3 py-2 text-center text-muted-foreground">
                     <X className="size-5" />
                     <span className="ui-text text-xs font-semibold leading-4">Question</span>
-                  </div>
-                )}
-
-                {item.watchUrl ? (
-                  <a
-                    className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-border/80 bg-background px-3 py-3 text-center text-foreground"
-                    href={item.watchUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <ExternalLink className="size-5 text-muted-foreground" />
-                    <span className="ui-text text-xs font-semibold leading-4">YouTube Video</span>
-                  </a>
-                ) : (
-                  <div className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-dashed border-border/80 bg-background px-3 py-3 text-center text-muted-foreground">
-                    <X className="size-5" />
-                    <span className="ui-text text-xs font-semibold leading-4">YouTube Video</span>
                   </div>
                 )}
 
                 {item.manuscriptDocUrl ? (
                   <Link
-                    className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-border/80 bg-background px-3 py-3 text-center text-foreground"
+                    className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-input bg-white px-3 py-2 text-center text-foreground"
                     href={getDocumentViewerHref(item.id, "Message Manuscript")}
                   >
-                    <FileText className="size-5 text-muted-foreground" />
-                    <span className="ui-text text-xs font-semibold leading-4">Message Manuscript</span>
+                    <span className="ui-text text-xs font-semibold leading-4">Message</span>
                   </Link>
                 ) : (
-                  <div className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[16px] border border-dashed border-border/80 bg-background px-3 py-3 text-center text-muted-foreground">
+                  <div className="event-form-input flex min-h-[52px] items-center justify-center rounded-[16px] border border-dashed border-input bg-white px-3 py-2 text-center text-muted-foreground">
                     <X className="size-5" />
-                    <span className="ui-text text-xs font-semibold leading-4">Message Manuscript</span>
+                    <span className="ui-text text-xs font-semibold leading-4">Message</span>
                   </div>
                 )}
               </div>

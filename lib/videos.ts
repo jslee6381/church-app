@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { BibleVerse } from "@/lib/bible";
+import { extractDocxTextFromUrl } from "@/lib/material-documents";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { getYouTubeThumbnailUrl, getYouTubeWatchUrl } from "@/lib/youtube";
 
@@ -105,6 +106,31 @@ export async function getVideoPostById(postId: string, churchId?: string | null)
 
     const thumbnailUrl = data.video_link ? getYouTubeThumbnailUrl(data.video_link) : null;
     const watchUrl = data.video_link ? getYouTubeWatchUrl(data.video_link) : null;
+    let questionDocText = data.question_doc_text ?? null;
+    let manuscriptDocText = data.manuscript_doc_text ?? null;
+
+    if (data.question_doc_url || data.manuscript_doc_url) {
+      const nextQuestionDocText = data.question_doc_url
+        ? await extractDocxTextFromUrl(data.question_doc_url)
+        : null;
+      const nextManuscriptDocText = data.manuscript_doc_url
+        ? await extractDocxTextFromUrl(data.manuscript_doc_url)
+        : null;
+
+      if (nextQuestionDocText !== questionDocText || nextManuscriptDocText !== manuscriptDocText) {
+        await admin
+          .from("video_posts")
+          .update({
+            question_doc_text: nextQuestionDocText,
+            manuscript_doc_text: nextManuscriptDocText,
+          })
+          .eq("id", postId)
+          .eq("church_id", churchId);
+
+        questionDocText = nextQuestionDocText;
+        manuscriptDocText = nextManuscriptDocText;
+      }
+    }
 
     return {
       id: data.id,
@@ -123,10 +149,10 @@ export async function getVideoPostById(postId: string, churchId?: string | null)
       watchUrl,
       questionDocUrl: data.question_doc_url ?? null,
       questionDocName: data.question_doc_name ?? null,
-      questionDocText: data.question_doc_text ?? null,
+      questionDocText,
       manuscriptDocUrl: data.manuscript_doc_url ?? null,
       manuscriptDocName: data.manuscript_doc_name ?? null,
-      manuscriptDocText: data.manuscript_doc_text ?? null,
+      manuscriptDocText,
       createdAt: data.created_at ?? null,
     };
   } catch {

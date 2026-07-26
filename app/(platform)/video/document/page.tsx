@@ -61,13 +61,12 @@ export default async function MaterialDocumentPage({
           <PassagePreview initialVerses={materialPost?.passageVerses ?? null} reference={reference} />
         ) : null}
 
-        <div className="space-y-4 pb-10">
+        <div className="pb-10">
           {documentText ? (
-            documentText.split(/\n{2,}/).map((paragraph: string, index: number) => (
-              <p className="ui-text m-0 whitespace-pre-wrap text-[15px] leading-7 text-foreground" key={`${kind}-${index}`}>
-                {paragraph}
-              </p>
-            ))
+            <div
+              className="space-y-4 [&_.ui-text]:font-inherit [&_table]:rounded-none [&_td]:bg-transparent"
+              dangerouslySetInnerHTML={{ __html: documentText }}
+            />
           ) : (
             <p className="ui-text m-0 text-sm text-muted-foreground">Document text is not available yet.</p>
           )}
