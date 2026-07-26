@@ -272,7 +272,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
         </div>
       ) : null}
 
-      <div className="space-y-4">
+      <div className="divide-y divide-border/70">
         {posts.length === 0 ? (
           <article className="gallery-card-surface rounded-[18px] border border-border/80 px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="ui-text m-0 text-center text-muted-foreground">No gallery posts yet</p>
@@ -280,11 +280,11 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
         ) : (
           posts.map((item) => (
             <article
-              className="gallery-card-surface relative overflow-hidden rounded-[18px] border border-border/80 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+              className="relative py-5"
               key={item.id}
             >
               {canCompose && editingId !== item.id ? (
-                <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-20">
+                <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-0 top-5 z-20">
                   <div className="relative">
                     <button
                       aria-label="Gallery post actions"
@@ -319,7 +319,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 </div>
               ) : null}
 
-              <div className="gallery-card-header p-4">
+              <div className="gallery-card-header pr-12">
                 {editingId === item.id ? (
                   <form className="grid gap-3" onSubmit={handleSubmit}>
                     <div className="relative">
@@ -390,7 +390,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
               {editingId !== item.id ? (
                 item.images.length > 0 ? (
-                  <div className="gallery-card-frame border-t border-border/70 px-4 py-4">
+                  <div className="gallery-card-frame mt-4">
                     <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
                       {item.images.map((image, index) => (
                         <a
@@ -412,7 +412,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="gallery-card-frame border-t border-border/70 px-4 py-6">
+                  <div className="gallery-card-frame mt-4 py-2">
                     <p className="ui-text m-0 text-center text-muted-foreground">Unable to load gallery images right now.</p>
                   </div>
                 )
