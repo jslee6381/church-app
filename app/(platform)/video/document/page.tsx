@@ -17,10 +17,6 @@ function getSafeString(value?: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getViewerUrl(sourceUrl: string) {
-  return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sourceUrl)}`;
-}
-
 export default async function MaterialDocumentPage({
   searchParams,
 }: {
@@ -45,6 +41,11 @@ export default async function MaterialDocumentPage({
     : kind === "Message Manuscript"
       ? materialPost.manuscriptDocUrl ?? null
       : null;
+  const documentMarkup = kind === "Question"
+    ? materialPost.questionDocText ?? null
+    : kind === "Message Manuscript"
+      ? materialPost.manuscriptDocText ?? null
+      : null;
 
   return (
     <main className="shell max-w-none py-6">
@@ -65,11 +66,13 @@ export default async function MaterialDocumentPage({
           <PassagePreview initialVerses={materialPost?.passageVerses ?? null} reference={reference} />
         ) : null}
 
-        <div className="-mx-4 pb-10 sm:-mx-5">
-          {sourceUrl ? (
+        <div className="pb-10">
+          {documentMarkup ? (
+            <div className="material-doc-view" dangerouslySetInnerHTML={{ __html: documentMarkup }} />
+          ) : sourceUrl ? (
             <iframe
-              className="min-h-[82vh] w-full border-0 bg-transparent"
-              src={getViewerUrl(sourceUrl)}
+              className="min-h-[88vh] w-full border-0 bg-transparent"
+              src={sourceUrl}
               title={kind}
             />
           ) : (
@@ -77,6 +80,75 @@ export default async function MaterialDocumentPage({
           )}
         </div>
       </section>
+
+      <style>{`
+        .material-doc-view {
+          width: 100%;
+        }
+
+        .material-doc-line {
+          margin: 0;
+          color: hsl(var(--foreground));
+          font-family: var(--font-ui, inherit);
+          font-size: 1.02rem;
+          line-height: 1.7;
+          white-space: normal;
+          word-break: keep-all;
+          overflow-wrap: anywhere;
+        }
+
+        .material-doc-line + .material-doc-line {
+          margin-top: 0.1rem;
+        }
+
+        .material-doc-line.gap-md {
+          margin-top: 0.8rem;
+        }
+
+        .material-doc-line.gap-lg,
+        .material-doc-line.gap-xl {
+          margin-top: 1.35rem;
+        }
+
+        .material-doc-line.is-center {
+          text-align: center;
+        }
+
+        .material-doc-line.is-heading {
+          font-weight: 700;
+        }
+
+        .material-doc-line.has-prefix {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.7rem;
+        }
+
+        .material-doc-prefix {
+          flex: 0 0 auto;
+          font-weight: 700;
+        }
+
+        .material-doc-body {
+          min-width: 0;
+          flex: 1 1 auto;
+        }
+
+        .material-doc-line.indent-1,
+        .material-doc-line.indent-2 {
+          padding-left: 0;
+        }
+
+        @media (min-width: 640px) {
+          .material-doc-line.indent-1 {
+            padding-left: 1.15rem;
+          }
+
+          .material-doc-line.indent-2 {
+            padding-left: 2.1rem;
+          }
+        }
+      `}</style>
     </main>
   );
 }

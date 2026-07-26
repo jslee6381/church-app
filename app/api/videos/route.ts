@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { fetchPassageVerses, getBibleBook, formatPassageRange } from "@/lib/bible";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
-import { extractDocxTextFromFile } from "@/lib/material-documents";
+import { extractPdfDocumentMarkupFromFile } from "@/lib/material-pdf";
 import { uploadPublicDocument } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { getYouTubeThumbnailUrl, getYouTubeWatchUrl } from "@/lib/youtube";
@@ -102,11 +102,11 @@ export async function POST(request: Request) {
     const passageVerses = await fetchPassageVerses(passageReference);
     const questionDocText =
       questionDocument instanceof File && questionDocument.size > 0
-        ? await extractDocxTextFromFile(questionDocument, "Question")
+        ? await extractPdfDocumentMarkupFromFile(questionDocument, "Question")
         : null;
     const manuscriptDocText =
       manuscriptDocument instanceof File && manuscriptDocument.size > 0
-        ? await extractDocxTextFromFile(manuscriptDocument, "Message Manuscript")
+        ? await extractPdfDocumentMarkupFromFile(manuscriptDocument, "Message Manuscript")
         : null;
 
     if (!hasAdminEnvironment()) {
