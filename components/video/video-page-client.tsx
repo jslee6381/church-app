@@ -1,16 +1,43 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, LoaderCircle, MoreVertical, Plus } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  ExternalLink,
+  FileText,
+  LoaderCircle,
+  MoreVertical,
+  Plus,
+  Upload,
+  UserRound,
+} from "lucide-react";
+
+import { BIBLE_BOOKS, formatPassageRange, getBibleBook } from "@/lib/bible";
+import { getCurrentEasternDateValue } from "@/lib/eastern-time";
 
 type VideoPostItem = {
   id: string;
   title: string;
   body: string | null;
+  scheduledAt: string;
+  messengerName: string;
+  passageBook: string;
+  passageStartChapter: number;
+  passageStartVerse: number;
+  passageEndChapter: number;
+  passageEndVerse: number;
   videoLink: string;
   thumbnailUrl: string;
   watchUrl: string;
+  questionDocUrl: string | null;
+  questionDocName: string | null;
+  manuscriptDocUrl: string | null;
+  manuscriptDocName: string | null;
   createdAt: string | null;
 };
 
@@ -19,31 +46,207 @@ type Props = {
   canCompose: boolean;
 };
 
-const TITLE_LIMIT = 50;
-const CONTENT_LIMIT = 150;
-const MIN_TEXTAREA_HEIGHT = 44;
-const MAX_TEXTAREA_HEIGHT = 160;
+type BibleApiVerse = {
+  verse: number;
+  text: string;
+};
 
-function resizeTextarea(textarea: HTMLTextAreaElement | null) {
-  if (!textarea) return;
+type BibleApiResponse = {
+  verses?: BibleApiVerse[];
+  text?: string;
+};
 
-  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
-  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+const DEFAULT_BOOK = "Genesis";
+
+function formatMaterialDate(dateString: string) {
+  const date = new Date(`${dateString}T00:00:00`);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function comparePassagePoints(
+  startChapter: number,
+  startVerse: number,
+  endChapter: number,
+  endVerse: number,
+) {
+  if (startChapter !== endChapter) {
+    return startChapter - endChapter;
+  }
+
+  return startVerse - endVerse;
+}
+
+function buildBibleApiUrl(reference: string) {
+  return `https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv&single_chapter_book_matching=indifferent`;
+}
+
+function getPassageReference(item: {
+  passageBook: string;
+  passageStartChapter: number;
+  passageStartVerse: number;
+  passageEndChapter: number;
+  passageEndVerse: number;
+}) {
+  return formatPassageRange(
+    item.passageBook,
+    item.passageStartChapter,
+    item.passageStartVerse,
+    item.passageEndChapter,
+    item.passageEndVerse,
+  );
+}
+
+async function fetchVerseCount(book: string, chapter: number) {
+  const response = await fetch(buildBibleApiUrl(`${book} ${chapter}`), {
+    cache: "force-cache",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to load verses.");
+  }
+
+  const payload = (await response.json()) as BibleApiResponse;
+  return payload.verses?.length ?? 0;
+}
+
+function PassagePreview({
+  reference,
+}: {
+  reference: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [verses, setVerses] = useState<BibleApiVerse[]>([]);
+
+  useEffect(() => {
+    if (!isOpen || verses.length > 0 || isLoading) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadPassage = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await fetch(buildBibleApiUrl(reference), {
+          cache: "force-cache",
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to load passage.");
+        }
+
+        const payload = (await response.json()) as BibleApiResponse;
+
+        if (!isCancelled) {
+          setVerses(payload.verses ?? []);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(error instanceof Error ? error.message : "Unable to load passage.");
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadPassage();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isLoading, isOpen, reference, verses.length]);
+
+  return (
+    <div className="rounded-[16px] border border-border/80 bg-background/70">
+      <button
+        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left"
+        onClick={() => setIsOpen((current) => !current)}
+        type="button"
+      >
+        <span className="ui-text text-sm font-semibold text-foreground">{reference}</span>
+        {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
+      </button>
+
+      {isOpen ? (
+        <div className="border-t border-border/70 px-4 py-3">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircle className="size-4 animate-spin" />
+              Loading passage...
+            </div>
+          ) : errorMessage ? (
+            <p className="ui-text m-0 text-sm text-muted-foreground">{errorMessage}</p>
+          ) : verses.length > 0 ? (
+            <div className="space-y-2">
+              {verses.map((verse) => (
+                <p className="ui-text m-0 text-sm leading-6 text-foreground" key={`${reference}-${verse.verse}`}>
+                  <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
+                  {verse.text.trim()}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="ui-text m-0 text-sm text-muted-foreground">No passage text available.</p>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function VideoPageClient({ initialPosts, canCompose }: Props) {
   const router = useRouter();
+  const today = useMemo(() => getCurrentEasternDateValue(), []);
   const composerRef = useRef<HTMLDivElement | null>(null);
   const menuAreaRef = useRef<HTMLDivElement | null>(null);
   const [posts, setPosts] = useState(initialPosts);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [scheduledAt, setScheduledAt] = useState(() => getCurrentEasternDateValue());
+  const [messengerName, setMessengerName] = useState("");
+  const [passageBook, setPassageBook] = useState(DEFAULT_BOOK);
+  const [passageStartChapter, setPassageStartChapter] = useState(1);
+  const [passageStartVerse, setPassageStartVerse] = useState(1);
+  const [passageEndChapter, setPassageEndChapter] = useState(1);
+  const [passageEndVerse, setPassageEndVerse] = useState(1);
   const [videoLink, setVideoLink] = useState("");
+  const [questionDocument, setQuestionDocument] = useState<File | null>(null);
+  const [manuscriptDocument, setManuscriptDocument] = useState<File | null>(null);
+  const [existingQuestionDocName, setExistingQuestionDocName] = useState<string | null>(null);
+  const [existingManuscriptDocName, setExistingManuscriptDocName] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [startVerseCount, setStartVerseCount] = useState(0);
+  const [endVerseCount, setEndVerseCount] = useState(0);
+  const [isLoadingStartVerses, setIsLoadingStartVerses] = useState(false);
+  const [isLoadingEndVerses, setIsLoadingEndVerses] = useState(false);
+
+  const selectedBook = useMemo(() => getBibleBook(passageBook) ?? getBibleBook(DEFAULT_BOOK), [passageBook]);
+  const chapterOptions = useMemo(
+    () => Array.from({ length: selectedBook?.chapterCount ?? 1 }, (_, index) => index + 1),
+    [selectedBook],
+  );
+  const startVerseOptions = useMemo(
+    () => Array.from({ length: Math.max(startVerseCount, 1) }, (_, index) => index + 1),
+    [startVerseCount],
+  );
+  const endVerseOptions = useMemo(
+    () => Array.from({ length: Math.max(endVerseCount, 1) }, (_, index) => index + 1),
+    [endVerseCount],
+  );
 
   useEffect(() => {
     setPosts(initialPosts);
@@ -76,79 +279,225 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [openMenuPostId]);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadStartVerses = async () => {
+      setIsLoadingStartVerses(true);
+
+      try {
+        const count = await fetchVerseCount(passageBook, passageStartChapter);
+
+        if (!isCancelled) {
+          setStartVerseCount(count);
+          setPassageStartVerse((current) => Math.min(Math.max(current, 1), Math.max(count, 1)));
+        }
+      } catch {
+        if (!isCancelled) {
+          setStartVerseCount(1);
+          setPassageStartVerse(1);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingStartVerses(false);
+        }
+      }
+    };
+
+    void loadStartVerses();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [passageBook, passageStartChapter]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadEndVerses = async () => {
+      setIsLoadingEndVerses(true);
+
+      try {
+        const count = await fetchVerseCount(passageBook, passageEndChapter);
+
+        if (!isCancelled) {
+          setEndVerseCount(count);
+          setPassageEndVerse((current) => Math.min(Math.max(current, 1), Math.max(count, 1)));
+        }
+      } catch {
+        if (!isCancelled) {
+          setEndVerseCount(1);
+          setPassageEndVerse(1);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingEndVerses(false);
+        }
+      }
+    };
+
+    void loadEndVerses();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [passageBook, passageEndChapter]);
+
+  useEffect(() => {
+    if (passageStartChapter > passageEndChapter) {
+      setPassageEndChapter(passageStartChapter);
+    }
+  }, [passageEndChapter, passageStartChapter]);
+
+  useEffect(() => {
+    if (passageStartChapter === passageEndChapter && passageStartVerse > passageEndVerse) {
+      setPassageEndVerse(passageStartVerse);
+    }
+  }, [passageEndChapter, passageEndVerse, passageStartChapter, passageStartVerse]);
+
+  const upcomingPosts = useMemo(
+    () =>
+      [...posts]
+        .filter((item) => item.scheduledAt >= today)
+        .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt)),
+    [posts, today],
+  );
+  const pastPosts = useMemo(
+    () =>
+      [...posts]
+        .filter((item) => item.scheduledAt < today)
+        .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt)),
+    [posts, today],
+  );
+
   function resetForm() {
-    setTitle("");
-    setBody("");
+    setScheduledAt(today);
+    setMessengerName("");
+    setPassageBook(DEFAULT_BOOK);
+    setPassageStartChapter(1);
+    setPassageStartVerse(1);
+    setPassageEndChapter(1);
+    setPassageEndVerse(1);
     setVideoLink("");
+    setQuestionDocument(null);
+    setManuscriptDocument(null);
+    setExistingQuestionDocName(null);
+    setExistingManuscriptDocName(null);
     setEditingId(null);
+    setErrorMessage(null);
     setIsComposerOpen(false);
   }
 
-  function resetInlineEdit() {
-    setTitle("");
-    setBody("");
-    setVideoLink("");
-    setEditingId(null);
+  function startCreate() {
+    resetForm();
+    setIsComposerOpen(true);
   }
 
   function startEditing(item: VideoPostItem) {
     setEditingId(item.id);
-    setTitle(item.title);
-    setBody(item.body ?? "");
+    setScheduledAt(item.scheduledAt);
+    setMessengerName(item.messengerName);
+    setPassageBook(item.passageBook);
+    setPassageStartChapter(item.passageStartChapter);
+    setPassageStartVerse(item.passageStartVerse);
+    setPassageEndChapter(item.passageEndChapter);
+    setPassageEndVerse(item.passageEndVerse);
     setVideoLink(item.videoLink);
+    setQuestionDocument(null);
+    setManuscriptDocument(null);
+    setExistingQuestionDocName(item.questionDocName);
+    setExistingManuscriptDocName(item.manuscriptDocName);
+    setErrorMessage(null);
     setOpenMenuPostId(null);
+    setIsComposerOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setErrorMessage(null);
 
-    const nextTitle = title.trim();
-    const nextBody = body.trim();
-    const nextVideoLink = videoLink.trim();
+    if (!messengerName.trim() || !videoLink.trim()) {
+      setErrorMessage("Please complete the messenger and message link fields.");
+      return;
+    }
 
-    if (!nextTitle || !nextVideoLink) {
+    if (comparePassagePoints(passageStartChapter, passageStartVerse, passageEndChapter, passageEndVerse) > 0) {
+      setErrorMessage("Please keep the passage end after the start.");
+      return;
+    }
+
+    if (!editingId && !questionDocument) {
+      setErrorMessage("Please upload the Bible question DOCX file.");
+      return;
+    }
+
+    if (!editingId && !manuscriptDocument) {
+      setErrorMessage("Please upload the message manuscript DOCX file.");
       return;
     }
 
     setIsSaving(true);
 
     try {
+      const formData = new FormData();
+      formData.set("scheduledAt", scheduledAt);
+      formData.set("messengerName", messengerName.trim());
+      formData.set("passageBook", passageBook);
+      formData.set("passageStartChapter", String(passageStartChapter));
+      formData.set("passageStartVerse", String(passageStartVerse));
+      formData.set("passageEndChapter", String(passageEndChapter));
+      formData.set("passageEndVerse", String(passageEndVerse));
+      formData.set("videoLink", videoLink.trim());
+
+      if (questionDocument) {
+        formData.set("questionDocument", questionDocument);
+      }
+
+      if (manuscriptDocument) {
+        formData.set("manuscriptDocument", manuscriptDocument);
+      }
+
       const response = await fetch(editingId ? `/api/videos/${editingId}` : "/api/videos", {
         method: editingId ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: nextTitle,
-          body: nextBody,
-          videoLink: nextVideoLink,
-        }),
+        body: formData,
       });
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to save video post.");
+        throw new Error(payload.error ?? "Unable to save material.");
       }
 
-      const nextPost = {
+      const nextPost: VideoPostItem = {
         id: payload.post.id,
         title: payload.post.title,
         body: payload.post.body ?? null,
+        scheduledAt: payload.post.scheduled_at,
+        messengerName: payload.post.messenger_name,
+        passageBook: payload.post.passage_book,
+        passageStartChapter: payload.post.passage_start_chapter,
+        passageStartVerse: payload.post.passage_start_verse,
+        passageEndChapter: payload.post.passage_end_chapter,
+        passageEndVerse: payload.post.passage_end_verse,
         videoLink: payload.post.video_link,
         thumbnailUrl: payload.post.thumbnail_url,
         watchUrl: payload.post.watch_url,
+        questionDocUrl: payload.post.question_doc_url ?? null,
+        questionDocName: payload.post.question_doc_name ?? null,
+        manuscriptDocUrl: payload.post.manuscript_doc_url ?? null,
+        manuscriptDocName: payload.post.manuscript_doc_name ?? null,
         createdAt: payload.post.created_at ?? null,
       };
 
       if (editingId) {
         setPosts((current) => current.map((item) => (item.id === editingId ? nextPost : item)));
-        resetInlineEdit();
       } else {
         setPosts((current) => [nextPost, ...current]);
-        resetForm();
       }
 
+      resetForm();
       router.refresh();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to save material.");
     } finally {
       setIsSaving(false);
     }
@@ -164,12 +513,12 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to delete video post.");
+        throw new Error(payload.error ?? "Unable to delete material.");
       }
 
       setPosts((current) => current.filter((item) => item.id !== postId));
       if (editingId === postId) {
-        resetInlineEdit();
+        resetForm();
       }
       setOpenMenuPostId(null);
       router.refresh();
@@ -178,8 +527,16 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     }
   }
 
+  const currentPassageReference = getPassageReference({
+    passageBook,
+    passageStartChapter,
+    passageStartVerse,
+    passageEndChapter,
+    passageEndVerse,
+  });
+
   return (
-    <section className="space-y-4">
+    <section className="space-y-5">
       {canCompose ? (
         <div
           ref={composerRef}
@@ -187,9 +544,9 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
         >
           <div className="flex items-center justify-center">
             <button
-              aria-label={isComposerOpen ? "Close video form" : "Create video post"}
+              aria-label={isComposerOpen ? "Close material form" : "Create material post"}
               className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-background text-foreground"
-              onClick={() => setIsComposerOpen((current) => !current)}
+              onClick={() => (isComposerOpen ? resetForm() : startCreate())}
               type="button"
             >
               <Plus className={`size-5 transition-transform ${isComposerOpen ? "rotate-45" : ""}`} />
@@ -197,45 +554,178 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
           </div>
 
           {isComposerOpen ? (
-            <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
-              <div className="relative">
+            <form className="mt-4 grid gap-4" onSubmit={handleSubmit}>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="ui-text text-sm font-semibold text-foreground">Post Date</span>
+                  <input
+                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    onChange={(event) => setScheduledAt(event.target.value)}
+                    type="date"
+                    value={scheduledAt}
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="ui-text text-sm font-semibold text-foreground">Messenger</span>
+                  <input
+                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    onChange={(event) => setMessengerName(event.target.value)}
+                    placeholder="Messenger name"
+                    value={messengerName}
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-3 rounded-[18px] border border-border/80 bg-background/55 p-4">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="size-4 text-muted-foreground" />
+                  <span className="ui-text text-sm font-semibold text-foreground">Passage</span>
+                </div>
+
+                <label className="grid gap-2">
+                  <span className="ui-text text-sm text-muted-foreground">Book</span>
+                  <select
+                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    onChange={(event) => {
+                      setPassageBook(event.target.value);
+                      setPassageStartChapter(1);
+                      setPassageStartVerse(1);
+                      setPassageEndChapter(1);
+                      setPassageEndVerse(1);
+                    }}
+                    value={passageBook}
+                  >
+                    <optgroup label="Old Testament">
+                      {BIBLE_BOOKS.filter((item) => item.testament === "OT").map((item) => (
+                        <option key={item.book} value={item.book}>
+                          {item.book}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="New Testament">
+                      {BIBLE_BOOKS.filter((item) => item.testament === "NT").map((item) => (
+                        <option key={item.book} value={item.book}>
+                          {item.book}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </label>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3">
+                    <span className="ui-text text-sm text-muted-foreground">Start</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <select
+                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        onChange={(event) => setPassageStartChapter(Number(event.target.value))}
+                        value={passageStartChapter}
+                      >
+                        {chapterOptions.map((chapter) => (
+                          <option key={`start-chapter-${chapter}`} value={chapter}>
+                            Chapter {chapter}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        disabled={isLoadingStartVerses}
+                        onChange={(event) => setPassageStartVerse(Number(event.target.value))}
+                        value={passageStartVerse}
+                      >
+                        {startVerseOptions.map((verse) => (
+                          <option key={`start-verse-${verse}`} value={verse}>
+                            {isLoadingStartVerses ? "Loading..." : `Verse ${verse}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <span className="ui-text text-sm text-muted-foreground">End</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <select
+                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        onChange={(event) => setPassageEndChapter(Number(event.target.value))}
+                        value={passageEndChapter}
+                      >
+                        {chapterOptions.map((chapter) => (
+                          <option key={`end-chapter-${chapter}`} value={chapter}>
+                            Chapter {chapter}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        disabled={isLoadingEndVerses}
+                        onChange={(event) => setPassageEndVerse(Number(event.target.value))}
+                        value={passageEndVerse}
+                      >
+                        {endVerseOptions.map((verse) => (
+                          <option key={`end-verse-${verse}`} value={verse}>
+                            {isLoadingEndVerses ? "Loading..." : `Verse ${verse}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <PassagePreview reference={currentPassageReference} />
+              </div>
+
+              <label className="grid gap-2">
+                <span className="ui-text text-sm font-semibold text-foreground">Message YouTube Link</span>
                 <input
-                  className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
-                  maxLength={TITLE_LIMIT}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Title"
-                  value={title}
+                  className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                  onChange={(event) => setVideoLink(event.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  type="url"
+                  value={videoLink}
                 />
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                  {title.length}/{TITLE_LIMIT}
-                </span>
+              </label>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="ui-text text-sm font-semibold text-foreground">Bible Question DOCX</span>
+                  <div className="rounded-[16px] border border-dashed border-border/80 bg-background px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Upload className="size-4" />
+                      <span>{questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}</span>
+                    </div>
+                    <input
+                      accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="mt-3 block w-full text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/12 file:px-3 file:py-2 file:font-semibold file:text-primary"
+                      onChange={(event) => setQuestionDocument(event.target.files?.[0] ?? null)}
+                      type="file"
+                    />
+                  </div>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript DOCX</span>
+                  <div className="rounded-[16px] border border-dashed border-border/80 bg-background px-4 py-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Upload className="size-4" />
+                      <span>{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
+                    </div>
+                    <input
+                      accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="mt-3 block w-full text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/12 file:px-3 file:py-2 file:font-semibold file:text-primary"
+                      onChange={(event) => setManuscriptDocument(event.target.files?.[0] ?? null)}
+                      type="file"
+                    />
+                  </div>
+                </label>
               </div>
 
-              <div className="relative">
-                <textarea
-                  className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
-                  maxLength={CONTENT_LIMIT}
-                  onChange={(event) => {
-                    resizeTextarea(event.currentTarget);
-                    setBody(event.target.value);
-                  }}
-                  ref={(node) => resizeTextarea(node)}
-                  rows={1}
-                  placeholder="Description"
-                  value={body}
-                />
-                <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
-                  {body.length}/{CONTENT_LIMIT}
-                </span>
-              </div>
-
-              <input
-                className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
-                onChange={(event) => setVideoLink(event.target.value)}
-                placeholder="YouTube link"
-                type="url"
-                value={videoLink}
-              />
+              {errorMessage ? (
+                <p className="ui-text m-0 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive">
+                  {errorMessage}
+                </p>
+              ) : null}
 
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -250,7 +740,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                   disabled={isSaving}
                   type="submit"
                 >
-                  {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Post"}
+                  {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : editingId ? "Save" : "Post"}
                 </button>
               </div>
             </form>
@@ -258,130 +748,181 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
         </div>
       ) : null}
 
-      <div className="space-y-4">
-        {posts.length === 0 ? (
+      <div className="space-y-5">
+        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={upcomingPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Upcoming" />
+        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={pastPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Past" />
+
+        {upcomingPosts.length === 0 && pastPosts.length === 0 ? (
           <article className="study-video-surface rounded-[18px] border border-border/80 bg-card px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
-            <p className="ui-text m-0 text-center text-muted-foreground">No videos yet</p>
+            <p className="ui-text m-0 text-center text-muted-foreground">No materials yet</p>
           </article>
-        ) : (
-          posts.map((item) => (
-            <article
-              className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-card shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
-              key={item.id}
-            >
-              {canCompose && editingId !== item.id ? (
-                <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-20">
-                  <div className="relative">
-                    <button
-                      aria-label="Video post actions"
-                      className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
-                      onClick={() => setOpenMenuPostId((current) => (current === item.id ? null : item.id))}
-                      type="button"
-                    >
-                      <MoreVertical className="size-4" />
-                    </button>
-                    {openMenuPostId === item.id ? (
-                      <div className="absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background">
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
-                          onClick={() => startEditing(item)}
-                          type="button"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
-                          disabled={deletingId === item.id}
-                          onClick={() => void deletePost(item.id)}
-                          type="button"
-                        >
-                          {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
-              <div className="p-4">
-                {editingId === item.id ? (
-                  <form className="grid gap-3" onSubmit={handleSubmit}>
-                    <div className="relative">
-                      <input
-                        className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 pr-16 text-foreground"
-                        maxLength={TITLE_LIMIT}
-                        onChange={(event) => setTitle(event.target.value)}
-                        placeholder="Title"
-                        value={title}
-                      />
-                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                        {title.length}/{TITLE_LIMIT}
-                      </span>
-                    </div>
+function MaterialSection({
+  title,
+  items,
+  canCompose,
+  openMenuPostId,
+  deletingId,
+  menuAreaRef,
+  onOpenMenu,
+  onEdit,
+  onDelete,
+}: {
+  title: string;
+  items: VideoPostItem[];
+  canCompose: boolean;
+  openMenuPostId: string | null;
+  deletingId: string | null;
+  menuAreaRef: RefObject<HTMLDivElement | null>;
+  onOpenMenu: Dispatch<SetStateAction<string | null>>;
+  onEdit: (item: VideoPostItem) => void;
+  onDelete: (postId: string) => Promise<void>;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
 
-                    <div className="relative">
-                      <textarea
-                        className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 pb-8 text-foreground"
-                        maxLength={CONTENT_LIMIT}
-                        onChange={(event) => {
-                          resizeTextarea(event.currentTarget);
-                          setBody(event.target.value);
-                        }}
-                        ref={(node) => resizeTextarea(node)}
-                        rows={1}
-                        placeholder="Description"
-                        value={body}
-                      />
-                      <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
-                        {body.length}/{CONTENT_LIMIT}
-                      </span>
-                    </div>
+  return (
+    <section className="space-y-3">
+      <div className="px-1">
+        <h2 className="ui-text m-0 text-base font-semibold text-foreground">{title}</h2>
+      </div>
 
-                    <input
-                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
-                      onChange={(event) => setVideoLink(event.target.value)}
-                      placeholder="YouTube link"
-                      type="url"
-                      value={videoLink}
-                    />
+      {items.map((item) => {
+        const passageReference = getPassageReference(item);
 
-                    <div className="grid grid-cols-2 gap-3">
+        return (
+          <article
+            className="study-video-surface relative overflow-hidden rounded-[18px] border border-border/80 bg-card shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+            key={item.id}
+          >
+            {canCompose ? (
+              <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-3 top-3 z-20">
+                <div className="relative">
+                  <button
+                    aria-label="Material post actions"
+                    className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
+                    onClick={() => onOpenMenu((current) => (current === item.id ? null : item.id))}
+                    type="button"
+                  >
+                    <MoreVertical className="size-4" />
+                  </button>
+                  {openMenuPostId === item.id ? (
+                    <div className="absolute right-0 top-[calc(100%+0.25rem)] z-30 min-w-[148px] overflow-hidden rounded-[14px] border border-border bg-background">
                       <button
-                        className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
-                        onClick={resetInlineEdit}
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground"
+                        onClick={() => onEdit(item)}
                         type="button"
                       >
-                        Cancel
+                        Edit
                       </button>
                       <button
-                        className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-60"
-                        disabled={isSaving}
-                        type="submit"
+                        className="flex min-h-11 w-full items-center px-4 text-left text-sm font-semibold text-foreground disabled:opacity-60"
+                        disabled={deletingId === item.id}
+                        onClick={() => void onDelete(item.id)}
+                        type="button"
                       >
-                        {isSaving ? <LoaderCircle className="size-5 animate-spin" /> : "Save"}
+                        {deletingId === item.id ? <LoaderCircle className="size-4 animate-spin" /> : "Delete"}
                       </button>
                     </div>
-                  </form>
-                ) : (
-                  <a className="block" href={item.watchUrl} rel="noreferrer" target="_blank">
-                    <div className="relative overflow-hidden rounded-[14px] bg-background">
-                      <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
-                      <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
-                        <ExternalLink className="size-3.5" />
-                        YouTube
-                      </span>
-                    </div>
-                    <div className="pt-4">
-                      <h2 className="ui-text m-0 font-sans font-semibold leading-tight text-foreground">{item.title}</h2>
-                      {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
-                    </div>
-                  </a>
-                )}
+                  ) : null}
+                </div>
               </div>
-            </article>
-          ))
-        )}
-      </div>
+            ) : null}
+
+            <div className="p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground">
+                  <CalendarDays className="size-3.5" />
+                  {formatMaterialDate(item.scheduledAt)}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-foreground">
+                  <UserRound className="size-3.5" />
+                  {item.messengerName}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <PassagePreview reference={passageReference} />
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-[18px] border border-border/80 bg-background p-4">
+                    <div className="flex items-center gap-2">
+                      <FileText className="size-4 text-muted-foreground" />
+                      <h3 className="ui-text m-0 text-sm font-semibold text-foreground">Question</h3>
+                    </div>
+
+                    {item.questionDocUrl ? (
+                      <a
+                        className="mt-4 flex min-h-28 flex-col justify-between rounded-[16px] border border-border/70 bg-card px-4 py-4 text-foreground"
+                        download
+                        href={item.questionDocUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <div>
+                          <p className="ui-text m-0 text-sm font-semibold text-foreground">{item.questionDocName ?? "Bible Question Document"}</p>
+                          <p className="ui-text mt-2 mb-0 text-sm text-muted-foreground">Open or download the study question sheet.</p>
+                        </div>
+                        <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                          <Download className="size-4" />
+                          Open Question Doc
+                        </span>
+                      </a>
+                    ) : (
+                      <div className="mt-4 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
+                        <p className="ui-text m-0 text-sm text-muted-foreground">Question document not attached.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-[18px] border border-border/80 bg-background p-4">
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="size-4 text-muted-foreground" />
+                      <h3 className="ui-text m-0 text-sm font-semibold text-foreground">Message</h3>
+                    </div>
+
+                    <a className="mt-4 block overflow-hidden rounded-[16px] border border-border/70 bg-card" href={item.watchUrl} rel="noreferrer" target="_blank">
+                      <div className="relative overflow-hidden bg-background">
+                        <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
+                          <ExternalLink className="size-3.5" />
+                          YouTube
+                        </span>
+                      </div>
+                    </a>
+
+                    {item.manuscriptDocUrl ? (
+                      <a
+                        className="mt-3 flex items-center justify-between rounded-[16px] border border-border/70 bg-card px-4 py-4 text-foreground"
+                        download
+                        href={item.manuscriptDocUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <div className="min-w-0">
+                          <p className="ui-text m-0 truncate text-sm font-semibold text-foreground">{item.manuscriptDocName ?? "Message Manuscript"}</p>
+                          <p className="ui-text mt-1 mb-0 text-sm text-muted-foreground">Open the manuscript document.</p>
+                        </div>
+                        <Download className="ml-4 size-4 shrink-0 text-primary" />
+                      </a>
+                    ) : (
+                      <div className="mt-3 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
+                        <p className="ui-text m-0 text-sm text-muted-foreground">Manuscript document not attached.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        );
+      })}
     </section>
   );
 }

@@ -5,7 +5,9 @@ import sharp from "sharp";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const COMMUNITY_IMAGE_BUCKET = "community-images";
+export const MATERIAL_DOCUMENT_BUCKET = "material-documents";
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+export const MAX_DOCUMENT_UPLOAD_BYTES = 20 * 1024 * 1024;
 export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -15,6 +17,10 @@ export const ALLOWED_IMAGE_TYPES = [
   "image/heif",
   "image/heic-sequence",
   "image/heif-sequence",
+] as const;
+export const ALLOWED_DOCUMENT_TYPES = [
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
 ] as const;
 
 const EXTENSION_BY_TYPE: Record<(typeof ALLOWED_IMAGE_TYPES)[number], string> = {
@@ -35,6 +41,15 @@ const EXTENSION_BY_FILENAME = {
   ".webp": "webp",
   ".heic": "jpg",
   ".heif": "jpg",
+} as const;
+const DOCUMENT_EXTENSION_BY_TYPE: Record<(typeof ALLOWED_DOCUMENT_TYPES)[number], string> = {
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+  "application/msword": "doc",
+};
+
+const DOCUMENT_EXTENSION_BY_FILENAME = {
+  ".docx": "docx",
+  ".doc": "doc",
 } as const;
 
 function getNormalizedExtension(file: File) {
@@ -71,6 +86,20 @@ export function validateImageFile(file: File) {
 
   if (file.size > MAX_UPLOAD_BYTES) {
     throw new Error("Please upload an image smaller than 8 MB.");
+  }
+}
+
+export function validateDocumentFile(file: File) {
+  const filenameExtension = extname(file.name ?? "").toLowerCase();
+  const normalizedExtension = DOCUMENT_EXTENSION_BY_FILENAME[filenameExtension as keyof typeof DOCUMENT_EXTENSION_BY_FILENAME];
+  const normalizedMime = DOCUMENT_EXTENSION_BY_TYPE[file.type as keyof typeof DOCUMENT_EXTENSION_BY_TYPE];
+
+  if (!normalizedExtension && !normalizedMime) {
+    throw new Error("Please upload a DOCX or DOC file.");
+  }
+
+  if (file.size > MAX_DOCUMENT_UPLOAD_BYTES) {
+    throw new Error("Please upload a document smaller than 20 MB.");
   }
 }
 
@@ -150,6 +179,72 @@ export async function removePublicImage(publicUrl: string | null | undefined) {
 
   const admin = createAdminClient();
   const { error } = await admin.storage.from(COMMUNITY_IMAGE_BUCKET).remove([filePath]);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function uploadPublicDocument(file: File, folder: "materials/questions" | "materials/manuscripts") {
+  validateDocumentFile(file);
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const filenameExtension = extname(file.name ?? "").toLowerCase();
+  const extension =
+    DOCUMENT_EXTENSION_BY_TYPE[file.type as keyof typeof DOCUMENT_EXTENSION_BY_TYPE] ??
+    DOCUMENT_EXTENSION_BY_FILENAME[filenameExtension as keyof typeof DOCUMENT_EXTENSION_BY_FILENAME];
+
+  if (!extension) {
+    throw new Error("Unsupported document type.");
+  }
+
+  const contentType =
+    extension === "docx"
+      ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      : "application/msword";
+
+  const admin = createAdminClient();
+  const filePath = `${folder}/${new Date().getUTCFullYear()}/${randomUUID()}.${extension}`;
+
+  const { error } = await admin.storage.from(MATERIAL_DOCUMENT_BUCKET).upload(filePath, buffer, {
+    cacheControl: "3600",
+    contentType,
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const { data } = admin.storage.from(MATERIAL_DOCUMENT_BUCKET).getPublicUrl(filePath);
+
+  return {
+    fileName: file.name,
+    publicUrl: data.publicUrl,
+  };
+}
+
+export async function removePublicDocument(publicUrl: string | null | undefined) {
+  if (!publicUrl) {
+    return;
+  }
+
+  const marker = `/storage/v1/object/public/${MATERIAL_DOCUMENT_BUCKET}/`;
+  const markerIndex = publicUrl.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return;
+  }
+
+  const encodedPath = publicUrl.slice(markerIndex + marker.length);
+  const filePath = decodeURIComponent(encodedPath.split("?")[0] ?? "");
+
+  if (!filePath) {
+    return;
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.storage.from(MATERIAL_DOCUMENT_BUCKET).remove([filePath]);
 
   if (error) {
     throw new Error(error.message);

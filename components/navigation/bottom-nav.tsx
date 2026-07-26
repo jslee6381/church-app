@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { House, Settings } from "lucide-react";
+import { FileText, House, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
 
@@ -46,15 +46,6 @@ function GalleryIcon({ className }: { className?: string }) {
   );
 }
 
-function VideoBoardIcon({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden="true" className={className} fill="none" viewBox="0 0 24 24">
-      <rect height="14" rx="2.5" stroke="currentColor" strokeWidth="1.9" width="18" x="3" y="5" />
-      <path d="M10 9.2v5.6l4.9-2.8-4.9-2.8Z" fill="currentColor" stroke="currentColor" strokeLinejoin="round" strokeWidth="0.4" />
-    </svg>
-  );
-}
-
 type NavKey = "home" | "fellowship" | "gallery" | "video" | "settings";
 type FellowshipAccessState = "unknown" | "signed_out" | "pending" | "active";
 
@@ -70,7 +61,7 @@ const items = [
   { href: "/home", label: "Home", icon: House, navKey: "home" as const },
   { href: "/fellowship", label: "Fellowship", icon: FellowshipIcon, navKey: "fellowship" as const },
   { href: "/study", label: "Gallery", icon: GalleryIcon, navKey: "gallery" as const },
-  { href: "/video", label: "Video", icon: VideoBoardIcon, navKey: "video" as const },
+  { href: "/video", label: "Material", icon: FileText, navKey: "video" as const },
   { href: "/settings", label: "Setting", icon: Settings, navKey: "settings" as const },
 ] as const;
 
@@ -205,7 +196,7 @@ export function BottomNav() {
                 onClick={(event) => item.navKey === "fellowship" ? handleFellowshipClick(event) : handleStandardNavClick(event, item.href, item.navKey)}
                 type="button"
               >
-                <Icon className={`${item.navKey === "video" ? "size-[2rem]" : item.navKey === "fellowship" ? "size-[2.5rem]" : item.navKey === "settings" ? "size-[1.72rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
+                <Icon className={`${item.navKey === "video" ? "size-[1.78rem]" : item.navKey === "fellowship" ? "size-[2.5rem]" : item.navKey === "settings" ? "size-[1.72rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
               </button>
             );
           })}

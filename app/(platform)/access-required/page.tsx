@@ -25,7 +25,7 @@ function getCopy(context?: string, mode?: string) {
         : context === "gallery"
           ? "Gallery"
           : context === "video"
-            ? "Video"
+            ? "Material"
             : "Member Access";
 
   if (mode === "pending") {
