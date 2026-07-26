@@ -23,7 +23,7 @@ export default async function VideoPage() {
 
   return (
     <main className="shell max-w-[560px] py-6">
-      <PageHeader title="Material" description="Questions, passage, message video, and manuscript for each study." />
+      <PageHeader title="" />
       <VideoPageClient canCompose={canCompose} initialPosts={posts} />
     </main>
   );

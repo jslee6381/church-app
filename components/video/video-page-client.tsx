@@ -540,12 +540,12 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
       {canCompose ? (
         <div
           ref={composerRef}
-          className="study-video-surface rounded-[18px] border border-border/80 bg-card p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
+          className="event-form-surface rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] p-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]"
         >
           <div className="flex items-center justify-center">
             <button
               aria-label={isComposerOpen ? "Close material form" : "Create material post"}
-              className="inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-background text-foreground"
+              className="event-form-input inline-flex size-11 items-center justify-center rounded-full border border-border/80 bg-white text-foreground"
               onClick={() => (isComposerOpen ? resetForm() : startCreate())}
               type="button"
             >
@@ -559,7 +559,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Post Date</span>
                   <input
-                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                     onChange={(event) => setScheduledAt(event.target.value)}
                     type="date"
                     value={scheduledAt}
@@ -569,7 +569,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Messenger</span>
                   <input
-                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                     onChange={(event) => setMessengerName(event.target.value)}
                     placeholder="Messenger name"
                     value={messengerName}
@@ -577,7 +577,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 </label>
               </div>
 
-              <div className="grid gap-3 rounded-[18px] border border-border/80 bg-background/55 p-4">
+              <div className="grid gap-3 rounded-[18px] border border-border/80 bg-white/70 p-4">
                 <div className="flex items-center gap-2">
                   <BookOpen className="size-4 text-muted-foreground" />
                   <span className="ui-text text-sm font-semibold text-foreground">Passage</span>
@@ -586,7 +586,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm text-muted-foreground">Book</span>
                   <select
-                    className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                    className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                     onChange={(event) => {
                       setPassageBook(event.target.value);
                       setPassageStartChapter(1);
@@ -618,7 +618,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                     <span className="ui-text text-sm text-muted-foreground">Start</span>
                     <div className="grid grid-cols-2 gap-3">
                       <select
-                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                         onChange={(event) => setPassageStartChapter(Number(event.target.value))}
                         value={passageStartChapter}
                       >
@@ -629,7 +629,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                         ))}
                       </select>
                       <select
-                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                         disabled={isLoadingStartVerses}
                         onChange={(event) => setPassageStartVerse(Number(event.target.value))}
                         value={passageStartVerse}
@@ -647,7 +647,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                     <span className="ui-text text-sm text-muted-foreground">End</span>
                     <div className="grid grid-cols-2 gap-3">
                       <select
-                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                         onChange={(event) => setPassageEndChapter(Number(event.target.value))}
                         value={passageEndChapter}
                       >
@@ -658,7 +658,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                         ))}
                       </select>
                       <select
-                        className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                        className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                         disabled={isLoadingEndVerses}
                         onChange={(event) => setPassageEndVerse(Number(event.target.value))}
                         value={passageEndVerse}
@@ -673,13 +673,12 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                   </div>
                 </div>
 
-                <PassagePreview reference={currentPassageReference} />
               </div>
 
               <label className="grid gap-2">
                 <span className="ui-text text-sm font-semibold text-foreground">Message YouTube Link</span>
                 <input
-                  className="ui-text min-h-12 rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                  className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                   onChange={(event) => setVideoLink(event.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
                   type="url"
@@ -690,7 +689,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Bible Question DOCX</span>
-                  <div className="rounded-[16px] border border-dashed border-border/80 bg-background px-4 py-4">
+                  <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Upload className="size-4" />
                       <span>{questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}</span>
@@ -706,7 +705,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
 
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript DOCX</span>
-                  <div className="rounded-[16px] border border-dashed border-border/80 bg-background px-4 py-4">
+                  <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Upload className="size-4" />
                       <span>{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
@@ -729,7 +728,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  className="inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 text-base font-semibold text-foreground"
+                  className="event-form-input inline-flex min-h-12 w-full items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 text-base font-semibold text-foreground"
                   onClick={resetForm}
                   type="button"
                 >
