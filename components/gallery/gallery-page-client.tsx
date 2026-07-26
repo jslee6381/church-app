@@ -380,10 +380,10 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
               </div>
 
               {editingId !== item.id ? (
-                <div className="border-t border-border/70 bg-white/95 dark:bg-[#1E1E1E]">
+                <div className="overflow-hidden border-t border-border/70 bg-white/95 dark:bg-[#1E1E1E]">
                   <iframe
                     allow="fullscreen"
-                    className="block h-[260px] w-full border-0 bg-background sm:h-[300px]"
+                    className="-mt-14 block h-[316px] w-full border-0 bg-background sm:h-[356px]"
                     loading="lazy"
                     src={item.embedUrl}
                     title={item.title}
