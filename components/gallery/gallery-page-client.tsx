@@ -31,6 +31,10 @@ const CONTENT_LIMIT = 150;
 const MIN_TEXTAREA_HEIGHT = 44;
 const MAX_TEXTAREA_HEIGHT = 160;
 
+function preventImageSaveActions(event: React.SyntheticEvent<HTMLElement>) {
+  event.preventDefault();
+}
+
 function resizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
 
@@ -508,13 +512,15 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                             onClick={() => openLightbox(imageUrls, index)}
                             type="button"
                           >
-                            <img
-                              alt={`${item.title} photo ${index + 1}`}
-                              className="block h-[220px] w-full object-cover sm:h-[240px]"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              src={image.imageUrl}
-                            />
+                          <img
+                            alt={`${item.title} photo ${index + 1}`}
+                            className="pointer-events-none block h-[220px] w-full select-none object-cover sm:h-[240px]"
+                            draggable={false}
+                            loading="lazy"
+                            onContextMenu={preventImageSaveActions}
+                            referrerPolicy="no-referrer"
+                            src={image.imageUrl}
+                          />
                           </button>
                         ));
                       })()}
@@ -565,7 +571,9 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 <div className="flex h-full w-full items-center justify-center">
                   <img
                     alt={`Expanded gallery image ${lightboxState.index + 1}`}
-                    className="block max-h-full max-w-full object-contain object-center"
+                    className="pointer-events-none block max-h-full max-w-full select-none object-contain object-center"
+                    draggable={false}
+                    onContextMenu={preventImageSaveActions}
                     src={lightboxState.imageUrls[lightboxState.index]}
                   />
                 </div>

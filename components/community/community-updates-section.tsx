@@ -14,6 +14,10 @@ const JPEG_QUALITY = 0.82;
 const MIN_TEXTAREA_HEIGHT = 44;
 const MAX_TEXTAREA_HEIGHT = 180;
 
+function preventImageSaveActions(event: React.SyntheticEvent<HTMLElement>) {
+  event.preventDefault();
+}
+
 function resizeTextarea(textarea: HTMLTextAreaElement | null) {
   if (!textarea) return;
 
@@ -1214,7 +1218,9 @@ export function CommunityUpdatesSection({
                       >
                         <img
                           alt={`Selected upload ${index + 1}`}
-                          className="block h-28 w-full object-cover"
+                          className="pointer-events-none block h-28 w-full select-none object-cover"
+                          draggable={false}
+                          onContextMenu={preventImageSaveActions}
                           src={imagePreviewUrls[index]}
                         />
                         <div className="grid gap-2 px-3 py-3">
@@ -1342,8 +1348,10 @@ export function CommunityUpdatesSection({
                           <div className="absolute inset-0 flex items-center justify-center">
                             <img
                               alt={`Community update image ${index + 1}`}
-                              className="block h-full w-full object-contain object-center"
+                              className="pointer-events-none block h-full w-full select-none object-contain object-center"
+                              draggable={false}
                               onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                              onContextMenu={preventImageSaveActions}
                               src={imageUrl}
                             />
                           </div>
@@ -1364,8 +1372,10 @@ export function CommunityUpdatesSection({
                     >
                       <img
                         alt={`Community update image ${index + 1}`}
-                        className="block h-auto w-full"
+                        className="pointer-events-none block h-auto w-full select-none"
+                        draggable={false}
                         onLoad={(event) => handleFeedImageLoad(update.id, index, event)}
+                        onContextMenu={preventImageSaveActions}
                         src={imageUrl}
                       />
                       <span className="pointer-events-none absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-[2px]">
@@ -1793,7 +1803,9 @@ export function CommunityUpdatesSection({
                 <div className="flex h-full w-full items-center justify-center">
                   <img
                     alt={`Expanded community update image ${lightboxState.index + 1}`}
-                    className="block max-h-full max-w-full object-contain object-center"
+                    className="pointer-events-none block max-h-full max-w-full select-none object-contain object-center"
+                    draggable={false}
+                    onContextMenu={preventImageSaveActions}
                     src={lightboxState.imageUrls[lightboxState.index]}
                   />
                 </div>
