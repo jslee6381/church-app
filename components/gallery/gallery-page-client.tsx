@@ -580,16 +580,8 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   </button>
                 ) : null}
                 {lightboxState.imageUrls.length > 1 ? (
-                  <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center justify-center gap-2">
-                    {lightboxState.imageUrls.map((_, index) => (
-                      <span
-                        key={`gallery-lightbox-dot-${index}`}
-                        aria-hidden="true"
-                        className={`size-2 rounded-full ${
-                          lightboxState.index === index ? "bg-white" : "bg-white/30"
-                        }`}
-                      />
-                    ))}
+                  <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white">
+                    {lightboxState.index + 1}/{lightboxState.imageUrls.length}
                   </div>
                 ) : null}
               </div>
