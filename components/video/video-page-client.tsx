@@ -1,13 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type Dispatch, type RefObject, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
   CalendarDays,
-  ChevronDown,
-  ChevronUp,
-  Download,
   ExternalLink,
   FileText,
   LoaderCircle,
@@ -46,14 +44,9 @@ type Props = {
   canCompose: boolean;
 };
 
-type BibleApiVerse = {
-  verse: number;
-  text: string;
-};
-
-type BibleApiResponse = {
-  verses?: BibleApiVerse[];
-  text?: string;
+type BibleChapterResponse = {
+  verseCount?: number;
+  error?: string;
 };
 
 const DEFAULT_BOOK = "Genesis";
@@ -81,10 +74,6 @@ function comparePassagePoints(
   return startVerse - endVerse;
 }
 
-function buildBibleApiUrl(reference: string) {
-  return `https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv&single_chapter_book_matching=indifferent`;
-}
-
 function getPassageReference(item: {
   passageBook: string;
   passageStartChapter: number;
@@ -101,8 +90,22 @@ function getPassageReference(item: {
   );
 }
 
+function getDocumentViewerHref(title: string, url: string, kind: "Question" | "Message Manuscript", reference?: string) {
+  const params = new URLSearchParams({
+    title,
+    url,
+    kind,
+  });
+
+  if (reference) {
+    params.set("reference", reference);
+  }
+
+  return `/video/document?${params.toString()}`;
+}
+
 async function fetchVerseCount(book: string, chapter: number) {
-  const response = await fetch(buildBibleApiUrl(`${book} ${chapter}`), {
+  const response = await fetch(`/api/bible/chapter?book=${encodeURIComponent(book)}&chapter=${chapter}`, {
     cache: "force-cache",
   });
 
@@ -110,99 +113,8 @@ async function fetchVerseCount(book: string, chapter: number) {
     throw new Error("Unable to load verses.");
   }
 
-  const payload = (await response.json()) as BibleApiResponse;
-  return payload.verses?.length ?? 0;
-}
-
-function PassagePreview({
-  reference,
-}: {
-  reference: string;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [verses, setVerses] = useState<BibleApiVerse[]>([]);
-
-  useEffect(() => {
-    if (!isOpen || verses.length > 0 || isLoading) {
-      return;
-    }
-
-    let isCancelled = false;
-
-    const loadPassage = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      try {
-        const response = await fetch(buildBibleApiUrl(reference), {
-          cache: "force-cache",
-        });
-
-        if (!response.ok) {
-          throw new Error("Unable to load passage.");
-        }
-
-        const payload = (await response.json()) as BibleApiResponse;
-
-        if (!isCancelled) {
-          setVerses(payload.verses ?? []);
-        }
-      } catch (error) {
-        if (!isCancelled) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load passage.");
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadPassage();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [isLoading, isOpen, reference, verses.length]);
-
-  return (
-    <div className="rounded-[16px] border border-border/80 bg-background/70">
-      <button
-        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left"
-        onClick={() => setIsOpen((current) => !current)}
-        type="button"
-      >
-        <span className="ui-text text-sm font-semibold text-foreground">{reference}</span>
-        {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
-      </button>
-
-      {isOpen ? (
-        <div className="border-t border-border/70 px-4 py-3">
-          {isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LoaderCircle className="size-4 animate-spin" />
-              Loading passage...
-            </div>
-          ) : errorMessage ? (
-            <p className="ui-text m-0 text-sm text-muted-foreground">{errorMessage}</p>
-          ) : verses.length > 0 ? (
-            <div className="space-y-2">
-              {verses.map((verse) => (
-                <p className="ui-text m-0 text-sm leading-6 text-foreground" key={`${reference}-${verse.verse}`}>
-                  <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
-                  {verse.text.trim()}
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p className="ui-text m-0 text-sm text-muted-foreground">No passage text available.</p>
-          )}
-        </div>
-      ) : null}
-    </div>
-  );
+  const payload = (await response.json()) as BibleChapterResponse;
+  return payload.verseCount ?? 0;
 }
 
 export function VideoPageClient({ initialPosts, canCompose }: Props) {
@@ -567,14 +479,8 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 </label>
               </div>
 
-              <div className="event-form-input grid gap-3 rounded-[18px] border border-border/80 bg-white/70 p-4">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="size-4 text-muted-foreground" />
-                  <span className="ui-text text-sm font-semibold text-foreground">Passage</span>
-                </div>
-
                 <label className="grid gap-2">
-                  <span className="ui-text text-sm text-muted-foreground">Book</span>
+                  <span className="ui-text text-sm font-semibold text-foreground">Passage Book</span>
                   <select
                     className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                     onChange={(event) => {
@@ -605,7 +511,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="grid gap-3">
-                    <span className="ui-text text-sm text-muted-foreground">Start</span>
+                    <span className="ui-text text-sm font-semibold text-foreground">Start</span>
                     <div className="grid grid-cols-2 gap-3">
                       <select
                         className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
@@ -634,7 +540,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                   </div>
 
                   <div className="grid gap-3">
-                    <span className="ui-text text-sm text-muted-foreground">End</span>
+                    <span className="ui-text text-sm font-semibold text-foreground">End</span>
                     <div className="grid grid-cols-2 gap-3">
                       <select
                         className="event-form-input ui-text min-h-12 rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
@@ -663,8 +569,6 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                   </div>
                 </div>
 
-              </div>
-
               <label className="grid gap-2">
                 <span className="ui-text text-sm font-semibold text-foreground">Message YouTube Link</span>
                 <input
@@ -680,9 +584,9 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Bible Question DOCX</span>
                   <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                       <Upload className="size-4" />
-                      <span>{questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}</span>
+                      <span className="block min-w-0 truncate">{questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}</span>
                     </div>
                     <input
                       accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -696,9 +600,9 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript DOCX</span>
                   <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                       <Upload className="size-4" />
-                      <span>{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
+                      <span className="block min-w-0 truncate">{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
                     </div>
                     <input
                       accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -738,8 +642,8 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
       ) : null}
 
       <div className="space-y-5">
-        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={upcomingPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Upcoming" />
-        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={pastPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Past" />
+        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={upcomingPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Upcoming Bible Study" />
+        <MaterialSection canCompose={canCompose} deletingId={deletingId} items={pastPosts} onDelete={deletePost} onEdit={startEditing} onOpenMenu={setOpenMenuPostId} openMenuPostId={openMenuPostId} menuAreaRef={menuAreaRef} title="Past Bible Study" />
 
         {upcomingPosts.length === 0 && pastPosts.length === 0 ? (
           <article className="study-video-surface rounded-[18px] border border-border/80 bg-card px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
@@ -779,11 +683,12 @@ function MaterialSection({
   return (
     <section className="space-y-3">
       <div className="px-1">
-        <h2 className="ui-text m-0 text-base font-semibold text-foreground">{title}</h2>
+        <h2 className="ui-text m-0 text-[1.02rem] font-semibold text-foreground">{title}</h2>
       </div>
 
       {items.map((item) => {
         const passageReference = getPassageReference(item);
+        const hasAttachments = Boolean(item.questionDocUrl || item.watchUrl || item.manuscriptDocUrl);
 
         return (
           <article
@@ -836,84 +741,43 @@ function MaterialSection({
                 </span>
               </div>
 
-              <div className="mt-4 space-y-3">
-                <PassagePreview reference={passageReference} />
+              <p className="ui-text mt-4 mb-0 text-sm font-semibold text-foreground">{passageReference}</p>
 
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-[18px] border border-border/80 bg-background p-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="size-4 text-muted-foreground" />
-                      <h3 className="ui-text m-0 text-sm font-semibold text-foreground">Question</h3>
-                    </div>
+              {hasAttachments ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {item.questionDocUrl ? (
+                    <Link
+                      className="ui-text inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border/80 bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                      href={getDocumentViewerHref(item.questionDocName ?? "Bible Question Document", item.questionDocUrl, "Question", passageReference)}
+                    >
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="block min-w-0 truncate">{item.questionDocName ?? "Question Doc"}</span>
+                    </Link>
+                  ) : null}
 
-                    {item.questionDocUrl ? (
-                      <a
-                        className="mt-4 flex min-h-28 flex-col justify-between rounded-[16px] border border-border/70 bg-card px-4 py-4 text-foreground"
-                        download
-                        href={item.questionDocUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <div>
-                          <p className="ui-text m-0 text-sm font-semibold text-foreground">{item.questionDocName ?? "Bible Question Document"}</p>
-                          <p className="ui-text mt-2 mb-0 text-sm text-muted-foreground">Open or download the study question sheet.</p>
-                        </div>
-                        <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                          <Download className="size-4" />
-                          Open Question Doc
-                        </span>
-                      </a>
-                    ) : (
-                      <div className="mt-4 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
-                        <p className="ui-text m-0 text-sm text-muted-foreground">Question document not attached.</p>
-                      </div>
-                    )}
-                  </div>
+                  {item.watchUrl ? (
+                    <a
+                      className="ui-text inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border/80 bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                      href={item.watchUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="block min-w-0 truncate">YouTube Message</span>
+                    </a>
+                  ) : null}
 
-                  <div className="rounded-[18px] border border-border/80 bg-background p-4">
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="size-4 text-muted-foreground" />
-                      <h3 className="ui-text m-0 text-sm font-semibold text-foreground">Message</h3>
-                    </div>
-
-                    {item.watchUrl && item.thumbnailUrl ? (
-                      <a className="mt-4 block overflow-hidden rounded-[16px] border border-border/70 bg-card" href={item.watchUrl} rel="noreferrer" target="_blank">
-                        <div className="relative overflow-hidden bg-background">
-                          <img alt={item.title} className="block aspect-video w-full object-cover" src={item.thumbnailUrl} />
-                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/88 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-sm">
-                            <ExternalLink className="size-3.5" />
-                            YouTube
-                          </span>
-                        </div>
-                      </a>
-                    ) : (
-                      <div className="mt-4 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
-                        <p className="ui-text m-0 text-sm text-muted-foreground">Message video not attached.</p>
-                      </div>
-                    )}
-
-                    {item.manuscriptDocUrl ? (
-                      <a
-                        className="mt-3 flex items-center justify-between rounded-[16px] border border-border/70 bg-card px-4 py-4 text-foreground"
-                        download
-                        href={item.manuscriptDocUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <div className="min-w-0">
-                          <p className="ui-text m-0 truncate text-sm font-semibold text-foreground">{item.manuscriptDocName ?? "Message Manuscript"}</p>
-                          <p className="ui-text mt-1 mb-0 text-sm text-muted-foreground">Open the manuscript document.</p>
-                        </div>
-                        <Download className="ml-4 size-4 shrink-0 text-primary" />
-                      </a>
-                    ) : (
-                      <div className="mt-3 rounded-[16px] border border-dashed border-border/70 px-4 py-5">
-                        <p className="ui-text m-0 text-sm text-muted-foreground">Manuscript document not attached.</p>
-                      </div>
-                    )}
-                  </div>
+                  {item.manuscriptDocUrl ? (
+                    <Link
+                      className="ui-text inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border/80 bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                      href={getDocumentViewerHref(item.manuscriptDocName ?? "Message Manuscript", item.manuscriptDocUrl, "Message Manuscript")}
+                    >
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="block min-w-0 truncate">Open the message manuscript</span>
+                    </Link>
+                  ) : null}
                 </div>
-              </div>
+              ) : null}
             </div>
           </article>
         );
