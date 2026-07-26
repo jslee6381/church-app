@@ -6,10 +6,10 @@ import { safeLocalStorageGet, safeLocalStorageSet } from "@/lib/browser-storage"
 
 const SIZE_STEPS = [
   { label: "1", value: DEFAULT_SIZE },
-  { label: "2", value: "1.0625rem" },
-  { label: "3", value: "1.125rem" },
-  { label: "4", value: "1.1875rem" },
-  { label: "5", value: "1.25rem" },
+  { label: "2", value: "1.125rem" },
+  { label: "3", value: "1.25rem" },
+  { label: "4", value: "1.375rem" },
+  { label: "5", value: "1.5rem" },
 ] as const;
 
 export function FontSizeEditor() {

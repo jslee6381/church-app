@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { formatEasternEventDateTime } from "@/lib/eastern-time";
+import { CalendarDays, ChevronLeft, ChevronRight, FileText, MapPin } from "lucide-react";
+import { formatEasternEventDate, formatEasternEventDateTime, formatEasternEventTime } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 function isAllDayEvent(event: EventListItem) {
@@ -22,6 +22,14 @@ function isAllDayEvent(event: EventListItem) {
   const startValues = Object.fromEntries(start.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
   const endValues = Object.fromEntries(end.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
   return startValues.hour === "00" && startValues.minute === "00" && endValues.hour === "23" && endValues.minute === "59";
+}
+
+function hasDifferentStartAndEndDate(event: EventListItem) {
+  if (!event.endsAt) {
+    return false;
+  }
+
+  return formatEasternEventDate(event.startsAt) !== formatEasternEventDate(event.endsAt);
 }
 
 type Props = {
@@ -118,12 +126,24 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
             <div className="mt-2 space-y-2 text-left">
               <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                 <CalendarDays className="size-4 shrink-0 text-current" />
-<span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
+                <span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
               </p>
+              {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
+                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+                  <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
+                  <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} · ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
+                </p>
+              ) : null}
               {currentEvent.locationName ? (
                 <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
                   <MapPin className="size-4 shrink-0 text-current" />
                   <span>{currentEvent.locationName}</span>
+                </p>
+              ) : null}
+              {currentEvent.summary ? (
+                <p className="ui-text m-0 flex items-start gap-2 text-muted-foreground">
+                  <FileText className="mt-0.5 size-4 shrink-0 text-current" />
+                  <span>{currentEvent.summary}</span>
                 </p>
               ) : null}
             </div>

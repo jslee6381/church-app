@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileText, ImagePlus, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatEasternDateTimeLocalValue, formatEasternEventDate, formatEasternEventTime, formatEasternWeekday } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
@@ -1021,7 +1021,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                     </p>
                     {eventItem.endsAt && (isAllDayEvent(eventItem) ? hasDifferentStartAndEndDate(eventItem) : true) ? (
                       <p className="ui-text m-0 flex items-center gap-2">
-                        <CalendarDays className="size-4 shrink-0 text-current" />
+                        <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
                         <span>{isAllDayEvent(eventItem) ? formatEasternEventDate(eventItem.endsAt) : `${formatEasternEventDate(eventItem.endsAt)} · ${formatEasternEventTime(eventItem.endsAt)}`}</span>
                       </p>
                     ) : null}
@@ -1032,7 +1032,12 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                       <span>{eventItem.locationName}</span>
                     </p>
                   ) : null}
-                  {eventItem.summary ? <p className="ui-text mt-3 mb-0 text-muted-foreground">{eventItem.summary}</p> : null}
+                  {eventItem.summary ? (
+                    <p className="ui-text mt-3 mb-0 flex items-start gap-2 text-muted-foreground">
+                      <FileText className="mt-0.5 size-4 shrink-0 text-current" />
+                      <span>{eventItem.summary}</span>
+                    </p>
+                  ) : null}
                 </>
               )}
             </div>
