@@ -15,13 +15,15 @@ type BiblePassageResponse = {
 
 export function PassagePreview({
   reference,
+  initialVerses,
 }: {
   reference: string;
+  initialVerses?: BibleApiVerse[] | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [verses, setVerses] = useState<BibleApiVerse[]>([]);
+  const [verses, setVerses] = useState<BibleApiVerse[]>(initialVerses ?? []);
 
   useEffect(() => {
     if (!isOpen || verses.length > 0 || isLoading) {

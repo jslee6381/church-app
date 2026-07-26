@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getBibleBook, formatPassageRange } from "@/lib/bible";
+import { fetchPassageVerses, getBibleBook, formatPassageRange } from "@/lib/bible";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
+import { extractDocxTextFromFile } from "@/lib/material-documents";
 import { uploadPublicDocument } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 import { getYouTubeThumbnailUrl, getYouTubeWatchUrl } from "@/lib/youtube";
@@ -92,10 +93,21 @@ export async function POST(request: Request) {
     }
 
     const title = normalizeText(`${formatPassageRange(passageBook, passageStartChapter, passageStartVerse, passageEndChapter, passageEndVerse)} · ${messengerName}`);
+    const passageReference = formatPassageRange(passageBook, passageStartChapter, passageStartVerse, passageEndChapter, passageEndVerse);
 
     if (title.length > TITLE_LIMIT) {
       return NextResponse.json({ error: `Please keep the generated title under ${TITLE_LIMIT} characters.` }, { status: 400 });
     }
+
+    const passageVerses = await fetchPassageVerses(passageReference);
+    const questionDocText =
+      questionDocument instanceof File && questionDocument.size > 0
+        ? await extractDocxTextFromFile(questionDocument)
+        : null;
+    const manuscriptDocText =
+      manuscriptDocument instanceof File && manuscriptDocument.size > 0
+        ? await extractDocxTextFromFile(manuscriptDocument)
+        : null;
 
     if (!hasAdminEnvironment()) {
       const now = new Date().toISOString();
@@ -112,13 +124,16 @@ export async function POST(request: Request) {
           passage_start_verse: passageStartVerse,
           passage_end_chapter: passageEndChapter,
           passage_end_verse: passageEndVerse,
+          passage_verses: passageVerses,
           video_link: videoLink || null,
           thumbnail_url: thumbnailUrl,
           watch_url: watchUrl,
           question_doc_url: null,
           question_doc_name: questionDocument instanceof File && questionDocument.size > 0 ? questionDocument.name : null,
+          question_doc_text: questionDocText,
           manuscript_doc_url: null,
           manuscript_doc_name: manuscriptDocument instanceof File && manuscriptDocument.size > 0 ? manuscriptDocument.name : null,
+          manuscript_doc_text: manuscriptDocText,
           created_at: now,
         },
       });
@@ -148,14 +163,17 @@ export async function POST(request: Request) {
         passage_start_verse: passageStartVerse,
         passage_end_chapter: passageEndChapter,
         passage_end_verse: passageEndVerse,
+        passage_verses: passageVerses,
         video_link: videoLink || null,
         question_doc_url: uploadedQuestionDocument?.publicUrl ?? null,
         question_doc_name: uploadedQuestionDocument?.fileName ?? null,
+        question_doc_text: questionDocText,
         manuscript_doc_url: uploadedManuscriptDocument?.publicUrl ?? null,
         manuscript_doc_name: uploadedManuscriptDocument?.fileName ?? null,
+        manuscript_doc_text: manuscriptDocText,
       })
       .select(
-        "id, title, body, scheduled_at, messenger_name, passage_book, passage_start_chapter, passage_start_verse, passage_end_chapter, passage_end_verse, video_link, question_doc_url, question_doc_name, manuscript_doc_url, manuscript_doc_name, created_at",
+        "id, title, body, scheduled_at, messenger_name, passage_book, passage_start_chapter, passage_start_verse, passage_end_chapter, passage_end_verse, passage_verses, video_link, question_doc_url, question_doc_name, question_doc_text, manuscript_doc_url, manuscript_doc_name, manuscript_doc_text, created_at",
       )
       .single();
 

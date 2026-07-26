@@ -4,6 +4,11 @@ export type BibleBook = {
   chapterCount: number;
 };
 
+export type BibleVerse = {
+  verse: number;
+  text: string;
+};
+
 export const BIBLE_BOOKS: BibleBook[] = [
   { book: "Genesis", testament: "OT", chapterCount: 50 },
   { book: "Exodus", testament: "OT", chapterCount: 40 },
@@ -93,4 +98,22 @@ export function formatPassageRange(
   }
 
   return `${book} ${startChapter}:${startVerse}-${endChapter}:${endVerse}`;
+}
+
+export async function fetchPassageVerses(reference: string): Promise<BibleVerse[] | null> {
+  try {
+    const response = await fetch(
+      `https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv&single_chapter_book_matching=indifferent`,
+      { next: { revalidate: 86400 } },
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as { verses?: BibleVerse[] };
+    return payload.verses ?? null;
+  } catch {
+    return null;
+  }
 }
