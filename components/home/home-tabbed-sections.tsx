@@ -90,20 +90,7 @@ export function HomeTabbedSections({ headerAction, initialAnnouncement, initialE
     <div className="mt-2 space-y-8">
       <div className="-mx-4 mb-1">
         <div className="px-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center bg-transparent shadow-none">
-              <Link className="top-route-tab top-route-tab-active ui-text inline-flex min-h-11 items-center px-4 transition" href="/home" style={{ color: "transparent" }}>
-                Home
-              </Link>
-              <button
-                className="top-route-tab top-route-tab-inactive ui-text inline-flex min-h-11 items-center px-4 transition"
-                onClick={() => void openFellowshipRoute()}
-                style={{ color: "transparent" }}
-                type="button"
-              >
-                Moments
-              </button>
-            </div>
+          <div className="flex items-center justify-end gap-3">
             {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
           </div>
         </div>

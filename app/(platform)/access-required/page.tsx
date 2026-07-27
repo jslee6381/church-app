@@ -22,8 +22,10 @@ function getCopy(context?: string, mode?: string) {
       ? "Prayer"
       : context === "community-feed"
         ? "Moments"
-        : context === "gallery"
-          ? "Gallery"
+        : context === "chat"
+          ? "Chat"
+        : context === "archive" || context === "gallery"
+          ? "Archive"
           : context === "video"
             ? "Material"
             : "Member Access";

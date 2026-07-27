@@ -510,7 +510,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
       <div>
         {posts.length === 0 ? (
           <article className="gallery-card-surface rounded-[18px] border border-border/80 px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
-            <p className="ui-text m-0 text-center text-muted-foreground">No gallery posts yet</p>
+            <p className="ui-text m-0 text-center text-muted-foreground">No archive posts yet</p>
           </article>
         ) : (
           posts.map((item) => (
@@ -519,7 +519,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-0 top-5 z-20">
                   <div className="relative">
                     <button
-                      aria-label="Gallery post actions"
+                      aria-label="Archive post actions"
                       className="inline-flex size-10 items-center justify-center bg-transparent text-foreground"
                       onClick={() => setOpenMenuPostId((current) => (current === item.id ? null : item.id))}
                       type="button"
@@ -678,7 +678,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 ) : null}
                 <div className="flex h-full w-full items-center justify-center">
                   <img
-                    alt={`Expanded gallery image ${lightboxState.index + 1}`}
+                    alt={`Expanded archive image ${lightboxState.index + 1}`}
                     className="pointer-events-none block max-h-full max-w-full select-none object-contain object-center"
                     draggable={false}
                     onContextMenu={preventImageSaveActions}
