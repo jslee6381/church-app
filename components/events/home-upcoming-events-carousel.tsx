@@ -177,34 +177,38 @@ export function HomeUpcomingEventsCarousel({ initialState }: Props) {
             </div>
           </div>
 
-          <button
-            className="mt-2 block w-full space-y-2 bg-transparent text-left"
-            onClick={openCurrentEvent}
-            type="button"
-          >
-            <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-              <CalendarDays className="size-4 shrink-0 text-current" />
-              <span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
-            </p>
-            {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
+          <div className="mt-2 grid grid-cols-[32px_minmax(0,1fr)_32px] gap-1">
+            <div aria-hidden="true" />
+            <button
+              className="block min-w-0 space-y-2 bg-transparent text-left"
+              onClick={openCurrentEvent}
+              type="button"
+            >
               <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
-                <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} at ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
+                <CalendarDays className="size-4 shrink-0 text-current" />
+                <span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
               </p>
-            ) : null}
-            {currentEvent.locationName ? (
-              <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                <MapPin className="size-4 shrink-0 text-current" />
-                <span>{currentEvent.locationName}</span>
-              </p>
-            ) : null}
-            {currentEvent.summary ? (
-              <p className="ui-text m-0 flex items-start gap-2 text-muted-foreground">
-                <FileText className="mt-0.5 size-4 shrink-0 text-current" />
-                <span>{currentEvent.summary}</span>
-              </p>
-            ) : null}
-          </button>
+              {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
+                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+                  <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
+                  <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} at ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
+                </p>
+              ) : null}
+              {currentEvent.locationName ? (
+                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="size-4 shrink-0 text-current" />
+                  <span>{currentEvent.locationName}</span>
+                </p>
+              ) : null}
+              {currentEvent.summary ? (
+                <p className="ui-text m-0 flex items-start gap-2 text-muted-foreground">
+                  <FileText className="mt-0.5 size-4 shrink-0 text-current" />
+                  <span>{currentEvent.summary}</span>
+                </p>
+              ) : null}
+            </button>
+            <div aria-hidden="true" />
+          </div>
         </div>
       </div>
     </article>

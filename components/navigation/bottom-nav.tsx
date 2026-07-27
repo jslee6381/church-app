@@ -102,7 +102,7 @@ const items = [
   { href: "/home", label: "Home", icon: House, navKey: "home" as const },
   { href: "/fellowship", label: "Fellowship", icon: ArchiveIcon, navKey: "fellowship" as const },
   { href: "/chat", label: "Chat", icon: ChatIcon, navKey: "chat" as const },
-  { href: "/material", label: "Material", icon: FileText, navKey: "video" as const },
+  { href: "/material", label: "Study", icon: FileText, navKey: "video" as const },
   { href: "__more__", label: "More", icon: MoreIcon, navKey: "more" as const },
 ] as const;
 
@@ -325,7 +325,7 @@ export function BottomNav() {
               <button
                 key={item.href}
                 aria-label={item.label}
-                className={`bottom-nav-item flex min-h-11 items-center justify-center transition ${itemStateClass} ${isAndroid ? "rounded-[12px] py-0.5" : "rounded-[19px] py-0.5"}`}
+                className={`bottom-nav-item flex min-h-[3.3rem] flex-col items-center justify-start transition ${itemStateClass} ${isAndroid ? "rounded-[12px] pt-1 pb-0.25" : "rounded-[19px] pt-1 pb-0.25"}`}
                 onClick={(event) => {
                   if (item.navKey === "fellowship") {
                     void handleFellowshipClick(event);
@@ -342,7 +342,12 @@ export function BottomNav() {
                 }}
                 type="button"
               >
-                <Icon className={`${item.navKey === "video" ? "size-[1.95rem]" : item.navKey === "fellowship" ? "size-[1.98rem]" : item.navKey === "chat" ? "h-[2.2rem] w-[2.48rem]" : item.navKey === "more" ? "size-[1.78rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
+                <span className="flex w-full items-center justify-center">
+                  <Icon className={`${item.navKey === "video" ? "size-[1.95rem]" : item.navKey === "fellowship" ? "size-[1.98rem]" : item.navKey === "chat" ? "h-[1.95rem] w-[2.48rem]" : item.navKey === "more" ? "size-[1.78rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
+                </span>
+                <span className="mt-0.25 text-[0.7rem] leading-none text-current">
+                  {item.navKey === "fellowship" ? "Moments" : item.label}
+                </span>
               </button>
             );
           })}
