@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getGoogleDriveGalleryImages, type GoogleDriveGalleryImage } from "@/lib/google-drive-gallery";
+import type { GoogleDriveGalleryImage } from "@/lib/google-drive-gallery";
 import { getEmbeddedGoogleDriveFolderUrl } from "@/lib/google-drive-public";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -23,7 +23,7 @@ export async function getGalleryPosts(churchId?: string | null): Promise<Gallery
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("gallery_posts")
-      .select("id, title, body, drive_link, created_at")
+      .select("id, title, body, drive_link, preview_images, created_at")
       .eq("church_id", churchId)
       .order("created_at", { ascending: false });
 
@@ -31,27 +31,23 @@ export async function getGalleryPosts(churchId?: string | null): Promise<Gallery
       return [];
     }
 
-    const items = await Promise.all(
-      data.map(async (item) => {
-        const embedUrl = getEmbeddedGoogleDriveFolderUrl(item.drive_link, "grid");
+    const items: Array<GalleryPostListItem | null> = data.map((item) => {
+      const embedUrl = getEmbeddedGoogleDriveFolderUrl(item.drive_link, "grid");
 
-        if (!embedUrl) {
-          return null;
-        }
+      if (!embedUrl) {
+        return null;
+      }
 
-        const images = await getGoogleDriveGalleryImages(item.drive_link);
-
-        return {
-          id: item.id,
-          title: item.title,
-          body: item.body ?? null,
-          driveLink: item.drive_link,
-          embedUrl,
-          images,
-          createdAt: item.created_at ?? null,
-        };
-      }),
-    );
+      return {
+        id: item.id,
+        title: item.title,
+        body: item.body ?? null,
+        driveLink: item.drive_link,
+        embedUrl,
+        images: Array.isArray(item.preview_images) ? (item.preview_images as GoogleDriveGalleryImage[]) : [],
+        createdAt: item.created_at ?? null,
+      };
+    });
 
     return items
       .filter((item): item is GalleryPostListItem => Boolean(item));

@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, Plus, X } from "lucide-react";
 
@@ -26,6 +26,11 @@ type Props = {
   canCompose: boolean;
 };
 
+type GalleryImagesPayload = {
+  images?: GalleryImageItem[];
+  error?: string;
+};
+
 const TITLE_LIMIT = 50;
 const CONTENT_LIMIT = 150;
 const MIN_TEXTAREA_HEIGHT = 44;
@@ -40,6 +45,135 @@ function resizeTextarea(textarea: HTMLTextAreaElement | null) {
 
   textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
   textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
+
+function GalleryImageStrip({
+  onOpenLightbox,
+  post,
+}: {
+  onOpenLightbox: (imageUrls: string[], index: number) => void;
+  post: GalleryPostItem;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [images, setImages] = useState(post.images);
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(post.images.length > 0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    setImages(post.images);
+    setHasAttemptedLoad(post.images.length > 0);
+    setIsLoading(false);
+    setLoadError(false);
+  }, [post.id, post.images]);
+
+  useEffect(() => {
+    if (images.length > 0 || hasAttemptedLoad) {
+      return;
+    }
+
+    const node = containerRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    let isCancelled = false;
+    let observer: IntersectionObserver | null = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+
+        observer?.disconnect();
+        observer = null;
+
+        const loadImages = async () => {
+          setHasAttemptedLoad(true);
+          setIsLoading(true);
+          setLoadError(false);
+
+          try {
+            const response = await fetch(`/api/gallery/${post.id}/images`, {
+              cache: "force-cache",
+            });
+            const payload = (await response.json()) as GalleryImagesPayload;
+
+            if (!response.ok) {
+              throw new Error(payload.error ?? "Unable to load gallery images.");
+            }
+
+            if (!isCancelled) {
+              setImages(payload.images ?? []);
+            }
+          } catch {
+            if (!isCancelled) {
+              setLoadError(true);
+            }
+          } finally {
+            if (!isCancelled) {
+              setIsLoading(false);
+            }
+          }
+        };
+
+        void loadImages();
+      },
+      {
+        rootMargin: "320px 0px",
+      },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      isCancelled = true;
+      observer?.disconnect();
+    };
+  }, [hasAttemptedLoad, images.length, post.id]);
+
+  return (
+    <div className="mt-4" ref={containerRef}>
+      {images.length > 0 ? (
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
+          {(() => {
+            const imageUrls = images.map((image) => image.imageUrl);
+
+            return images.map((image, index) => (
+              <button
+                className="block min-w-[88%] snap-center overflow-hidden rounded-[16px] sm:min-w-[380px]"
+                key={image.id}
+                onClick={() => onOpenLightbox(imageUrls, index)}
+                type="button"
+              >
+                <img
+                  alt={`${post.title} photo ${index + 1}`}
+                  className="pointer-events-none block h-[220px] w-full select-none object-cover sm:h-[240px]"
+                  draggable={false}
+                  loading="lazy"
+                  onContextMenu={preventImageSaveActions}
+                  referrerPolicy="no-referrer"
+                  src={image.imageUrl}
+                />
+              </button>
+            ));
+          })()}
+        </div>
+      ) : isLoading ? (
+        <div className="flex min-h-[220px] items-center justify-center sm:min-h-[240px]">
+          <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : loadError ? (
+        <div className="py-2">
+          <p className="ui-text m-0 text-center text-muted-foreground">Unable to load gallery images right now.</p>
+        </div>
+      ) : (
+        <div className="flex min-h-[220px] items-center justify-center sm:min-h-[240px]">
+          <p className="ui-text m-0 text-center text-muted-foreground">Loading gallery preview...</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function GalleryPageClient({ initialPosts, canCompose }: Props) {
@@ -498,40 +632,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 )}
               </div>
 
-              {editingId !== item.id ? (
-                item.images.length > 0 ? (
-                  <div className="mt-4">
-                    <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
-                      {(() => {
-                        const imageUrls = item.images.map((image) => image.imageUrl);
-
-                        return item.images.map((image, index) => (
-                          <button
-                            className="block min-w-[88%] snap-center overflow-hidden rounded-[16px] sm:min-w-[380px]"
-                            key={image.id}
-                            onClick={() => openLightbox(imageUrls, index)}
-                            type="button"
-                          >
-                          <img
-                            alt={`${item.title} photo ${index + 1}`}
-                            className="pointer-events-none block h-[220px] w-full select-none object-cover sm:h-[240px]"
-                            draggable={false}
-                            loading="lazy"
-                            onContextMenu={preventImageSaveActions}
-                            referrerPolicy="no-referrer"
-                            src={image.imageUrl}
-                          />
-                          </button>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 py-2">
-                    <p className="ui-text m-0 text-center text-muted-foreground">Unable to load gallery images right now.</p>
-                  </div>
-                )
-              ) : null}
+              {editingId !== item.id ? <GalleryImageStrip onOpenLightbox={openLightbox} post={item} /> : null}
             </article>
           ))
         )}

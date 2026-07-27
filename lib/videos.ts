@@ -21,11 +21,14 @@ export type VideoPostListItem = {
   watchUrl: string | null;
   questionDocUrl: string | null;
   questionDocName: string | null;
-  questionDocText: string | null;
   manuscriptDocUrl: string | null;
   manuscriptDocName: string | null;
-  manuscriptDocText: string | null;
   createdAt: string | null;
+};
+
+export type VideoPostDetail = VideoPostListItem & {
+  questionDocText: string | null;
+  manuscriptDocText: string | null;
 };
 
 export async function getVideoPosts(churchId?: string | null): Promise<VideoPostListItem[]> {
@@ -38,7 +41,7 @@ export async function getVideoPosts(churchId?: string | null): Promise<VideoPost
     const { data, error } = await admin
       .from("video_posts")
       .select(
-        "id, title, body, scheduled_at, messenger_name, passage_book, passage_start_chapter, passage_start_verse, passage_end_chapter, passage_end_verse, passage_verses, video_link, question_doc_url, question_doc_name, question_doc_text, manuscript_doc_url, manuscript_doc_name, manuscript_doc_text, created_at",
+        "id, title, body, scheduled_at, messenger_name, passage_book, passage_start_chapter, passage_start_verse, passage_end_chapter, passage_end_verse, passage_verses, video_link, question_doc_url, question_doc_name, manuscript_doc_url, manuscript_doc_name, created_at",
       )
       .eq("church_id", churchId)
       .order("scheduled_at", { ascending: false })
@@ -70,10 +73,8 @@ export async function getVideoPosts(churchId?: string | null): Promise<VideoPost
           watchUrl,
           questionDocUrl: item.question_doc_url ?? null,
           questionDocName: item.question_doc_name ?? null,
-          questionDocText: item.question_doc_text ?? null,
           manuscriptDocUrl: item.manuscript_doc_url ?? null,
           manuscriptDocName: item.manuscript_doc_name ?? null,
-          manuscriptDocText: item.manuscript_doc_text ?? null,
           createdAt: item.created_at ?? null,
         };
       })
@@ -83,7 +84,7 @@ export async function getVideoPosts(churchId?: string | null): Promise<VideoPost
   }
 }
 
-export async function getVideoPostById(postId: string, churchId?: string | null) {
+export async function getVideoPostById(postId: string, churchId?: string | null): Promise<VideoPostDetail | null> {
   if (!hasAdminEnvironment() || !churchId) {
     return null;
   }

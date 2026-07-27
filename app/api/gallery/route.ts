@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMemberRoles } from "@/lib/auth/authorization";
+import { getGoogleDriveGalleryImages } from "@/lib/google-drive-gallery";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getEmbeddedGoogleDriveFolderUrl } from "@/lib/google-drive-public";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     const body = normalizeText(String(payload.body ?? ""));
     const driveLink = String(payload.driveLink ?? "").trim();
     const embedUrl = getEmbeddedGoogleDriveFolderUrl(driveLink, "grid");
+    const previewImages = await getGoogleDriveGalleryImages(driveLink);
 
     if (!title || !driveLink) {
       return NextResponse.json({ error: "Title and Google Drive link are required." }, { status: 400 });
@@ -68,6 +70,7 @@ export async function POST(request: Request) {
           body: body || null,
           drive_link: driveLink,
           embed_url: embedUrl,
+          preview_images: previewImages,
           created_at: now,
         },
       });
@@ -82,8 +85,9 @@ export async function POST(request: Request) {
         title,
         body: body || null,
         drive_link: driveLink,
+        preview_images: previewImages,
       })
-      .select("id, title, body, drive_link, created_at")
+      .select("id, title, body, drive_link, preview_images, created_at")
       .single();
 
     if (error || !data) {
@@ -105,6 +109,7 @@ export async function POST(request: Request) {
       post: {
         ...data,
         embed_url: embedUrl,
+        preview_images: data.preview_images ?? [],
       },
     });
   } catch (error) {
