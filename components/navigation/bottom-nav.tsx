@@ -342,7 +342,7 @@ export function BottomNav() {
                 }}
                 type="button"
               >
-                <Icon className={`${item.navKey === "video" ? "size-[1.95rem]" : item.navKey === "fellowship" ? "size-[1.98rem]" : item.navKey === "chat" ? "h-[1.78rem] w-[2.02rem]" : item.navKey === "more" ? "size-[1.78rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
+                <Icon className={`${item.navKey === "video" ? "size-[1.95rem]" : item.navKey === "fellowship" ? "size-[1.98rem]" : item.navKey === "chat" ? "h-[2.2rem] w-[2.48rem]" : item.navKey === "more" ? "size-[1.78rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
               </button>
             );
           })}

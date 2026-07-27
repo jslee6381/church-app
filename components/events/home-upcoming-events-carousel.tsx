@@ -178,7 +178,7 @@ export function HomeUpcomingEventsCarousel({ initialState }: Props) {
           </div>
 
           <button
-            className="mt-4 block w-full space-y-2 bg-transparent text-left"
+            className="mt-2 block w-full space-y-2 bg-transparent text-left"
             onClick={openCurrentEvent}
             type="button"
           >
