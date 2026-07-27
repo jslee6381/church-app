@@ -551,7 +551,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 </div>
               ) : null}
 
-              <div className="pr-12">
+              <div className="pr-10">
                 {editingId === item.id ? (
                   <form className="grid gap-3" onSubmit={handleSubmit}>
                     <div className="relative">
@@ -613,7 +613,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                 ) : (
                   <>
                     <button
-                      className="flex w-full items-center justify-between gap-3 pr-12 text-left"
+                      className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pr-1 text-left"
                       onClick={() => togglePostExpansion(item.id)}
                       type="button"
                     >
@@ -621,9 +621,9 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                         {item.title}
                       </p>
                       {expandedPostIds.includes(item.id) ? (
-                        <ChevronUp className="ml-auto size-4 shrink-0 text-foreground" />
+                        <ChevronUp className="size-4 shrink-0 text-foreground" />
                       ) : (
-                        <ChevronDown className="ml-auto size-4 shrink-0 text-foreground" />
+                        <ChevronDown className="size-4 shrink-0 text-foreground" />
                       )}
                     </button>
                     {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
