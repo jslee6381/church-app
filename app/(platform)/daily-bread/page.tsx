@@ -74,7 +74,7 @@ export default async function DailyBreadPage({
             <p
               className="ui-text m-0 text-foreground"
               key={`${content.id}-paragraph-${index}`}
-              style={{ fontSize: "calc(var(--ui-text-size) * 1.08)", lineHeight: "1.5" }}
+              style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.5" }}
             >
               {paragraph}
             </p>
@@ -82,13 +82,13 @@ export default async function DailyBreadPage({
         </div>
 
         {content.application ? (
-          <p className="ui-text mt-4 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)", lineHeight: "1.5" }}>
+          <p className="ui-text mt-4 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.5" }}>
             <span className="font-semibold">Prayer:</span> {content.application}
           </p>
         ) : null}
 
         {content.oneWord ? (
-          <p className="ui-text mt-4 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)", lineHeight: "1.5" }}>
+          <p className="ui-text mt-4 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.5" }}>
             <span className="font-semibold">One Word:</span> {content.oneWord}
           </p>
         ) : null}

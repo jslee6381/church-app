@@ -18,6 +18,9 @@ function normalizeVerseText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+const NIV_COPYRIGHT_NOTICE =
+  "Scripture quotations taken from the Holy Bible, New International Version®, NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc. Used with permission. All rights reserved worldwide.";
+
 export function PassagePreview({
   reference,
   initialVerses,
@@ -103,6 +106,9 @@ export function PassagePreview({
                   {normalizeVerseText(verse.text)}
                 </p>
               ))}
+              <p className="ui-text m-0 pt-3 text-muted-foreground" style={{ fontSize: "11px", lineHeight: "1.5" }}>
+                {NIV_COPYRIGHT_NOTICE}
+              </p>
             </div>
           ) : (
             <p className="ui-text m-0 text-sm text-muted-foreground">No passage text available.</p>

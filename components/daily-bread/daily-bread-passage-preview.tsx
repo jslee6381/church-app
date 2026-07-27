@@ -18,6 +18,9 @@ function normalizeVerseText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+const NIV_COPYRIGHT_NOTICE =
+  "Scripture quotations taken from the Holy Bible, New International Version®, NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc. Used with permission. All rights reserved worldwide.";
+
 export function DailyBreadPassagePreview({
   reference,
   keyVerse,
@@ -82,15 +85,13 @@ export function DailyBreadPassagePreview({
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
-        <span className="ui-text font-semibold text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)" }}>
+        <span className="ui-text font-semibold text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}>
           {reference}
         </span>
         {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
 
-      {isOpen ? <div className="mb-3 border-b border-input" /> : null}
-
-      <p className="ui-text m-0 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)" }}>
+      <p className="ui-text m-0 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}>
         <span className="font-semibold">Key Verse:</span> {keyVerse}
       </p>
 
@@ -99,7 +100,10 @@ export function DailyBreadPassagePreview({
       {isOpen ? (
         <div className="px-0 pt-3">
           {isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div
+              className="flex items-center gap-2 text-muted-foreground"
+              style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}
+            >
               <LoaderCircle className="size-4 animate-spin" />
               Loading passage...
             </div>
@@ -108,22 +112,27 @@ export function DailyBreadPassagePreview({
               {errorMessage}
             </p>
           ) : loadedVerses.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {loadedVerses.map((verse) => (
-                <p
-                  className="ui-text m-0 text-foreground"
-                  key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}
-                  style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.65" }}
-                >
-                  <span
-                    className="mr-2 font-semibold text-muted-foreground"
-                    style={{ fontSize: "calc(var(--ui-text-size) * 0.88)" }}
+            <div className="border-b border-input pb-3">
+              <div className="flex flex-col gap-3">
+                {loadedVerses.map((verse) => (
+                  <p
+                    className="ui-text m-0 text-foreground"
+                    key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}
+                    style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.65" }}
                   >
-                    {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
-                  </span>
-                  {normalizeVerseText(verse.text)}
-                </p>
-              ))}
+                    <span
+                      className="mr-2 font-semibold text-muted-foreground"
+                      style={{ fontSize: "calc(var(--ui-text-size) * 0.88)" }}
+                    >
+                      {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
+                    </span>
+                    {normalizeVerseText(verse.text)}
+                  </p>
+                ))}
+              </div>
+              <p className="ui-text m-0 pt-3 text-muted-foreground" style={{ fontSize: "11px", lineHeight: "1.5" }}>
+                {NIV_COPYRIGHT_NOTICE}
+              </p>
             </div>
           ) : (
             <p className="ui-text m-0 text-muted-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}>
