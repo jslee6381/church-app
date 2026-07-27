@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { AnnouncementCarouselItem } from "@/lib/announcements";
 
 type AnnouncementItem = {
   id: string;
@@ -10,14 +11,63 @@ type AnnouncementItem = {
   body: string;
 };
 
-type Props = {
-  announcements: AnnouncementItem[];
-};
+async function fetchAnnouncement(index: number): Promise<AnnouncementCarouselItem | null> {
+  try {
+    const response = await fetch(`/api/home/announcement?index=${index}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
 
-export function HomeAnnouncementsCarousel({ announcements }: Props) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+    if (!response.ok) {
+      return null;
+    }
 
-  if (announcements.length === 0) {
+    return (await response.json()) as AnnouncementCarouselItem;
+  } catch {
+    return null;
+  }
+}
+
+export function HomeAnnouncementsCarousel() {
+  const [state, setState] = useState<AnnouncementCarouselItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChanging, setIsChanging] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      const nextState = await fetchAnnouncement(0);
+      if (!isMounted) return;
+      setState(nextState);
+      setIsLoading(false);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  async function moveTo(index: number) {
+    setIsChanging(true);
+    const nextState = await fetchAnnouncement(index);
+    if (nextState) {
+      setState(nextState);
+    }
+    setIsChanging(false);
+  }
+
+  if (isLoading) {
+    return (
+      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
+        <div className="pt-4 pb-4">
+          <p className="ui-text m-0 text-center text-muted-foreground">Loading...</p>
+        </div>
+      </article>
+    );
+  }
+
+  if (!state?.item) {
     return (
       <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
         <div className="pt-4 pb-4">
@@ -32,9 +82,9 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
     );
   }
 
-  const currentAnnouncement = announcements[currentIndex];
-  const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < announcements.length - 1;
+  const currentAnnouncement: AnnouncementItem = state.item;
+  const canGoPrevious = state.hasPrevious && !isChanging;
+  const canGoNext = state.hasNext && !isChanging;
 
   return (
     <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
@@ -45,7 +95,7 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
               aria-label="Previous announcement"
               className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoPrevious}
-              onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+              onClick={() => void moveTo(Math.max(0, state.index - 1))}
               type="button"
             >
               <ChevronLeft className="size-4" />
@@ -67,7 +117,7 @@ export function HomeAnnouncementsCarousel({ announcements }: Props) {
               aria-label="Next announcement"
               className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
               disabled={!canGoNext}
-              onClick={() => setCurrentIndex((index) => Math.min(announcements.length - 1, index + 1))}
+              onClick={() => void moveTo(state.index + 1)}
               type="button"
             >
               <ChevronRight className="size-4" />

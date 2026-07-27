@@ -24,6 +24,13 @@ export type EventListItem = {
   imageUrl?: string | null;
 };
 
+export type EventCarouselItem = {
+  item: EventListItem | null;
+  hasPrevious: boolean;
+  hasNext: boolean;
+  index: number;
+};
+
 type EventRow = {
   id: string;
   title: string;
@@ -102,6 +109,52 @@ export async function getUpcomingEvents(churchId?: string | null): Promise<Event
   const now = Date.now();
 
   return allEvents.filter((event) => getEventEndReference({ starts_at: event.startsAt, ends_at: event.endsAt }) >= now);
+}
+
+export async function getUpcomingEventCarouselItem(
+  churchId?: string | null,
+  index = 0,
+): Promise<EventCarouselItem> {
+  if (!hasAdminEnvironment() || !churchId) {
+    return {
+      item: null,
+      hasPrevious: false,
+      hasNext: false,
+      index: 0,
+    };
+  }
+
+  const safeIndex = Math.max(0, Number.isFinite(index) ? Math.trunc(index) : 0);
+
+  try {
+    const admin = createAdminClient();
+    const nowIso = new Date().toISOString();
+    const { data, error, count } = await admin
+      .from("events")
+      .select("id, title, summary, description, starts_at, ends_at, location_name, location_address, image_url, is_live_stream, live_stream_url", { count: "exact" })
+      .eq("church_id", churchId)
+      .or(`ends_at.gte.${nowIso},and(ends_at.is.null,starts_at.gte.${nowIso})`)
+      .order("starts_at", { ascending: true })
+      .order("created_at", { ascending: true })
+      .range(safeIndex, safeIndex);
+
+    const total = count ?? 0;
+    const item = !error && data && data.length > 0 ? mapEventRow(data[0] as EventRow) : null;
+
+    return {
+      item,
+      hasPrevious: safeIndex > 0 && total > 0,
+      hasNext: total > safeIndex + 1,
+      index: safeIndex,
+    };
+  } catch {
+    return {
+      item: null,
+      hasPrevious: false,
+      hasNext: false,
+      index: safeIndex,
+    };
+  }
 }
 
 export async function getEventsForBoard(churchId?: string | null): Promise<EventListItem[]> {

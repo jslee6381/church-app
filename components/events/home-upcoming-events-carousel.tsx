@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, MapPin } from "lucide-react";
 import { formatEasternEventDate, formatEasternEventDateTime, formatEasternEventTime } from "@/lib/eastern-time";
-import type { EventListItem } from "@/lib/events";
+import type { EventCarouselItem, EventListItem } from "@/lib/events";
 
 function isAllDayEvent(event: EventListItem) {
   const start = new Intl.DateTimeFormat("en-CA", {
@@ -32,10 +32,6 @@ function hasDifferentStartAndEndDate(event: EventListItem) {
 
   return formatEasternEventDate(event.startsAt) !== formatEasternEventDate(event.endsAt);
 }
-
-type Props = {
-  events: EventListItem[];
-};
 
 function LiveIndicatorIcon() {
   return (
@@ -69,17 +65,70 @@ function LiveIndicatorIcon() {
   );
 }
 
-export function HomeUpcomingEventsCarousel({ events }: Props) {
-  const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
+async function fetchUpcomingEvent(index: number): Promise<EventCarouselItem | null> {
+  try {
+    const response = await fetch(`/api/home/upcoming-event?index=${index}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
 
-  if (events.length === 0) {
+    if (!response.ok) {
+      return null;
+    }
+
+    return (await response.json()) as EventCarouselItem;
+  } catch {
+    return null;
+  }
+}
+
+export function HomeUpcomingEventsCarousel() {
+  const router = useRouter();
+  const [state, setState] = useState<EventCarouselItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChanging, setIsChanging] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      const nextState = await fetchUpcomingEvent(0);
+      if (!isMounted) return;
+      setState(nextState);
+      setIsLoading(false);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  async function moveTo(index: number) {
+    setIsChanging(true);
+    const nextState = await fetchUpcomingEvent(index);
+    if (nextState) {
+      setState(nextState);
+    }
+    setIsChanging(false);
+  }
+
+  if (isLoading) {
+    return (
+      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
+        <div className="px-4 pt-4 pb-4">
+          <p className="ui-text m-0 text-center text-muted-foreground">Loading...</p>
+        </div>
+      </article>
+    );
+  }
+
+  if (!state?.item) {
     return null;
   }
 
-  const currentEvent = events[currentIndex];
-  const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < events.length - 1;
+  const currentEvent = state.item;
+  const canGoPrevious = state.hasPrevious && !isChanging;
+  const canGoNext = state.hasNext && !isChanging;
   const titleHref =
     currentEvent.isLiveStream && currentEvent.liveStreamUrl
       ? currentEvent.liveStreamUrl
@@ -105,7 +154,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
                 aria-label="Previous event"
                 className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
                 disabled={!canGoPrevious}
-                onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+                onClick={() => void moveTo(Math.max(0, state.index - 1))}
                 type="button"
               >
                 <ChevronLeft className="size-4" />
@@ -142,7 +191,7 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
                 aria-label="Next event"
                 className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
                 disabled={!canGoNext}
-                onClick={() => setCurrentIndex((index) => Math.min(events.length - 1, index + 1))}
+                onClick={() => void moveTo(state.index + 1)}
                 type="button"
               >
                 <ChevronRight className="size-4" />

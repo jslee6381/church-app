@@ -2,12 +2,10 @@ import { MemberLocalSync } from "@/components/auth/member-local-sync";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { HomeHeaderActions } from "@/components/home/home-header-actions";
 import { HomeTabbedSections } from "@/components/home/home-tabbed-sections";
-import { getAnnouncements } from "@/lib/announcements";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
-import { getUpcomingEvents } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,9 +15,7 @@ export default async function HomePage() {
   const authSession = await getAuthenticatedMemberSession();
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
   const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
-  const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
-  const announcements = await getAnnouncements(churchId);
-  const events = await getUpcomingEvents(churchId);
+  await getDefaultChurchId();
 
   return (
     <PullToRefresh>
@@ -34,8 +30,6 @@ export default async function HomePage() {
           />
         ) : null}
         <HomeTabbedSections
-          announcements={announcements}
-          events={events}
           headerAction={(
             <HomeHeaderActions
               initialAuthenticated={Boolean(authSession)}

@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, LoaderCircle, MoreVertical, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, LoaderCircle, MoreVertical, Plus, X } from "lucide-react";
 
 type GalleryImageItem = {
   id: string;
@@ -48,13 +48,14 @@ function resizeTextarea(textarea: HTMLTextAreaElement | null) {
 }
 
 function GalleryImageStrip({
+  isOpen,
   onOpenLightbox,
   post,
 }: {
+  isOpen: boolean;
   onOpenLightbox: (imageUrls: string[], index: number) => void;
   post: GalleryPostItem;
 }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const [images, setImages] = useState(post.images);
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(post.images.length > 0);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,72 +69,53 @@ function GalleryImageStrip({
   }, [post.id, post.images]);
 
   useEffect(() => {
-    if (images.length > 0 || hasAttemptedLoad) {
-      return;
-    }
-
-    const node = containerRef.current;
-
-    if (!node) {
+    if (!isOpen || images.length > 0 || hasAttemptedLoad) {
       return;
     }
 
     let isCancelled = false;
-    let observer: IntersectionObserver | null = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) {
-          return;
+    const loadImages = async () => {
+      setHasAttemptedLoad(true);
+      setIsLoading(true);
+      setLoadError(false);
+
+      try {
+        const response = await fetch(`/api/gallery/${post.id}/images`, {
+          cache: "force-cache",
+        });
+        const payload = (await response.json()) as GalleryImagesPayload;
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Unable to load gallery images.");
         }
 
-        observer?.disconnect();
-        observer = null;
+        if (!isCancelled) {
+          setImages(payload.images ?? []);
+        }
+      } catch {
+        if (!isCancelled) {
+          setLoadError(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
 
-        const loadImages = async () => {
-          setHasAttemptedLoad(true);
-          setIsLoading(true);
-          setLoadError(false);
-
-          try {
-            const response = await fetch(`/api/gallery/${post.id}/images`, {
-              cache: "force-cache",
-            });
-            const payload = (await response.json()) as GalleryImagesPayload;
-
-            if (!response.ok) {
-              throw new Error(payload.error ?? "Unable to load gallery images.");
-            }
-
-            if (!isCancelled) {
-              setImages(payload.images ?? []);
-            }
-          } catch {
-            if (!isCancelled) {
-              setLoadError(true);
-            }
-          } finally {
-            if (!isCancelled) {
-              setIsLoading(false);
-            }
-          }
-        };
-
-        void loadImages();
-      },
-      {
-        rootMargin: "320px 0px",
-      },
-    );
-
-    observer.observe(node);
+    void loadImages();
 
     return () => {
       isCancelled = true;
-      observer?.disconnect();
     };
-  }, [hasAttemptedLoad, images.length, post.id]);
+  }, [hasAttemptedLoad, images.length, isOpen, post.id]);
+
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="mt-4" ref={containerRef}>
+    <div className="mt-4">
       {images.length > 0 ? (
         <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
           {(() => {
@@ -192,6 +174,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [lightboxState, setLightboxState] = useState<{ imageUrls: string[]; index: number } | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [expandedPostIds, setExpandedPostIds] = useState<string[]>([]);
 
   useEffect(() => {
     setPosts(initialPosts);
@@ -305,6 +288,14 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
 
   function openLightbox(imageUrls: string[], index: number) {
     setLightboxState({ imageUrls, index });
+  }
+
+  function togglePostExpansion(postId: string) {
+    setExpandedPostIds((current) =>
+      current.includes(postId)
+        ? current.filter((item) => item !== postId)
+        : [...current, postId],
+    );
   }
 
   function showPreviousLightboxImage() {
@@ -523,10 +514,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
           </article>
         ) : (
           posts.map((item) => (
-            <article
-              className="relative py-5"
-              key={item.id}
-            >
+            <article className="relative py-5" key={item.id}>
               {canCompose && editingId !== item.id ? (
                 <div ref={openMenuPostId === item.id ? menuAreaRef : null} className="absolute right-0 top-5 z-20">
                   <div className="relative">
@@ -624,15 +612,30 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                   </form>
                 ) : (
                   <>
-                    <p className="ui-text m-0 pr-12 text-base font-semibold leading-tight text-foreground">
-                      {item.title}
-                    </p>
+                    <button
+                      className="flex w-full items-center justify-between gap-3 pr-12 text-left"
+                      onClick={() => togglePostExpansion(item.id)}
+                      type="button"
+                    >
+                      <p className="ui-text m-0 text-base font-semibold leading-tight text-foreground">
+                        {item.title}
+                      </p>
+                      {expandedPostIds.includes(item.id) ? <ChevronUp className="size-4 shrink-0 text-foreground" /> : <ChevronDown className="size-4 shrink-0 text-foreground" />}
+                    </button>
                     {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
+                    <div className="mt-4 border-b border-border/70" />
                   </>
                 )}
               </div>
 
-              {editingId !== item.id ? <GalleryImageStrip onOpenLightbox={openLightbox} post={item} /> : null}
+              {editingId !== item.id ? (
+                <GalleryImageStrip
+                  isOpen={expandedPostIds.includes(item.id)}
+                  onOpenLightbox={openLightbox}
+                  post={item}
+                />
+              ) : null}
+              {editingId !== item.id && expandedPostIds.includes(item.id) ? <div className="mt-4 border-b border-border/70" /> : null}
             </article>
           ))
         )}
