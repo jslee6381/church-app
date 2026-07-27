@@ -617,10 +617,14 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
                       onClick={() => togglePostExpansion(item.id)}
                       type="button"
                     >
-                      <p className="ui-text m-0 text-base font-semibold leading-tight text-foreground">
+                      <p className="ui-text m-0 min-w-0 flex-1 text-base font-semibold leading-tight text-foreground">
                         {item.title}
                       </p>
-                      {expandedPostIds.includes(item.id) ? <ChevronUp className="size-4 shrink-0 text-foreground" /> : <ChevronDown className="size-4 shrink-0 text-foreground" />}
+                      {expandedPostIds.includes(item.id) ? (
+                        <ChevronUp className="ml-auto size-4 shrink-0 text-foreground" />
+                      ) : (
+                        <ChevronDown className="ml-auto size-4 shrink-0 text-foreground" />
+                      )}
                     </button>
                     {item.body ? <p className="ui-text mt-3 mb-0 whitespace-pre-wrap text-muted-foreground">{item.body}</p> : null}
                     <div className="mt-4 border-b border-border/70" />
