@@ -7,6 +7,7 @@ import {
   BookOpen,
   CalendarDays,
   ExternalLink,
+  FileText,
   LoaderCircle,
   MoreVertical,
   Plus,
@@ -288,14 +289,14 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
   const upcomingPosts = useMemo(
     () =>
       [...posts]
-        .filter((item) => item.scheduledAt >= today)
+        .filter((item) => item.scheduledAt > today)
         .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt)),
     [posts, today],
   );
   const pastPosts = useMemo(
     () =>
       [...posts]
-        .filter((item) => item.scheduledAt < today)
+        .filter((item) => item.scheduledAt <= today)
         .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt)),
     [posts, today],
   );
@@ -827,18 +828,20 @@ function MaterialSection({
                 <div className={`mt-4 grid gap-2 ${actionCount > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
                   {item.questionDocUrl ? (
                     <Link
-                      className="material-action-button flex min-h-[52px] items-center justify-center rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
+                      className="material-action-button flex min-h-[52px] items-center justify-center gap-1.5 rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
                       href={getDocumentViewerHref(item.id, "Question", passageReference)}
                     >
+                      <FileText className="size-4 shrink-0" />
                       <span className="ui-text text-xs font-semibold leading-4">Question</span>
                     </Link>
                   ) : null}
 
                   {item.manuscriptDocUrl ? (
                     <Link
-                      className="material-action-button flex min-h-[52px] items-center justify-center rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
+                      className="material-action-button flex min-h-[52px] items-center justify-center gap-1.5 rounded-[16px] border border-primary bg-primary px-3 py-2 text-center"
                       href={getDocumentViewerHref(item.id, "Message Manuscript")}
                     >
+                      <FileText className="size-4 shrink-0" />
                       <span className="ui-text text-xs font-semibold leading-4">Manuscript</span>
                     </Link>
                   ) : null}

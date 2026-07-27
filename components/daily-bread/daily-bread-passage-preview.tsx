@@ -97,12 +97,12 @@ export function DailyBreadPassagePreview({
               {errorMessage}
             </p>
           ) : loadedVerses.length > 0 ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               {loadedVerses.map((verse) => (
                 <p
                   className="ui-text m-0 text-foreground"
                   key={`${reference}-${verse.verse}`}
-                  style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.8" }}
+                  style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.65" }}
                 >
                   <span
                     className="mr-2 font-semibold text-muted-foreground"
