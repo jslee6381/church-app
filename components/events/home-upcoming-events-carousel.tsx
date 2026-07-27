@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, MapPin } from "lucide-react";
 import { formatEasternEventDate, formatEasternEventDateTime, formatEasternEventTime } from "@/lib/eastern-time";
 import type { EventCarouselItem, EventListItem } from "@/lib/events";
+
+type Props = {
+  initialState: EventCarouselItem;
+};
 
 function isAllDayEvent(event: EventListItem) {
   const start = new Intl.DateTimeFormat("en-CA", {
@@ -82,26 +86,10 @@ async function fetchUpcomingEvent(index: number): Promise<EventCarouselItem | nu
   }
 }
 
-export function HomeUpcomingEventsCarousel() {
+export function HomeUpcomingEventsCarousel({ initialState }: Props) {
   const router = useRouter();
-  const [state, setState] = useState<EventCarouselItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [state, setState] = useState<EventCarouselItem | null>(initialState);
   const [isChanging, setIsChanging] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      const nextState = await fetchUpcomingEvent(0);
-      if (!isMounted) return;
-      setState(nextState);
-      setIsLoading(false);
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   async function moveTo(index: number) {
     setIsChanging(true);
@@ -110,16 +98,6 @@ export function HomeUpcomingEventsCarousel() {
       setState(nextState);
     }
     setIsChanging(false);
-  }
-
-  if (isLoading) {
-    return (
-      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
-        <div className="px-4 pt-4 pb-4">
-          <p className="ui-text m-0 text-center text-muted-foreground">Loading...</p>
-        </div>
-      </article>
-    );
   }
 
   if (!state?.item) {

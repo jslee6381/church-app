@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCommunityUpdateFeedPage } from "@/lib/community-updates";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { uploadPublicImage } from "@/lib/storage";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
@@ -19,6 +20,27 @@ function getCurrentActivityDate() {
   });
 
   return formatter.format(new Date());
+}
+
+export async function GET(request: Request) {
+  try {
+    const session = await getAuthenticatedMemberSession();
+
+    if (!session?.member.church_id) {
+      return NextResponse.json({ items: [], hasMore: false, nextOffset: 0 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const rawOffset = Number.parseInt(searchParams.get("offset") ?? "0", 10);
+    const rawLimit = Number.parseInt(searchParams.get("limit") ?? "3", 10);
+    const offset = Number.isFinite(rawOffset) ? Math.max(0, rawOffset) : 0;
+    const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(12, rawLimit)) : 3;
+
+    const page = await getCommunityUpdateFeedPage(session.member.church_id, session.member.id, offset, limit);
+    return NextResponse.json(page);
+  } catch {
+    return NextResponse.json({ items: [], hasMore: false, nextOffset: 0 }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

@@ -507,7 +507,7 @@ export function GalleryPageClient({ initialPosts, canCompose }: Props) {
         </div>
       ) : null}
 
-      <div className="divide-y divide-border/70">
+      <div>
         {posts.length === 0 ? (
           <article className="gallery-card-surface rounded-[18px] border border-border/80 px-4 py-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)]">
             <p className="ui-text m-0 text-center text-muted-foreground">No gallery posts yet</p>

@@ -28,6 +28,8 @@ function resizeTextarea(textarea: HTMLTextAreaElement | null) {
 type Props = {
   canManage: boolean;
   initialUpdates: CommunityUpdateFeedItem[];
+  initialHasMore: boolean;
+  initialNextOffset: number;
   canReact: boolean;
   currentMemberPhotoUrl?: string | null;
   nextPath?: string;
@@ -166,6 +168,8 @@ function ExpandImageIcon() {
 export function CommunityUpdatesSection({
   canManage,
   initialUpdates,
+  initialHasMore,
+  initialNextOffset,
   canReact,
   currentMemberPhotoUrl = null,
   nextPath = "/fellowship",
@@ -178,6 +182,7 @@ export function CommunityUpdatesSection({
   const lightboxTouchStartXRef = useRef<number | null>(null);
   const editingImagesRef = useRef<EditableCommunityImage[]>([]);
   const menuAreaRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [updates, setUpdates] = useState(initialUpdates);
   const [selectedReactions, setSelectedReactions] = useState<Record<string, ReactionKind>>(
@@ -217,19 +222,9 @@ export function CommunityUpdatesSection({
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [openCommentMenuId, setOpenCommentMenuId] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setUpdates(initialUpdates);
-    setSelectedReactions(
-      Object.fromEntries(
-        initialUpdates
-          .filter((item) => item.selectedReaction)
-          .map((item) => [item.id, item.selectedReaction as ReactionKind]),
-      ),
-    );
-    setCurrentImageIndexes({});
-    setUpdateImageRatios({});
-  }, [initialUpdates]);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextOffset, setNextOffset] = useState(initialNextOffset);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!openMenuUpdateId && !openCommentMenuId) {
@@ -278,6 +273,71 @@ export function CommunityUpdatesSection({
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (!hasMore || isLoadingMore) {
+      return;
+    }
+
+    const node = loadMoreRef.current;
+
+    if (!node || typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (!entry?.isIntersecting) {
+        return;
+      }
+
+      setIsLoadingMore(true);
+      void (async () => {
+        try {
+          const response = await fetch(`/api/community-updates?offset=${nextOffset}&limit=3`, {
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          if (!response.ok) {
+            return;
+          }
+
+          const payload = (await response.json()) as {
+            items?: CommunityUpdateFeedItem[];
+            hasMore?: boolean;
+            nextOffset?: number;
+          };
+          const newItems = payload.items ?? [];
+
+          setUpdates((current) => {
+            const seen = new Set(current.map((item) => item.id));
+            const appended = newItems.filter((item) => !seen.has(item.id));
+            return appended.length > 0 ? [...current, ...appended] : current;
+          });
+          setSelectedReactions((current) => {
+            const next = { ...current };
+            newItems.forEach((item) => {
+              if (item.selectedReaction) {
+                next[item.id] = item.selectedReaction;
+              }
+            });
+            return next;
+          });
+          setHasMore(payload.hasMore === true);
+          setNextOffset(typeof payload.nextOffset === "number" ? payload.nextOffset : nextOffset + newItems.length);
+        } finally {
+          setIsLoadingMore(false);
+        }
+      })();
+    }, { rootMargin: "240px 0px" });
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isLoadingMore, nextOffset]);
 
   useEffect(() => {
     if (!isComposerExpanded) {
@@ -1136,6 +1196,21 @@ export function CommunityUpdatesSection({
     }
   }
 
+  function getCommentReactionClassName(kind: CommentReactionKind, active: boolean) {
+    if (!active) {
+      return "text-foreground";
+    }
+
+    switch (kind) {
+      case "heart":
+        return "text-red-500";
+      case "like":
+        return "text-blue-500";
+      default:
+        return "text-primary";
+    }
+  }
+
   return (
     <div className="overflow-hidden rounded-[16px] bg-transparent shadow-none">
       <div className="mb-3 px-4 pt-1 pb-1">
@@ -1653,15 +1728,15 @@ export function CommunityUpdatesSection({
                                       <button
                                         key={reactionKey}
                                         aria-label={kind}
-                                        className="inline-flex items-center gap-1 bg-transparent px-0 py-0 text-foreground"
+                                        className={`inline-flex items-center gap-1 bg-transparent px-0 py-0 ${getCommentReactionClassName(kind, active)}`}
                                         disabled={!canReact || savingCommentReactionKey === reactionKey}
                                         onClick={() => toggleCommentReaction(update.id, comment.id, kind)}
                                         type="button"
                                       >
-                                        <span className={`inline-flex h-4 w-4 items-center justify-center ${active ? "text-foreground" : "text-foreground"}`}>
+                                        <span className="inline-flex h-4 w-4 items-center justify-center">
                                           <span className="scale-[0.7]">{savingCommentReactionKey === reactionKey ? <LoaderCircle className="size-3 animate-spin" /> : renderSmallCommentReactionIcon(kind, active)}</span>
                                         </span>
-                                        <span className="text-[0.8rem] font-medium text-muted-foreground">{count}</span>
+                                        <span className={`text-[0.8rem] font-medium ${active ? getCommentReactionClassName(kind, active) : "text-muted-foreground"}`}>{count}</span>
                                       </button>
                                     );
                                   })}
@@ -1767,6 +1842,12 @@ export function CommunityUpdatesSection({
             ) : null}
           </article>
         ))}
+        <div ref={loadMoreRef} />
+        {isLoadingMore ? (
+          <div className="px-4 pt-2 text-center">
+            <p className="ui-text m-0 text-muted-foreground">Loading...</p>
+          </div>
+        ) : null}
       </div>
       {isClient && lightboxState
         ? createPortal(

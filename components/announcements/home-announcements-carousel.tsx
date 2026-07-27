@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AnnouncementCarouselItem } from "@/lib/announcements";
@@ -28,25 +28,13 @@ async function fetchAnnouncement(index: number): Promise<AnnouncementCarouselIte
   }
 }
 
-export function HomeAnnouncementsCarousel() {
-  const [state, setState] = useState<AnnouncementCarouselItem | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+type Props = {
+  initialState: AnnouncementCarouselItem;
+};
+
+export function HomeAnnouncementsCarousel({ initialState }: Props) {
+  const [state, setState] = useState<AnnouncementCarouselItem | null>(initialState);
   const [isChanging, setIsChanging] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    void (async () => {
-      const nextState = await fetchAnnouncement(0);
-      if (!isMounted) return;
-      setState(nextState);
-      setIsLoading(false);
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   async function moveTo(index: number) {
     setIsChanging(true);
@@ -55,16 +43,6 @@ export function HomeAnnouncementsCarousel() {
       setState(nextState);
     }
     setIsChanging(false);
-  }
-
-  if (isLoading) {
-    return (
-      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
-        <div className="pt-4 pb-4">
-          <p className="ui-text m-0 text-center text-muted-foreground">Loading...</p>
-        </div>
-      </article>
-    );
   }
 
   if (!state?.item) {

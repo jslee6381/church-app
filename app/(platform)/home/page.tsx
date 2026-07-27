@@ -2,10 +2,12 @@ import { MemberLocalSync } from "@/components/auth/member-local-sync";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { HomeHeaderActions } from "@/components/home/home-header-actions";
 import { HomeTabbedSections } from "@/components/home/home-tabbed-sections";
+import { getAnnouncementCarouselItem } from "@/lib/announcements";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
+import { getUpcomingEventCarouselItem } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,7 +17,11 @@ export default async function HomePage() {
   const authSession = await getAuthenticatedMemberSession();
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
   const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
-  await getDefaultChurchId();
+  const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
+  const [initialAnnouncement, initialEvent] = await Promise.all([
+    getAnnouncementCarouselItem(churchId, 0),
+    getUpcomingEventCarouselItem(churchId, 0),
+  ]);
 
   return (
     <PullToRefresh>
@@ -36,6 +42,8 @@ export default async function HomePage() {
               initialCanAccessAdmin={canAccessAdmin}
             />
           )}
+          initialAnnouncement={initialAnnouncement}
+          initialEvent={initialEvent}
           wordmark={{
             light: {
               src: "/aaa.png",

@@ -745,6 +745,39 @@ h2 {
   color: #DDDDDD;
 }
 
+.launch-spinner {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9999px;
+  border: 0.17rem solid transparent;
+  animation: launch-spinner-rotate 0.9s linear infinite;
+}
+
+.launch-spinner-initial {
+  border-top-color: #ffffff;
+  border-right-color: rgba(255, 255, 255, 0.34);
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  border-left-color: rgba(255, 255, 255, 0.34);
+}
+
+.launch-spinner-themed {
+  border-top-color: #2563eb;
+  border-right-color: rgba(37, 99, 235, 0.34);
+  border-bottom-color: rgba(37, 99, 235, 0.18);
+  border-left-color: rgba(37, 99, 235, 0.34);
+}
+
+@keyframes launch-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 .launch-title {
   color: #1e2a2a;
@@ -800,6 +833,13 @@ h2 {
 :root[data-theme="dark"] .launch-screen {
   background: #121212;
   color: #DDDDDD;
+}
+
+:root[data-theme="dark"] .launch-spinner-themed {
+  border-top-color: #ffffff;
+  border-right-color: rgba(255, 255, 255, 0.34);
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  border-left-color: rgba(255, 255, 255, 0.34);
 }
 
 :root[data-theme="dark"] .launch-title {

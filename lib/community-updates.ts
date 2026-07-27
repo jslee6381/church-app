@@ -36,6 +36,12 @@ export type CommunityUpdateFeedItem = {
   status: "pending" | "approved" | "rejected" | "archived";
 };
 
+export type CommunityUpdateFeedPage = {
+  items: CommunityUpdateFeedItem[];
+  hasMore: boolean;
+  nextOffset: number;
+};
+
 function formatDate(value: string) {
   return formatEasternLongDate(value);
 }
@@ -60,30 +66,54 @@ function getFallbackUpdates(): CommunityUpdateFeedItem[] {
   }));
 }
 
-export async function getCommunityUpdateFeed(churchId?: string | null, memberId?: string | null) {
+export async function getCommunityUpdateFeedPage(
+  churchId?: string | null,
+  memberId?: string | null,
+  offset = 0,
+  limit = 12,
+): Promise<CommunityUpdateFeedPage> {
   void memberId;
 
+  const safeOffset = Math.max(0, Number.isFinite(offset) ? Math.trunc(offset) : 0);
+  const safeLimit = Math.max(1, Math.min(12, Number.isFinite(limit) ? Math.trunc(limit) : 12));
+
   if (!hasAdminEnvironment() || !churchId) {
-    return getFallbackUpdates();
+    const fallback = getFallbackUpdates();
+    const items = fallback.slice(safeOffset, safeOffset + safeLimit);
+    return {
+      items,
+      hasMore: safeOffset + items.length < fallback.length,
+      nextOffset: safeOffset + items.length,
+    };
   }
 
   try {
     const admin = createAdminClient();
-    const { data, error: approvedError } = await admin
+    const { data, count, error: approvedError } = await admin
       .from("community_updates")
-      .select("id, title, summary, body, image_url, activity_date, published_at, author_member_id, status, author_member:members!community_updates_author_member_id_fkey(display_name, full_name)")
+      .select("id, title, summary, body, image_url, activity_date, published_at, author_member_id, status, author_member:members!community_updates_author_member_id_fkey(display_name, full_name)", { count: "exact" })
       .eq("church_id", churchId)
       .eq("status", "approved")
       .order("activity_date", { ascending: false, nullsFirst: false })
       .order("published_at", { ascending: false, nullsFirst: false })
-      .limit(12);
+      .range(safeOffset, safeOffset + safeLimit - 1);
 
     if (approvedError) {
-      return getFallbackUpdates();
+      const fallback = getFallbackUpdates();
+      const items = fallback.slice(safeOffset, safeOffset + safeLimit);
+      return {
+        items,
+        hasMore: safeOffset + items.length < fallback.length,
+        nextOffset: safeOffset + items.length,
+      };
     }
 
     if (!data || data.length === 0) {
-      return [];
+      return {
+        items: [],
+        hasMore: false,
+        nextOffset: safeOffset,
+      };
     }
 
     const ids = data.map((update) => update.id);
@@ -132,7 +162,7 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
       }),
     );
 
-    return data.map((update) => {
+    const items = data.map((update) => {
       const author = Array.isArray(update.author_member) ? update.author_member[0] : update.author_member;
       const reactionRows = (reactions ?? []).filter((reaction) => reaction.community_update_id === update.id);
       const reactionCounts: Record<ReactionKind, number> = { heart: 0, like: 0, pray: 0 };
@@ -196,7 +226,25 @@ export async function getCommunityUpdateFeed(churchId?: string | null, memberId?
 
       return rightDate - leftDate;
     });
+    const total = count ?? safeOffset + items.length;
+
+    return {
+      items,
+      hasMore: safeOffset + items.length < total,
+      nextOffset: safeOffset + items.length,
+    };
   } catch {
-    return getFallbackUpdates();
+    const fallback = getFallbackUpdates();
+    const items = fallback.slice(safeOffset, safeOffset + safeLimit);
+    return {
+      items,
+      hasMore: safeOffset + items.length < fallback.length,
+      nextOffset: safeOffset + items.length,
+    };
   }
+}
+
+export async function getCommunityUpdateFeed(churchId?: string | null, memberId?: string | null) {
+  const page = await getCommunityUpdateFeedPage(churchId, memberId, 0, 12);
+  return page.items;
 }

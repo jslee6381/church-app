@@ -11,7 +11,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
     return (
       <main className="initial-launch-screen flex h-full min-h-0 w-full items-center justify-center px-4">
         <div className="mx-auto flex w-full max-w-[42rem] items-center justify-center">
-          <div className="w-full">
+          <div className="flex w-full flex-col items-center">
             <Image
               alt="New York UBF logo"
               className="block h-auto w-full -translate-y-3"
@@ -21,6 +21,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
               src="/ubf-logo-white-transparent.png"
               width={1814}
             />
+            <span aria-hidden="true" className="launch-spinner launch-spinner-initial -mt-2" />
           </div>
         </div>
       </main>
@@ -30,7 +31,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
   return (
     <main className="launch-screen flex min-h-dvh items-center justify-center bg-background px-4 text-foreground">
       <div className="mx-auto flex w-full max-w-[42rem] items-center justify-center">
-        <div className="w-full">
+        <div className="flex w-full flex-col items-center">
           <Image
             alt="New York UBF logo"
             className="launch-logo-light block h-auto w-full -translate-y-3"
@@ -49,6 +50,7 @@ export function AppLaunchScreen({ variant = "themed" }: AppLaunchScreenProps) {
             src="/ubf-logo-white-transparent.png"
             width={1814}
           />
+          <span aria-hidden="true" className="launch-spinner launch-spinner-themed -mt-2" />
         </div>
       </div>
     </main>

@@ -8,6 +8,8 @@ import { BookOpen, CalendarDays, Heart } from "lucide-react";
 import { HomeAnnouncementsCarousel } from "@/components/announcements/home-announcements-carousel";
 import { HomeUpcomingEventsCarousel } from "@/components/events/home-upcoming-events-carousel";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
+import type { AnnouncementCarouselItem } from "@/lib/announcements";
+import type { EventCarouselItem } from "@/lib/events";
 
 const quickActions: {
   href: string;
@@ -43,13 +45,15 @@ async function fetchFellowshipAccessState(): Promise<FellowshipAccessState> {
 
 type Props = {
   headerAction?: ReactNode;
+  initialAnnouncement: AnnouncementCarouselItem;
+  initialEvent: EventCarouselItem;
   wordmark: {
     light: { src: string; width: number; height: number };
     dark: { src: string; width: number; height: number };
   };
 };
 
-export function HomeTabbedSections({ headerAction, wordmark }: Props) {
+export function HomeTabbedSections({ headerAction, initialAnnouncement, initialEvent, wordmark }: Props) {
   const bottomNavVisibility = useBottomNavVisibility();
   const router = useRouter();
   const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
@@ -157,7 +161,7 @@ export function HomeTabbedSections({ headerAction, wordmark }: Props) {
           <p className="ui-text m-0 text-left text-foreground">Upcoming Event</p>
         </div>
         <div className="px-3">
-          <HomeUpcomingEventsCarousel />
+          <HomeUpcomingEventsCarousel initialState={initialEvent} />
         </div>
       </section>
 
@@ -166,7 +170,7 @@ export function HomeTabbedSections({ headerAction, wordmark }: Props) {
           <p className="ui-text m-0 text-left text-foreground">Announcement</p>
         </div>
         <div className="px-3">
-          <HomeAnnouncementsCarousel />
+          <HomeAnnouncementsCarousel initialState={initialAnnouncement} />
         </div>
       </section>
     </div>
