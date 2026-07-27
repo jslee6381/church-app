@@ -188,7 +188,7 @@ export function formatEasternMonthHeading(value: string) {
 }
 
 export function formatEasternEventDate(value: string) {
-  const parts = getEasternParts(value, {
+  const parts = getEasternParts(toEasternDate(value), {
     weekday: "short",
     month: "short",
     day: "numeric",

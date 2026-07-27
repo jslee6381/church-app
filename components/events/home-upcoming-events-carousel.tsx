@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, MapPin } from "lucide-react";
 import { formatEasternEventDate, formatEasternEventDateTime, formatEasternEventTime } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
@@ -69,6 +70,7 @@ function LiveIndicatorIcon() {
 }
 
 export function HomeUpcomingEventsCarousel({ events }: Props) {
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (events.length === 0) {
@@ -84,82 +86,98 @@ export function HomeUpcomingEventsCarousel({ events }: Props) {
       : `/events#event-${currentEvent.id}`;
   const titleIsExternal = Boolean(currentEvent.isLiveStream && currentEvent.liveStreamUrl);
 
+  function openCurrentEvent() {
+    if (titleIsExternal) {
+      window.open(titleHref, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    router.push(titleHref);
+  }
+
   return (
     <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
-      <div className="pt-4 pb-4">
-        <div className="mb-0 grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-1">
-          <div className="flex justify-start">
-            <button
-              aria-label="Previous event"
-              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
-              disabled={!canGoPrevious}
-              onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
-              type="button"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-          </div>
-
-          <div className="min-w-0 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Link
-                className="ui-text inline-flex min-w-0 items-center justify-center gap-1 font-sans font-semibold leading-tight text-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
-                href={titleHref}
-                rel={titleIsExternal ? "noreferrer" : undefined}
-                target={titleIsExternal ? "_blank" : undefined}
+      <div className="px-4 pt-4 pb-4">
+        <div className="mb-0">
+          <div className="grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-1">
+            <div className="flex justify-start">
+              <button
+                aria-label="Previous event"
+                className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
+                disabled={!canGoPrevious}
+                onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+                type="button"
               >
-                <span className="whitespace-normal break-words text-center">{currentEvent.title}</span>
-              </Link>
-              {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
-                <Link
-                  aria-label={`Open live stream for ${currentEvent.title}`}
-                  className="inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-[9px] bg-[#ff0000] px-2 text-[0.68rem] font-bold uppercase tracking-[0.05em] !text-white no-underline"
-                  href={currentEvent.liveStreamUrl}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <LiveIndicatorIcon />
-                  Live
-                </Link>
-              ) : null}
+                <ChevronLeft className="size-4" />
+              </button>
             </div>
-            <div className="mt-2 space-y-2 text-left">
-              <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                <CalendarDays className="size-4 shrink-0 text-current" />
-                <span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
-              </p>
-              {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
-                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                  <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
-                  <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} at ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
-                </p>
-              ) : null}
-              {currentEvent.locationName ? (
-                <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="size-4 shrink-0 text-current" />
-                  <span>{currentEvent.locationName}</span>
-                </p>
-              ) : null}
-              {currentEvent.summary ? (
-                <p className="ui-text m-0 flex items-start gap-2 text-muted-foreground">
-                  <FileText className="mt-0.5 size-4 shrink-0 text-current" />
-                  <span>{currentEvent.summary}</span>
-                </p>
-              ) : null}
+
+            <div className="min-w-0 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Link
+                  className="ui-text inline-flex min-w-0 items-center justify-center gap-1 font-sans font-semibold leading-tight text-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
+                  href={titleHref}
+                  rel={titleIsExternal ? "noreferrer" : undefined}
+                  target={titleIsExternal ? "_blank" : undefined}
+                >
+                  <span className="whitespace-normal break-words text-center">{currentEvent.title}</span>
+                </Link>
+                {currentEvent.isLiveStream && currentEvent.liveStreamUrl ? (
+                  <Link
+                    aria-label={`Open live stream for ${currentEvent.title}`}
+                    className="inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-[9px] bg-[#ff0000] px-2 text-[0.68rem] font-bold uppercase tracking-[0.05em] !text-white no-underline"
+                    href={currentEvent.liveStreamUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <LiveIndicatorIcon />
+                    Live
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                aria-label="Next event"
+                className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
+                disabled={!canGoNext}
+                onClick={() => setCurrentIndex((index) => Math.min(events.length - 1, index + 1))}
+                type="button"
+              >
+                <ChevronRight className="size-4" />
+              </button>
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <button
-              aria-label="Next event"
-              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
-              disabled={!canGoNext}
-              onClick={() => setCurrentIndex((index) => Math.min(events.length - 1, index + 1))}
-              type="button"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
+          <button
+            className="mt-4 block w-full space-y-2 bg-transparent text-left"
+            onClick={openCurrentEvent}
+            type="button"
+          >
+            <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+              <CalendarDays className="size-4 shrink-0 text-current" />
+              <span>{isAllDayEvent(currentEvent) ? currentEvent.startsAt && new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(currentEvent.startsAt)) : formatEasternEventDateTime(currentEvent.startsAt)}</span>
+            </p>
+            {currentEvent.endsAt && (isAllDayEvent(currentEvent) ? hasDifferentStartAndEndDate(currentEvent) : true) ? (
+              <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+                <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center text-current">-</span>
+                <span>{isAllDayEvent(currentEvent) ? formatEasternEventDate(currentEvent.endsAt) : `${formatEasternEventDate(currentEvent.endsAt)} at ${formatEasternEventTime(currentEvent.endsAt)}`}</span>
+              </p>
+            ) : null}
+            {currentEvent.locationName ? (
+              <p className="ui-text m-0 flex items-center gap-2 text-muted-foreground">
+                <MapPin className="size-4 shrink-0 text-current" />
+                <span>{currentEvent.locationName}</span>
+              </p>
+            ) : null}
+            {currentEvent.summary ? (
+              <p className="ui-text m-0 flex items-start gap-2 text-muted-foreground">
+                <FileText className="mt-0.5 size-4 shrink-0 text-current" />
+                <span>{currentEvent.summary}</span>
+              </p>
+            ) : null}
+          </button>
         </div>
       </div>
     </article>

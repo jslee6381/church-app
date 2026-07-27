@@ -9,6 +9,8 @@ export type BibleVerse = {
   text: string;
 };
 
+const BIBLE_GATEWAY_BASE_URL = "https://www.biblegateway.com/passage/";
+
 export const BIBLE_BOOKS: BibleBook[] = [
   { book: "Genesis", testament: "OT", chapterCount: 50 },
   { book: "Exodus", testament: "OT", chapterCount: 40 },
@@ -100,19 +102,89 @@ export function formatPassageRange(
   return `${book} ${startChapter}:${startVerse}-${endChapter}:${endVerse}`;
 }
 
+function decodeHtmlEntities(value: string) {
+  return value
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x2019;/gi, "’")
+    .replace(/&#x201c;/gi, "“")
+    .replace(/&#x201d;/gi, "”")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+function stripHtml(value: string) {
+  return decodeHtmlEntities(value.replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchBibleGatewayPassageHtml(reference: string) {
+  const url = `${BIBLE_GATEWAY_BASE_URL}?search=${encodeURIComponent(reference)}&version=NIV`;
+  const response = await fetch(url, {
+    next: { revalidate: 86400 },
+    headers: {
+      "user-agent": "Mozilla/5.0",
+    },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.text();
+}
+
+function parseBibleGatewayVerses(html: string) {
+  const stdTextMatch = html.match(
+    /<div class=['"]std-text['"]>([\s\S]*?)<\/div><div class=['"]il-text['"]>/i,
+  );
+
+  if (!stdTextMatch) {
+    return null;
+  }
+
+  const normalized = stdTextMatch[1]
+    .replace(/<h\d[\s\S]*?<\/h\d>/gi, " ")
+    .replace(/<sup class=['"][^'"]*(?:crossreference|footnote)[^'"]*['"][\s\S]*?<\/sup>/gi, " ")
+    .replace(/<a [^>]*>([\s\S]*?)<\/a>/gi, "$1")
+    .replace(/<\/?(?:div|p|span)\b[^>]*>/gi, " ")
+    .replace(/<br\s*\/?>/gi, " ");
+
+  const markerRegex = /<sup class=['"]versenum['"]>(\d+)[^<]*<\/sup>/gi;
+  const markers = Array.from(normalized.matchAll(markerRegex));
+
+  if (markers.length === 0) {
+    return null;
+  }
+
+  return markers
+    .map((match, index) => {
+      const verse = Number(match[1]);
+      const start = (match.index ?? 0) + match[0].length;
+      const end = index < markers.length - 1 ? (markers[index + 1].index ?? normalized.length) : normalized.length;
+      const text = stripHtml(normalized.slice(start, end));
+
+      if (!Number.isFinite(verse) || !text) {
+        return null;
+      }
+
+      return { verse, text };
+    })
+    .filter((item): item is BibleVerse => Boolean(item));
+}
+
 export async function fetchPassageVerses(reference: string): Promise<BibleVerse[] | null> {
   try {
-    const response = await fetch(
-      `https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv&single_chapter_book_matching=indifferent`,
-      { next: { revalidate: 86400 } },
-    );
+    const html = await fetchBibleGatewayPassageHtml(reference);
 
-    if (!response.ok) {
+    if (!html) {
       return null;
     }
 
-    const payload = (await response.json()) as { verses?: BibleVerse[] };
-    return payload.verses ?? null;
+    return parseBibleGatewayVerses(html);
   } catch {
     return null;
   }

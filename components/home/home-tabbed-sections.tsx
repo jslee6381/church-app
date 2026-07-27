@@ -11,10 +11,15 @@ import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visib
 import type { AnnouncementListItem } from "@/lib/announcements";
 import type { EventListItem } from "@/lib/events";
 
-const quickActions = [
+const quickActions: {
+  href: string;
+  title: string;
+  icon: typeof BookOpen;
+  external?: boolean;
+}[] = [
   { href: "/events", title: "Events", icon: CalendarDays },
   { href: "/prayer", title: "Prayer", icon: Heart },
-  { href: "https://ubf.org/daily-breads", title: "Daily Bread", icon: BookOpen, external: true },
+  { href: "/daily-bread", title: "Daily Bread", icon: BookOpen },
 ];
 
 type FellowshipAccessState = "unknown" | "signed_out" | "pending" | "active";

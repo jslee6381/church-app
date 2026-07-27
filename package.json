@@ -6,6 +6,7 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "NEXT_DISABLE_WEBPACK_CACHE=1 next build",
     "build:static-demo": "node scripts/build-static-demo.mjs",
+    "backfill:material-passages": "node scripts/backfill-material-passages.mjs",
     "start": "next start",
     "lint": "next lint"
   },

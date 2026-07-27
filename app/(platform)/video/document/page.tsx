@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { PassagePreview } from "@/components/video/passage-preview";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
+import { fetchPassageVerses } from "@/lib/bible";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getVideoPostById } from "@/lib/videos";
 
@@ -46,6 +47,11 @@ export default async function MaterialDocumentPage({
     : kind === "Message Manuscript"
       ? materialPost.manuscriptDocText ?? null
       : null;
+  const questionPassageVerses = reference && kind === "Question"
+    ? materialPost.passageVerses && materialPost.passageVerses.length > 0
+      ? materialPost.passageVerses
+      : await fetchPassageVerses(reference)
+    : null;
 
   return (
     <main className="shell max-w-none py-6">
@@ -57,13 +63,8 @@ export default async function MaterialDocumentPage({
       </header>
 
       <section className="space-y-6">
-        <div className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-          <FileText className="size-4" />
-          {kind}
-        </div>
-
         {reference && kind === "Question" ? (
-          <PassagePreview initialVerses={materialPost?.passageVerses ?? null} reference={reference} />
+          <PassagePreview initialVerses={questionPassageVerses} reference={reference} />
         ) : null}
 
         <div className="pb-10">

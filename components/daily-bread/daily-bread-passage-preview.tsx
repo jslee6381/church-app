@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, LoaderCircle } from "lucide-react";
 
-type BibleApiVerse = {
+type Verse = {
   verse: number;
   text: string;
 };
 
 type BiblePassageResponse = {
-  verses?: BibleApiVerse[];
+  verses?: Verse[];
   error?: string;
 };
 
@@ -17,20 +17,20 @@ function normalizeVerseText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
-export function PassagePreview({
+export function DailyBreadPassagePreview({
   reference,
-  initialVerses,
+  verses,
 }: {
   reference: string;
-  initialVerses?: BibleApiVerse[] | null;
+  verses: Verse[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [verses, setVerses] = useState<BibleApiVerse[]>(initialVerses ?? []);
+  const [loadedVerses, setLoadedVerses] = useState<Verse[]>(verses);
 
   useEffect(() => {
-    if (!isOpen || verses.length > 0 || isLoading) {
+    if (!isOpen || loadedVerses.length > 0 || isLoading) {
       return;
     }
 
@@ -52,7 +52,7 @@ export function PassagePreview({
         const payload = (await response.json()) as BiblePassageResponse;
 
         if (!isCancelled) {
-          setVerses(payload.verses ?? []);
+          setLoadedVerses(payload.verses ?? []);
         }
       } catch (error) {
         if (!isCancelled) {
@@ -70,7 +70,7 @@ export function PassagePreview({
     return () => {
       isCancelled = true;
     };
-  }, [isLoading, isOpen, reference, verses.length]);
+  }, [isLoading, isOpen, loadedVerses.length, reference]);
 
   return (
     <div className="event-form-input rounded-[16px] border border-input bg-white">
@@ -79,7 +79,9 @@ export function PassagePreview({
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
-        <span className="ui-text text-sm font-semibold text-foreground">{reference}</span>
+        <span className="ui-text font-semibold text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)" }}>
+          {reference}
+        </span>
         {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
 
@@ -91,18 +93,31 @@ export function PassagePreview({
               Loading passage...
             </div>
           ) : errorMessage ? (
-            <p className="ui-text m-0 text-sm text-muted-foreground">{errorMessage}</p>
-          ) : verses.length > 0 ? (
+            <p className="ui-text m-0 text-muted-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}>
+              {errorMessage}
+            </p>
+          ) : loadedVerses.length > 0 ? (
             <div className="flex flex-col gap-4">
-              {verses.map((verse) => (
-                <p className="ui-text m-0 text-sm leading-7 text-foreground" key={`${reference}-${verse.verse}`}>
-                  <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
+              {loadedVerses.map((verse) => (
+                <p
+                  className="ui-text m-0 text-foreground"
+                  key={`${reference}-${verse.verse}`}
+                  style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.8" }}
+                >
+                  <span
+                    className="mr-2 font-semibold text-muted-foreground"
+                    style={{ fontSize: "calc(var(--ui-text-size) * 0.88)" }}
+                  >
+                    {verse.verse}
+                  </span>
                   {normalizeVerseText(verse.text)}
                 </p>
               ))}
             </div>
           ) : (
-            <p className="ui-text m-0 text-sm text-muted-foreground">No passage text available.</p>
+            <p className="ui-text m-0 text-muted-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.02)" }}>
+              No passage text available.
+            </p>
           )}
         </div>
       ) : null}

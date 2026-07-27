@@ -289,7 +289,7 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     () =>
       [...posts]
         .filter((item) => item.scheduledAt >= today)
-        .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt)),
+        .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt)),
     [posts, today],
   );
   const pastPosts = useMemo(

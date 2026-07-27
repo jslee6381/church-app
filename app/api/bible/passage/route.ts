@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
-
-type BibleApiVerse = {
-  verse: number;
-  text: string;
-};
-
-type BibleApiResponse = {
-  verses?: BibleApiVerse[];
-};
+import { fetchPassageVerses } from "@/lib/bible";
 
 function getSafeParam(value: string | null) {
   const trimmed = value?.trim() ?? "";
@@ -23,18 +15,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(
-      `https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv&single_chapter_book_matching=indifferent`,
-      { next: { revalidate: 86400 } },
-    );
+    const verses = await fetchPassageVerses(reference);
 
-    if (!response.ok) {
+    if (!verses) {
       return NextResponse.json({ error: "Unable to load passage." }, { status: 502 });
     }
 
-    const payload = (await response.json()) as BibleApiResponse;
     return NextResponse.json({
-      verses: payload.verses ?? [],
+      verses,
     });
   } catch {
     return NextResponse.json({ error: "Unable to load passage." }, { status: 500 });
