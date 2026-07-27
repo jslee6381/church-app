@@ -146,7 +146,7 @@ export function HomeTabbedSections({ headerAction, initialAnnouncement, initialE
 
       <section className="fade-up -mx-4 -mt-3">
         <div className="px-7 pb-2">
-          <p className="ui-text m-0 text-left text-foreground">Upcoming Event</p>
+          <p className="ui-text m-0 text-left text-foreground">Event</p>
         </div>
         <div className="px-3">
           <HomeUpcomingEventsCarousel initialState={initialEvent} />
