@@ -21,6 +21,17 @@ function normalizeVerseText(text: string) {
 const NIV_COPYRIGHT_NOTICE =
   "Scripture quotations taken from the Holy Bible, New International Version®, NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc. Used with permission. All rights reserved worldwide.";
 
+function getVerseLabel(
+  verse: Verse,
+  previousVerse?: Verse,
+) {
+  if (verse.chapter && verse.chapter !== previousVerse?.chapter) {
+    return `${verse.chapter}:${verse.verse}`;
+  }
+
+  return String(verse.verse);
+}
+
 export function DailyBreadPassagePreview({
   reference,
   keyVerse,
@@ -120,7 +131,7 @@ export function DailyBreadPassagePreview({
           ) : loadedVerses.length > 0 ? (
             <div className="border-b border-input pb-3">
               <div className="flex flex-col gap-3">
-                {loadedVerses.map((verse) => (
+                {loadedVerses.map((verse, index) => (
                   <p
                     className="ui-text m-0 text-foreground"
                     key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}
@@ -130,7 +141,7 @@ export function DailyBreadPassagePreview({
                       className="mr-2 font-semibold text-muted-foreground"
                       style={{ fontSize: "calc(var(--ui-text-size) * 0.88)" }}
                     >
-                      {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
+                      {getVerseLabel(verse, index > 0 ? loadedVerses[index - 1] : undefined)}
                     </span>
                     {normalizeVerseText(verse.text)}
                   </p>

@@ -279,6 +279,7 @@ function parseBibleGatewayVerses(html: string) {
     .replace(/<h\d[\s\S]*?<\/h\d>/gi, " ")
     .replace(/<sup class=['"][^'"]*(?:crossreference|footnote)[^'"]*['"][\s\S]*?<\/sup>/gi, " ")
     .replace(/<a [^>]*>([\s\S]*?)<\/a>/gi, "$1")
+    .replace(/<span class=['"]chapternum['"]>\d+\s*<\/span>/gi, "<sup class=\"versenum\">1 </sup>")
     .replace(/<\/?(?:div|p|span)\b[^>]*>/gi, " ")
     .replace(/<br\s*\/?>/gi, " ");
 

@@ -21,6 +21,17 @@ function normalizeVerseText(text: string) {
 const NIV_COPYRIGHT_NOTICE =
   "Scripture quotations taken from the Holy Bible, New International Version®, NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc. Used with permission. All rights reserved worldwide.";
 
+function getVerseLabel(
+  verse: BibleApiVerse,
+  previousVerse?: BibleApiVerse,
+) {
+  if (verse.chapter && verse.chapter !== previousVerse?.chapter) {
+    return `${verse.chapter}:${verse.verse}`;
+  }
+
+  return String(verse.verse);
+}
+
 export function PassagePreview({
   reference,
   initialVerses,
@@ -98,10 +109,10 @@ export function PassagePreview({
             <p className="ui-text m-0 text-sm text-muted-foreground">{errorMessage}</p>
           ) : verses.length > 0 ? (
             <div className="flex flex-col gap-4">
-              {verses.map((verse) => (
+              {verses.map((verse, index) => (
                 <p className="ui-text m-0 text-sm leading-7 text-foreground" key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}>
                   <span className="mr-2 text-xs font-semibold text-muted-foreground">
-                    {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
+                    {getVerseLabel(verse, index > 0 ? verses[index - 1] : undefined)}
                   </span>
                   {normalizeVerseText(verse.text)}
                 </p>
