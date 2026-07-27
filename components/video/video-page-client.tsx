@@ -104,7 +104,7 @@ function getDocumentViewerHref(postId: string, kind: "Question" | "Message Manus
     params.set("reference", reference);
   }
 
-  return `/video/document?${params.toString()}`;
+  return `/material/document?${params.toString()}`;
 }
 
 async function readApiPayload(response: Response) {

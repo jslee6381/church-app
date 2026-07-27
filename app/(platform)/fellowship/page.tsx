@@ -38,7 +38,7 @@ export default async function FellowshipPage() {
   const session = await getMemberSession();
   const authSession = await getAuthenticatedMemberSession();
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
-  const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
+  const canAccessAdmin = roles.includes("admin");
   const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
   const currentMemberName = authSession?.member.display_name ?? authSession?.member.full_name ?? null;
   const communityGreeting = authSession?.member.status === "active" ? getEasternGreeting() : null;
@@ -64,10 +64,10 @@ export default async function FellowshipPage() {
             <div className="px-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center bg-transparent shadow-none">
-                  <Link className="top-route-tab top-route-tab-inactive ui-text inline-flex min-h-11 items-center px-4 transition" href="/home">
+                  <Link className="top-route-tab top-route-tab-inactive ui-text inline-flex min-h-11 items-center px-4 transition" href="/home" style={{ color: "transparent" }}>
                     Home
                   </Link>
-                  <Link className="top-route-tab top-route-tab-active ui-text inline-flex min-h-11 items-center px-4 transition" href="/fellowship">
+                  <Link className="top-route-tab top-route-tab-active ui-text inline-flex min-h-11 items-center px-4 transition" href="/fellowship" style={{ color: "transparent" }}>
                     Moments
                   </Link>
                 </div>

@@ -19,7 +19,7 @@ export async function GET() {
       authenticated: true,
       member: session.member,
       roles,
-      canAccessAdmin: roles.includes("admin") || roles.includes("leader"),
+      canAccessAdmin: roles.includes("admin"),
     });
   } catch {
     return NextResponse.json({ error: "Unable to load profile." }, { status: 500 });

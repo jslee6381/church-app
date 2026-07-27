@@ -6,15 +6,15 @@ import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getGalleryPosts } from "@/lib/gallery";
 
-export default async function StudyPage() {
+export default async function GalleryPage() {
   const session = await getAuthenticatedMemberSession();
 
   if (!session) {
-    redirect("/access-required?context=gallery&next=%2Fstudy");
+    redirect("/access-required?context=gallery&next=%2Fgallery");
   }
 
   if (session.member.status !== "active") {
-    redirect("/access-required?mode=pending&context=gallery&next=%2Fstudy");
+    redirect("/access-required?mode=pending&context=gallery&next=%2Fgallery");
   }
 
   const roles = await getMemberRoles(session.member.id);

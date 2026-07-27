@@ -1,5 +1,5 @@
 import { AppLaunchScreen } from "@/components/navigation/app-launch-screen";
 
-export default function MaterialDocumentLoading() {
+export default function Loading() {
   return <AppLaunchScreen />;
 }

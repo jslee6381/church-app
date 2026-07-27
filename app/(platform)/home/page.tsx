@@ -16,7 +16,7 @@ export default async function HomePage() {
   const session = await getMemberSession();
   const authSession = await getAuthenticatedMemberSession();
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
-  const canAccessAdmin = roles.includes("admin") || roles.includes("leader");
+  const canAccessAdmin = roles.includes("admin");
   const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
   const [initialAnnouncement, initialEvent] = await Promise.all([
     getAnnouncementCarouselItem(churchId, 0),

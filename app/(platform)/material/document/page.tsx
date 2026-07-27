@@ -56,7 +56,7 @@ export default async function MaterialDocumentPage({
   return (
     <main className="shell max-w-none py-6">
       <header className="mb-5">
-        <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/video">
+        <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/material">
           <ArrowLeft className="size-4" />
           Material
         </Link>
@@ -128,19 +128,19 @@ export default async function MaterialDocumentPage({
         }
 
         .material-doc-line.has-prefix {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.7rem;
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          gap: 0.35rem;
+          align-items: start;
         }
 
         .material-doc-prefix {
-          flex: 0 0 auto;
-          font-weight: 700;
+          white-space: pre;
+          font-weight: 600;
         }
 
         .material-doc-body {
           min-width: 0;
-          flex: 1 1 auto;
         }
 
         .material-doc-line.indent-1,
@@ -149,8 +149,10 @@ export default async function MaterialDocumentPage({
         }
 
         .material-doc-table-wrap {
-          margin-top: 1.35rem;
+          width: 100%;
           overflow-x: auto;
+          margin-top: 1rem;
+          margin-bottom: 1rem;
         }
 
         .material-doc-table {
@@ -160,13 +162,14 @@ export default async function MaterialDocumentPage({
         }
 
         .material-doc-table td {
-          border: 1px solid color-mix(in srgb, hsl(var(--foreground)) 26%, transparent);
-          padding: 0.7rem 0.45rem;
+          border: 1px solid rgba(120, 120, 120, 0.5);
+          padding: 0.6rem 0.5rem;
           vertical-align: top;
           color: hsl(var(--foreground));
-          font-size: 0.92rem;
-          line-height: 1.45;
-          text-align: center;
+          font-family: var(--font-ui, inherit);
+          font-size: 0.98rem;
+          line-height: 1.5;
+          white-space: normal;
           word-break: keep-all;
           overflow-wrap: anywhere;
         }
@@ -181,11 +184,11 @@ export default async function MaterialDocumentPage({
 
         @media (min-width: 640px) {
           .material-doc-line.indent-1 {
-            padding-left: 1.15rem;
+            padding-left: 1.6rem;
           }
 
           .material-doc-line.indent-2 {
-            padding-left: 2.1rem;
+            padding-left: 3.2rem;
           }
         }
       `}</style>

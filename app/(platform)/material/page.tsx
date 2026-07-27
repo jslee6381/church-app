@@ -5,7 +5,7 @@ import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getDefaultChurchId } from "@/lib/church-context";
 import { getVideoPosts } from "@/lib/videos";
 
-export default async function VideoPage() {
+export default async function MaterialPage() {
   const session = await getAuthenticatedMemberSession();
   const canCompose = session?.member.status === "active"
     ? (await getMemberRoles(session.member.id)).some((role) => role === "leader" || role === "admin")

@@ -1,7 +1,7 @@
 import { MemberManagementPanel } from "@/components/admin/member-management-panel";
 import { PageHeader } from "@/components/page-header";
 import { getAdminDashboardData } from "@/lib/admin/dashboard";
-import { requireAdminOrLeaderSession } from "@/lib/auth/authorization";
+import { requireAdminSession } from "@/lib/auth/authorization";
 import { isProtectedAdminEmail } from "@/lib/protected-admin";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
@@ -62,7 +62,7 @@ async function getMemberManagementData(churchId: string) {
 }
 
 export default async function AdminPage() {
-  const session = await requireAdminOrLeaderSession();
+  const session = await requireAdminSession();
   const [dashboard, members] = await Promise.all([
     getAdminDashboardData(session.member.church_id),
     getMemberManagementData(session.member.church_id),
