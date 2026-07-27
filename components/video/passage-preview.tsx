@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, LoaderCircle } from "lucide-react";
 
 type BibleApiVerse = {
+  chapter?: number;
   verse: number;
   text: string;
 };
@@ -73,9 +74,9 @@ export function PassagePreview({
   }, [isLoading, isOpen, reference, verses.length]);
 
   return (
-    <div className="event-form-input rounded-[16px] border border-input bg-white">
+    <div className="border-b border-input pb-3">
       <button
-        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-foreground"
+        className="flex min-h-12 w-full items-center gap-2 px-0 text-left text-foreground"
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
@@ -84,7 +85,7 @@ export function PassagePreview({
       </button>
 
       {isOpen ? (
-        <div className="border-t border-input px-4 py-3">
+        <div className="px-0 pt-2">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <LoaderCircle className="size-4 animate-spin" />
@@ -95,8 +96,10 @@ export function PassagePreview({
           ) : verses.length > 0 ? (
             <div className="flex flex-col gap-4">
               {verses.map((verse) => (
-                <p className="ui-text m-0 text-sm leading-7 text-foreground" key={`${reference}-${verse.verse}`}>
-                  <span className="mr-2 text-xs font-semibold text-muted-foreground">{verse.verse}</span>
+                <p className="ui-text m-0 text-sm leading-7 text-foreground" key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}>
+                  <span className="mr-2 text-xs font-semibold text-muted-foreground">
+                    {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
+                  </span>
                   {normalizeVerseText(verse.text)}
                 </p>
               ))}

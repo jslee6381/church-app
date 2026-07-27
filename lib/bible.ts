@@ -5,6 +5,7 @@ export type BibleBook = {
 };
 
 export type BibleVerse = {
+  chapter?: number;
   verse: number;
   text: string;
 };
@@ -121,6 +122,134 @@ function stripHtml(value: string) {
     .trim();
 }
 
+function normalizeReferenceDashes(value: string) {
+  return value.replace(/[–—~]/g, "-").trim();
+}
+
+function parseReference(reference: string) {
+  const normalized = normalizeReferenceDashes(reference);
+  const match = normalized.match(/^(.*?)\s+(\d+)(?::(\d+)(?:-(\d+(?::\d+)?)?)?)?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const book = match[1].trim();
+  const startChapter = Number(match[2]);
+  const startVerse = match[3] ? Number(match[3]) : null;
+  const endPart = match[4] ?? null;
+
+  if (!book || !Number.isFinite(startChapter)) {
+    return null;
+  }
+
+  if (!startVerse) {
+    return {
+      book,
+      startChapter,
+      startVerse: null,
+      endChapter: startChapter,
+      endVerse: null,
+      isWholeChapter: true,
+    };
+  }
+
+  if (!endPart) {
+    return {
+      book,
+      startChapter,
+      startVerse,
+      endChapter: startChapter,
+      endVerse: startVerse,
+      isWholeChapter: false,
+    };
+  }
+
+  const parsedEnd = parseVerseRangePart(endPart);
+
+  if (!parsedEnd || !Number.isFinite(parsedEnd.verse)) {
+    return null;
+  }
+
+  return {
+    book,
+    startChapter,
+    startVerse,
+    endChapter: parsedEnd.chapter ?? startChapter,
+    endVerse: parsedEnd.verse,
+    isWholeChapter: false,
+  };
+}
+
+function parseVerseRangePart(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const crossChapterMatch = /^(\d+):(\d+)$/.exec(trimmed);
+
+  if (crossChapterMatch) {
+    return {
+      chapter: Number(crossChapterMatch[1]),
+      verse: Number(crossChapterMatch[2]),
+    };
+  }
+
+  const sameChapterMatch = /^(\d+)$/.exec(trimmed);
+
+  if (sameChapterMatch) {
+    return {
+      chapter: null,
+      verse: Number(sameChapterMatch[1]),
+    };
+  }
+
+  return null;
+}
+
+function extractReferenceBounds(reference: string) {
+  const parsed = parseReference(reference);
+
+  if (!parsed || parsed.startVerse === null) {
+    return null;
+  }
+
+  const startVerse = parsed.startVerse;
+  const endVerse = parsed.endVerse ?? startVerse;
+
+  return {
+    startChapter: parsed.startChapter,
+    startVerse,
+    endChapter: parsed.endChapter,
+    endVerse,
+    isSingleVerse: startVerse === endVerse && parsed.startChapter === parsed.endChapter,
+    isWholeChapter: false,
+  };
+}
+
+function filterVersesByReference(reference: string, verses: BibleVerse[]) {
+  const bounds = extractReferenceBounds(reference);
+
+  if (!bounds) {
+    return verses;
+  }
+
+  if (bounds.startChapter !== bounds.endChapter) {
+    return verses;
+  }
+
+  return verses.filter((verse) => verse.verse >= bounds.startVerse && verse.verse <= bounds.endVerse);
+}
+
+function withChapter(verses: BibleVerse[], chapter: number) {
+  return verses.map((verse) => ({
+    ...verse,
+    chapter,
+  }));
+}
+
 async function fetchBibleGatewayPassageHtml(reference: string) {
   const url = `${BIBLE_GATEWAY_BASE_URL}?search=${encodeURIComponent(reference)}&version=NIV`;
   const response = await fetch(url, {
@@ -178,13 +307,62 @@ function parseBibleGatewayVerses(html: string) {
 
 export async function fetchPassageVerses(reference: string): Promise<BibleVerse[] | null> {
   try {
+    const parsedReference = parseReference(reference);
+
+    if (parsedReference && !parsedReference.isWholeChapter && parsedReference.startChapter !== parsedReference.endChapter) {
+      const chapterVerses: BibleVerse[] = [];
+
+      for (let chapter = parsedReference.startChapter; chapter <= parsedReference.endChapter; chapter += 1) {
+        const html = await fetchBibleGatewayPassageHtml(`${parsedReference.book} ${chapter}`);
+
+        if (!html) {
+          return null;
+        }
+
+        const parsedChapterVerses = parseBibleGatewayVerses(html);
+
+        if (!parsedChapterVerses) {
+          return null;
+        }
+
+        const boundedChapterVerses = parsedChapterVerses.filter((verse) => {
+          if (chapter === parsedReference.startChapter) {
+            return verse.verse >= (parsedReference.startVerse ?? 1);
+          }
+
+          if (chapter === parsedReference.endChapter) {
+            return verse.verse <= (parsedReference.endVerse ?? verse.verse);
+          }
+
+          return true;
+        });
+
+        chapterVerses.push(...withChapter(boundedChapterVerses, chapter));
+      }
+
+      return chapterVerses;
+    }
+
     const html = await fetchBibleGatewayPassageHtml(reference);
 
     if (!html) {
       return null;
     }
 
-    return parseBibleGatewayVerses(html);
+    const verses = parseBibleGatewayVerses(html);
+
+    if (!verses) {
+      return null;
+    }
+
+    if (parsedReference) {
+      return withChapter(
+        filterVersesByReference(reference, verses),
+        parsedReference.startChapter,
+      );
+    }
+
+    return verses;
   } catch {
     return null;
   }

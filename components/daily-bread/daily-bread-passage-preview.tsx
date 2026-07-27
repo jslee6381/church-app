@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, LoaderCircle } from "lucide-react";
 
 type Verse = {
+  chapter?: number;
   verse: number;
   text: string;
 };
@@ -19,9 +20,11 @@ function normalizeVerseText(text: string) {
 
 export function DailyBreadPassagePreview({
   reference,
+  keyVerse,
   verses,
 }: {
   reference: string;
+  keyVerse: string;
   verses: Verse[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,9 +76,9 @@ export function DailyBreadPassagePreview({
   }, [isLoading, isOpen, loadedVerses.length, reference]);
 
   return (
-    <div className="event-form-input rounded-[16px] border border-input bg-white">
+    <div>
       <button
-        className="flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left text-foreground"
+        className="flex min-h-12 w-full items-center gap-2 px-0 text-left text-foreground"
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
@@ -85,8 +88,16 @@ export function DailyBreadPassagePreview({
         {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
 
+      {isOpen ? <div className="mb-3 border-b border-input" /> : null}
+
+      <p className="ui-text m-0 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)" }}>
+        <span className="font-semibold">Key Verse:</span> {keyVerse}
+      </p>
+
+      <div className="mt-3 border-b border-input" />
+
       {isOpen ? (
-        <div className="border-t border-input px-4 py-3">
+        <div className="px-0 pt-3">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <LoaderCircle className="size-4 animate-spin" />
@@ -101,14 +112,14 @@ export function DailyBreadPassagePreview({
               {loadedVerses.map((verse) => (
                 <p
                   className="ui-text m-0 text-foreground"
-                  key={`${reference}-${verse.verse}`}
+                  key={`${reference}-${verse.chapter ?? "x"}-${verse.verse}`}
                   style={{ fontSize: "calc(var(--ui-text-size) * 1.02)", lineHeight: "1.65" }}
                 >
                   <span
                     className="mr-2 font-semibold text-muted-foreground"
                     style={{ fontSize: "calc(var(--ui-text-size) * 0.88)" }}
                   >
-                    {verse.verse}
+                    {verse.chapter ? `${verse.chapter}:${verse.verse}` : verse.verse}
                   </span>
                   {normalizeVerseText(verse.text)}
                 </p>

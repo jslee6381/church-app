@@ -38,15 +38,11 @@ export default async function DailyBreadPage({
     notFound();
   }
 
-  const previousDateValue = getDailyBreadAdjacentDate(content.dateValue, "previous");
-  const nextDateValue = getDailyBreadAdjacentDate(content.dateValue, "next");
   const minDateValue = getDailyBreadAdjacentDate(todayValue, "previous");
   const maxDateValue = getDailyBreadAdjacentDate(todayValue, "next");
-  const canGoPrevious = content.dateValue > minDateValue;
-  const canGoNext = content.dateValue < maxDateValue;
   const [previousEntry, nextEntry] = await Promise.all([
-    canGoPrevious ? getDailyBreadEntryForDate(previousDateValue) : Promise.resolve(null),
-    canGoNext ? getDailyBreadEntryForDate(nextDateValue) : Promise.resolve(null),
+    getDailyBreadEntryForDate(minDateValue),
+    getDailyBreadEntryForDate(maxDateValue),
   ]);
   return (
     <main className="shell max-w-[560px] py-6">
@@ -71,12 +67,7 @@ export default async function DailyBreadPage({
           </h2>
         </div>
 
-        <div className="space-y-3">
-          <DailyBreadPassagePreview reference={content.passageReference} verses={content.verses} />
-          <p className="ui-text m-0 text-foreground" style={{ fontSize: "calc(var(--ui-text-size) * 1.08)" }}>
-            <span className="font-semibold">Key Verse:</span> {content.keyVerse}
-          </p>
-        </div>
+        <DailyBreadPassagePreview keyVerse={content.keyVerse} reference={content.passageReference} verses={content.verses} />
 
         <div className="space-y-6">
           {content.bodyParagraphs.map((paragraph, index) => (
