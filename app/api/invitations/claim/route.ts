@@ -63,9 +63,12 @@ export async function POST(request: Request) {
     }
 
     if (memberRole?.id) {
-      await admin.from("member_roles").insert({
+      await admin.from("member_roles").upsert({
         member_id: member.id,
         role_id: memberRole.id,
+      }, {
+        onConflict: "member_id,role_id",
+        ignoreDuplicates: true,
       });
     }
 

@@ -85,9 +85,12 @@ async function findOrCreateMemberForUser(user: User): Promise<AuthenticatedMembe
 
       if (adminRoleId) {
         await admin.from("member_roles").delete().eq("member_id", existing.id);
-        await admin.from("member_roles").insert({
+        await admin.from("member_roles").upsert({
           member_id: existing.id,
           role_id: adminRoleId,
+        }, {
+          onConflict: "member_id,role_id",
+          ignoreDuplicates: true,
         });
       }
 
@@ -138,9 +141,12 @@ async function findOrCreateMemberForUser(user: User): Promise<AuthenticatedMembe
 
     if (adminRoleId) {
       await admin.from("member_roles").delete().eq("member_id", inserted.id);
-      await admin.from("member_roles").insert({
+      await admin.from("member_roles").upsert({
         member_id: inserted.id,
         role_id: adminRoleId,
+      }, {
+        onConflict: "member_id,role_id",
+        ignoreDuplicates: true,
       });
     }
   }

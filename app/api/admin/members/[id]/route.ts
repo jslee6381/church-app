@@ -61,9 +61,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         const memberRoleId = roleMap.get("member");
 
         if (memberRoleId) {
-          await admin.from("member_roles").insert({
+          await admin.from("member_roles").upsert({
             member_id: id,
             role_id: memberRoleId,
+          }, {
+            onConflict: "member_id,role_id",
+            ignoreDuplicates: true,
           });
           assignedRoleName = "member";
         }

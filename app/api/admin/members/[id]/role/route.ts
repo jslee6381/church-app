@@ -50,9 +50,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     await admin.from("member_roles").delete().eq("member_id", id);
 
-    const { error } = await admin.from("member_roles").insert({
+    const { error } = await admin.from("member_roles").upsert({
       member_id: id,
       role_id: roleId,
+    }, {
+      onConflict: "member_id,role_id",
+      ignoreDuplicates: true,
     });
 
     if (error) {
