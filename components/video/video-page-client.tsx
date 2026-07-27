@@ -13,6 +13,7 @@ import {
   Plus,
   Upload,
   UserRound,
+  X,
 } from "lucide-react";
 
 import { BIBLE_BOOKS, formatPassageRange, getBibleBook } from "@/lib/bible";
@@ -155,6 +156,8 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
   const [manuscriptDocument, setManuscriptDocument] = useState<File | null>(null);
   const [existingQuestionDocName, setExistingQuestionDocName] = useState<string | null>(null);
   const [existingManuscriptDocName, setExistingManuscriptDocName] = useState<string | null>(null);
+  const [removeQuestionDocument, setRemoveQuestionDocument] = useState(false);
+  const [removeManuscriptDocument, setRemoveManuscriptDocument] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
@@ -314,6 +317,8 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     setManuscriptDocument(null);
     setExistingQuestionDocName(null);
     setExistingManuscriptDocName(null);
+    setRemoveQuestionDocument(false);
+    setRemoveManuscriptDocument(false);
     setEditingId(null);
     setErrorMessage(null);
     setIsComposerOpen(false);
@@ -338,6 +343,8 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
     setManuscriptDocument(null);
     setExistingQuestionDocName(item.questionDocName);
     setExistingManuscriptDocName(item.manuscriptDocName);
+    setRemoveQuestionDocument(false);
+    setRemoveManuscriptDocument(false);
     setErrorMessage(null);
     setOpenMenuPostId(null);
     setIsComposerOpen(true);
@@ -363,6 +370,14 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
 
     if (options?.manuscriptDocument) {
       formData.set("manuscriptDocument", options.manuscriptDocument);
+    }
+
+    if (removeQuestionDocument && !(options?.questionDocument instanceof File)) {
+      formData.set("removeQuestionDocument", "true");
+    }
+
+    if (removeManuscriptDocument && !(options?.manuscriptDocument instanceof File)) {
+      formData.set("removeManuscriptDocument", "true");
     }
 
     return formData;
@@ -644,14 +659,39 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Bible Question DOCX</span>
                   <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
-                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-                      <Upload className="size-4" />
-                      <span className="block min-w-0 truncate">{questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}</span>
+                    <div className="flex min-w-0 items-center justify-between gap-3 text-sm text-muted-foreground">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Upload className="size-4" />
+                        <span className="block min-w-0 truncate">
+                          {removeQuestionDocument ? "No document selected" : questionDocument?.name ?? existingQuestionDocName ?? "Upload a DOCX file"}
+                        </span>
+                      </div>
+                      {(questionDocument || (existingQuestionDocName && !removeQuestionDocument)) ? (
+                        <button
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-border/80 text-foreground"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (questionDocument) {
+                              setQuestionDocument(null);
+                              setRemoveQuestionDocument(false);
+                              return;
+                            }
+
+                            setRemoveQuestionDocument(true);
+                          }}
+                          type="button"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      ) : null}
                     </div>
                     <input
                       accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       className="mt-3 block w-full text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/12 file:px-3 file:py-2 file:font-semibold file:text-primary"
-                      onChange={(event) => setQuestionDocument(event.target.files?.[0] ?? null)}
+                      onChange={(event) => {
+                        setQuestionDocument(event.target.files?.[0] ?? null);
+                        setRemoveQuestionDocument(false);
+                      }}
                       type="file"
                     />
                   </div>
@@ -660,14 +700,39 @@ export function VideoPageClient({ initialPosts, canCompose }: Props) {
                 <label className="grid gap-2">
                   <span className="ui-text text-sm font-semibold text-foreground">Message Manuscript DOCX</span>
                   <div className="event-form-input rounded-[16px] border border-dashed border-border/80 bg-white px-4 py-4">
-                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-                      <Upload className="size-4" />
-                      <span className="block min-w-0 truncate">{manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}</span>
+                    <div className="flex min-w-0 items-center justify-between gap-3 text-sm text-muted-foreground">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Upload className="size-4" />
+                        <span className="block min-w-0 truncate">
+                          {removeManuscriptDocument ? "No document selected" : manuscriptDocument?.name ?? existingManuscriptDocName ?? "Upload a DOCX file"}
+                        </span>
+                      </div>
+                      {(manuscriptDocument || (existingManuscriptDocName && !removeManuscriptDocument)) ? (
+                        <button
+                          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-border/80 text-foreground"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            if (manuscriptDocument) {
+                              setManuscriptDocument(null);
+                              setRemoveManuscriptDocument(false);
+                              return;
+                            }
+
+                            setRemoveManuscriptDocument(true);
+                          }}
+                          type="button"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      ) : null}
                     </div>
                     <input
                       accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       className="mt-3 block w-full text-sm text-foreground file:mr-3 file:rounded-full file:border-0 file:bg-primary/12 file:px-3 file:py-2 file:font-semibold file:text-primary"
-                      onChange={(event) => setManuscriptDocument(event.target.files?.[0] ?? null)}
+                      onChange={(event) => {
+                        setManuscriptDocument(event.target.files?.[0] ?? null);
+                        setRemoveManuscriptDocument(false);
+                      }}
                       type="file"
                     />
                   </div>

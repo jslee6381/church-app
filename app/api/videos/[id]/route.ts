@@ -75,6 +75,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const videoLink = String(formData.get("videoLink") ?? "").trim();
     const questionDocument = formData.get("questionDocument");
     const manuscriptDocument = formData.get("manuscriptDocument");
+    const removeQuestionDocument = String(formData.get("removeQuestionDocument") ?? "") === "true";
+    const removeManuscriptDocument = String(formData.get("removeManuscriptDocument") ?? "") === "true";
 
     const book = getBibleBook(passageBook);
     const thumbnailUrl = videoLink ? getYouTubeThumbnailUrl(videoLink) : null;
@@ -143,12 +145,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           video_link: videoLink || null,
           thumbnail_url: thumbnailUrl,
           watch_url: watchUrl,
-          question_doc_url: null,
-          question_doc_name: questionDocument instanceof File && questionDocument.size > 0 ? questionDocument.name : null,
-          question_doc_text: questionDocText,
-          manuscript_doc_url: null,
-          manuscript_doc_name: manuscriptDocument instanceof File && manuscriptDocument.size > 0 ? manuscriptDocument.name : null,
-          manuscript_doc_text: manuscriptDocText,
+          question_doc_url: removeQuestionDocument ? null : null,
+          question_doc_name: removeQuestionDocument ? null : questionDocument instanceof File && questionDocument.size > 0 ? questionDocument.name : null,
+          question_doc_text: removeQuestionDocument ? null : questionDocText,
+          manuscript_doc_url: removeManuscriptDocument ? null : null,
+          manuscript_doc_name: removeManuscriptDocument ? null : manuscriptDocument instanceof File && manuscriptDocument.size > 0 ? manuscriptDocument.name : null,
+          manuscript_doc_text: removeManuscriptDocument ? null : manuscriptDocText,
           created_at: new Date().toISOString(),
         },
       });
@@ -178,6 +180,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       nextQuestionDocUrl = uploaded.publicUrl;
       nextQuestionDocName = uploaded.fileName;
       nextQuestionDocText = questionDocText;
+    } else if (removeQuestionDocument) {
+      nextQuestionDocUrl = null;
+      nextQuestionDocName = null;
+      nextQuestionDocText = null;
     }
 
     if (manuscriptDocument instanceof File && manuscriptDocument.size > 0) {
@@ -185,6 +191,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       nextManuscriptDocUrl = uploaded.publicUrl;
       nextManuscriptDocName = uploaded.fileName;
       nextManuscriptDocText = manuscriptDocText;
+    } else if (removeManuscriptDocument) {
+      nextManuscriptDocUrl = null;
+      nextManuscriptDocName = null;
+      nextManuscriptDocText = null;
     }
 
     const { data, error } = await admin
@@ -222,7 +232,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       await removePublicDocument(existing.question_doc_url);
     }
 
+    if (removeQuestionDocument && existing.question_doc_url) {
+      await removePublicDocument(existing.question_doc_url);
+    }
+
     if (manuscriptDocument instanceof File && manuscriptDocument.size > 0) {
+      await removePublicDocument(existing.manuscript_doc_url);
+    }
+
+    if (removeManuscriptDocument && existing.manuscript_doc_url) {
       await removePublicDocument(existing.manuscript_doc_url);
     }
 

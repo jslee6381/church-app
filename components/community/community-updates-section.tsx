@@ -25,6 +25,22 @@ function resizeTextarea(textarea: HTMLTextAreaElement | null) {
   textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
 }
 
+function reorderItems<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
+    return items;
+  }
+
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+
+  if (typeof moved === "undefined") {
+    return items;
+  }
+
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
 type Props = {
   canManage: boolean;
   initialUpdates: CommunityUpdateFeedItem[];
@@ -225,6 +241,8 @@ export function CommunityUpdatesSection({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [draggingImageIndex, setDraggingImageIndex] = useState<number | null>(null);
+  const [draggingEditImageIndex, setDraggingEditImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!openMenuUpdateId && !openCommentMenuId) {
@@ -467,17 +485,7 @@ export function CommunityUpdatesSection({
       return;
     }
 
-    setImageFiles((current) => {
-      const next = [...current];
-      const [moved] = next.splice(fromIndex, 1);
-
-      if (!moved) {
-        return current;
-      }
-
-      next.splice(toIndex, 0, moved);
-      return next;
-    });
+    setImageFiles((current) => reorderItems(current, fromIndex, toIndex));
   }
 
   function moveEditImage(fromIndex: number, toIndex: number) {
@@ -485,17 +493,7 @@ export function CommunityUpdatesSection({
       return;
     }
 
-    setEditingImages((current) => {
-      const next = [...current];
-      const [moved] = next.splice(fromIndex, 1);
-
-      if (!moved) {
-        return current;
-      }
-
-      next.splice(toIndex, 0, moved);
-      return next;
-    });
+    setEditingImages((current) => reorderItems(current, fromIndex, toIndex));
   }
 
   function removeEditImage(imageId: string) {
@@ -1285,21 +1283,41 @@ export function CommunityUpdatesSection({
               {imageFiles.length > 0 ? (
                 <div className="grid gap-2">
                   <p className="m-0 text-sm text-muted-foreground">{imageFiles.length}/{MAX_IMAGES} selected</p>
+                  <p className="m-0 text-xs text-muted-foreground">Drag photos to reorder before posting.</p>
                   <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
                     {imageFiles.map((file, index) => (
                       <div
                         key={`${file.name}-${file.size}`}
-                        className="community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
+                        className={`community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border bg-white ${
+                          draggingImageIndex === index ? "border-primary/70 opacity-70" : "border-border/70"
+                        }`}
+                        draggable
+                        onDragEnd={() => setDraggingImageIndex(null)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDragStart={() => setDraggingImageIndex(index)}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          if (draggingImageIndex === null) {
+                            return;
+                          }
+
+                          moveImage(draggingImageIndex, index);
+                          setDraggingImageIndex(null);
+                        }}
                       >
-                        <img
-                          alt={`Selected upload ${index + 1}`}
-                          className="pointer-events-none block h-28 w-full select-none object-cover"
-                          draggable={false}
-                          onContextMenu={preventImageSaveActions}
-                          src={imagePreviewUrls[index]}
-                        />
+                        <div className="relative">
+                          <img
+                            alt={`Selected upload ${index + 1}`}
+                            className="pointer-events-none block h-28 w-full select-none object-cover"
+                            draggable={false}
+                            onContextMenu={preventImageSaveActions}
+                            src={imagePreviewUrls[index]}
+                          />
+                          <span className="absolute left-2 top-2 inline-flex min-w-7 items-center justify-center rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+                            {index + 1}
+                          </span>
+                        </div>
                         <div className="grid gap-2 px-3 py-3">
-                          <p className="m-0 truncate text-sm text-muted-foreground">{file.name}</p>
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
@@ -1317,9 +1335,9 @@ export function CommunityUpdatesSection({
                             >
                               <ChevronRight className="size-4" />
                             </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -1510,19 +1528,39 @@ export function CommunityUpdatesSection({
                   {editingImages.length > 0 ? (
                     <div className="grid gap-2">
                       <p className="m-0 text-sm text-muted-foreground">{editingImages.length}/{MAX_IMAGES} selected</p>
+                      <p className="m-0 text-xs text-muted-foreground">Drag photos to reorder before saving.</p>
                       <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
                         {editingImages.map((image, index) => (
                           <div
                             key={image.id}
-                            className="community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-white"
+                            className={`community-form-input w-[156px] shrink-0 overflow-hidden rounded-[14px] border bg-white ${
+                              draggingEditImageIndex === index ? "border-primary/70 opacity-70" : "border-border/70"
+                            }`}
+                            draggable
+                            onDragEnd={() => setDraggingEditImageIndex(null)}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDragStart={() => setDraggingEditImageIndex(index)}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (draggingEditImageIndex === null) {
+                                return;
+                              }
+
+                              moveEditImage(draggingEditImageIndex, index);
+                              setDraggingEditImageIndex(null);
+                            }}
                           >
-                            <img
-                              alt={`Edit image ${index + 1}`}
-                              className="block h-28 w-full object-cover"
-                              src={image.url}
-                            />
+                            <div className="relative">
+                              <img
+                                alt={`Edit image ${index + 1}`}
+                                className="block h-28 w-full object-cover"
+                                src={image.url}
+                              />
+                              <span className="absolute left-2 top-2 inline-flex min-w-7 items-center justify-center rounded-full bg-black/55 px-2 py-1 text-xs font-semibold text-white">
+                                {index + 1}
+                              </span>
+                            </div>
                             <div className="grid gap-2 px-3 py-3">
-                              <p className="m-0 truncate text-sm text-muted-foreground">{image.name}</p>
                               <div className="grid grid-cols-3 gap-2">
                                 <button
                                   className="community-form-input inline-flex min-h-10 items-center justify-center rounded-[12px] border border-border/70 bg-white text-foreground disabled:opacity-35"
