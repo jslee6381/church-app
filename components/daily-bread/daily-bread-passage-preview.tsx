@@ -36,6 +36,12 @@ export function DailyBreadPassagePreview({
   const [loadedVerses, setLoadedVerses] = useState<Verse[]>(verses);
 
   useEffect(() => {
+    setLoadedVerses(verses);
+    setErrorMessage(null);
+    setIsLoading(false);
+  }, [reference, verses]);
+
+  useEffect(() => {
     if (!isOpen || loadedVerses.length > 0 || isLoading) {
       return;
     }
