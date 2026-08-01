@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, MessageSquarePlus, Plus, Search, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomListItem } from "@/lib/chat";
 
 type Props = {
@@ -123,13 +123,20 @@ export function ChatPageClient({
 
   return (
     <div className="space-y-5">
-      <div className="-mt-5 mb-1 flex items-center justify-end">
+      <div className="mb-1 flex min-h-11 items-center justify-between gap-3">
+        <Link
+          className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground"
+          href="/home"
+        >
+          <ChevronLeft className="size-4" />
+          Home
+        </Link>
         <button
           className="ui-text inline-flex min-h-11 items-center gap-2 border-0 bg-transparent px-0 font-semibold text-foreground shadow-none transition hover:bg-transparent"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
-          <MessageSquarePlus className="size-4" />
+          <span className="text-[1.2rem] leading-none">+</span>
           New Chat
         </button>
       </div>
@@ -139,14 +146,14 @@ export function ChatPageClient({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center bg-transparent px-0 font-semibold text-foreground transition hover:bg-transparent"
+                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-background px-4 font-semibold text-foreground transition hover:bg-background"
                 onClick={closeComposer}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center bg-transparent px-0 font-semibold text-foreground transition hover:bg-transparent disabled:opacity-60"
+                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-background px-4 font-semibold text-foreground transition hover:bg-background disabled:opacity-60"
                 disabled={isSubmitting}
                 type="submit"
               >
@@ -207,8 +214,9 @@ export function ChatPageClient({
       ) : null}
 
       {isMemberPickerOpen ? (
-        <div className="fixed inset-0 z-[120] flex items-end bg-black/50 sm:items-center sm:justify-center">
-          <div className="w-full rounded-t-[24px] border border-border bg-background px-4 py-4 sm:max-w-[520px] sm:rounded-[24px]">
+        <div className="fixed inset-0 z-[120] overflow-y-auto bg-black/50">
+          <div className="mx-auto flex min-h-full w-full max-w-[560px] items-start justify-center px-4 pt-5 pb-6 sm:pt-6">
+            <div className="w-full rounded-[24px] border border-border bg-background px-4 py-4">
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="ui-text m-0 font-semibold text-foreground">Members</p>
               <button
@@ -253,6 +261,7 @@ export function ChatPageClient({
               {filteredCandidates.length === 0 ? (
                 <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
               ) : null}
+            </div>
             </div>
           </div>
         </div>

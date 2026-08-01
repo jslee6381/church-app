@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { ChatPageClient } from "@/components/chat/chat-page-client";
-import { PageHeader } from "@/components/page-header";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getActiveChatCandidates, getChatRoomsForMember } from "@/lib/chat";
 
@@ -22,7 +21,6 @@ export default async function ChatPage() {
 
   return (
     <main className="shell max-w-[560px] py-6">
-      <PageHeader title="" />
       <ChatPageClient
         currentMemberId={session.member.id}
         initialCandidates={candidates}
