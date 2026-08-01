@@ -15,7 +15,10 @@ type BiblePassageResponse = {
 };
 
 function normalizeVerseText(text: string) {
-  return text.replace(/\s+/g, " ").trim();
+  return text
+    .replace(/\[[a-z]+\]/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const NIV_COPYRIGHT_NOTICE =

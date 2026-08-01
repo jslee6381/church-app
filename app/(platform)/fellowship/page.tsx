@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { MemberLocalSync } from "@/components/auth/member-local-sync";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
 import { CommunityUpdatesSection } from "@/components/community/community-updates-section";
-import { HomeHeaderActions } from "@/components/home/home-header-actions";
 import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
@@ -60,18 +60,22 @@ export default async function FellowshipPage() {
         ) : null}
 
         <div className="mt-2">
-          <div className="-mx-4 mb-1">
-            <div className="px-3">
-              <div className="flex items-center justify-end gap-3">
-                <div className="shrink-0">
-                  <HomeHeaderActions
-                    initialAuthenticated={Boolean(authSession)}
-                    initialCanAccessAdmin={canAccessAdmin}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <header className="mb-5 flex items-center justify-between gap-4">
+            <Link
+              className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+              href="/home"
+            >
+              <ChevronLeft className="size-4" />
+              Home
+            </Link>
+            <Link
+              className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+              href="/archive"
+            >
+              More
+              <ChevronRight className="size-4" />
+            </Link>
+          </header>
 
           <section className="fade-up mt-3 -mx-4">
             {communityGreeting && currentMemberName ? (

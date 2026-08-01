@@ -325,7 +325,7 @@ export function BottomNav() {
               <button
                 key={item.href}
                 aria-label={item.label}
-                className={`bottom-nav-item flex min-h-[3.3rem] flex-col items-center justify-start transition ${itemStateClass} ${isAndroid ? "rounded-[12px] pt-1 pb-0.25" : "rounded-[19px] pt-1 pb-0.25"}`}
+                className={`bottom-nav-item relative flex min-h-[3.45rem] items-start justify-center transition ${itemStateClass} ${isAndroid ? "rounded-[12px] pt-1 pb-0.5" : "rounded-[19px] pt-1 pb-0.5"}`}
                 onClick={(event) => {
                   if (item.navKey === "fellowship") {
                     void handleFellowshipClick(event);
@@ -342,10 +342,10 @@ export function BottomNav() {
                 }}
                 type="button"
               >
-                <span className="flex w-full items-center justify-center">
-                  <Icon className={`${item.navKey === "video" ? "size-[1.95rem]" : item.navKey === "fellowship" ? "size-[1.98rem]" : item.navKey === "chat" ? "h-[1.95rem] w-[2.48rem]" : item.navKey === "more" ? "size-[1.78rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
+                <span className="flex h-[1.95rem] w-full items-center justify-center">
+                  <Icon className={`${item.navKey === "video" ? "size-[1.72rem]" : item.navKey === "fellowship" ? "size-[1.82rem]" : item.navKey === "chat" ? "h-[1.9rem] w-[2.3rem]" : item.navKey === "more" ? "size-[1.7rem]" : "size-[1.78rem]"} ${isActive ? "stroke-[2.2]" : "stroke-[2.05]"}`} />
                 </span>
-                <span className="mt-0.25 text-[0.7rem] leading-none text-current">
+                <span className="absolute bottom-[0.38rem] left-1/2 -translate-x-1/2 text-[0.7rem] leading-none text-current">
                   {item.navKey === "fellowship" ? "Moments" : item.label}
                 </span>
               </button>
