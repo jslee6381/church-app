@@ -287,6 +287,59 @@ export async function getOlderChatMessagesForMember(args: {
   }
 }
 
+export async function getNewerChatMessagesForMember(args: {
+  roomId: string;
+  churchId?: string | null;
+  memberId?: string | null;
+  afterCreatedAt?: string | null;
+  limit?: number;
+}): Promise<ChatRoomMessage[]> {
+  const { roomId, churchId, memberId, afterCreatedAt, limit = 30 } = args;
+
+  if (!hasAdminEnvironment() || !churchId || !memberId || !afterCreatedAt) {
+    return [];
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data: membership } = await admin
+      .from("chat_room_members")
+      .select("room_id")
+      .eq("room_id", roomId)
+      .eq("member_id", memberId)
+      .maybeSingle();
+
+    if (!membership) {
+      return [];
+    }
+
+    const { data } = await admin
+      .from("chat_messages")
+      .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
+      .eq("room_id", roomId)
+      .gt("created_at", afterCreatedAt)
+      .order("created_at", { ascending: true })
+      .limit(limit);
+
+    return (data ?? []).map((message) => {
+      const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
+      const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
+
+      return {
+        id: message.id,
+        body: message.body,
+        createdAt: message.created_at,
+        senderId: message.sender_member_id ?? null,
+        senderName: sender ? getPreferredName(sender) : "Member",
+        senderPhotoUrl: profile?.profile_photo_url ?? null,
+        isOwnMessage: message.sender_member_id === memberId,
+      } satisfies ChatRoomMessage;
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getChatRoomMembersForMember(args: {
   roomId: string;
   churchId?: string | null;

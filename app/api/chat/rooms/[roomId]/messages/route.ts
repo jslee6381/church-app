@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
-import { getOlderChatMessagesForMember } from "@/lib/chat";
+import { getNewerChatMessagesForMember, getOlderChatMessagesForMember } from "@/lib/chat";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 function normalizeText(value: string) {
@@ -41,7 +41,20 @@ export async function GET(
     const { roomId } = await params;
     const { searchParams } = new URL(request.url);
     const beforeCreatedAt = searchParams.get("beforeCreatedAt");
+    const afterCreatedAt = searchParams.get("afterCreatedAt");
     const limit = Number(searchParams.get("limit") ?? "30");
+
+    if (afterCreatedAt) {
+      const messages = await getNewerChatMessagesForMember({
+        roomId,
+        churchId: session.member.church_id,
+        memberId: session.member.id,
+        afterCreatedAt,
+        limit: Number.isFinite(limit) ? limit : 30,
+      });
+
+      return NextResponse.json({ messages });
+    }
 
     const result = await getOlderChatMessagesForMember({
       roomId,

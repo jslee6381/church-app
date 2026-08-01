@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChevronLeft, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomDetail, ChatRoomMember } from "@/lib/chat";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   room: ChatRoomDetail;
@@ -92,6 +92,8 @@ export function ChatRoomPageClient({ room }: Props) {
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const readSyncTimerRef = useRef<number | null>(null);
   const hasRestoredInitialPositionRef = useRef(false);
+  const isHydratingHistoryRef = useRef(false);
+  const latestMessageCreatedAtRef = useRef<string | null>(messages[messages.length - 1]?.createdAt ?? null);
 
   useEffect(() => {
     resizeTextarea(textareaRef.current);
@@ -102,6 +104,8 @@ export function ChatRoomPageClient({ room }: Props) {
     setMemberCount(room.memberCount);
     setHasOlderMessages(room.hasOlderMessages);
     hasRestoredInitialPositionRef.current = false;
+    isHydratingHistoryRef.current = false;
+    latestMessageCreatedAtRef.current = room.messages[room.messages.length - 1]?.createdAt ?? null;
   }, [room]);
 
   async function syncLastReadMessage(lastReadMessageId: string | null) {
@@ -136,6 +140,33 @@ export function ChatRoomPageClient({ room }: Props) {
     };
   }, []);
 
+  async function fetchOlderMessages(beforeCreatedAt: string) {
+    const query = new URLSearchParams({
+      beforeCreatedAt,
+      limit: "30",
+    });
+
+    const response = await fetch(`/api/chat/rooms/${room.id}/messages?${query.toString()}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const payload = (await response.json()) as {
+      error?: string;
+      messages?: ChatRoomDetail["messages"];
+      hasOlderMessages?: boolean;
+    };
+
+    if (!response.ok) {
+      throw new Error(payload.error ?? "Unable to load older messages.");
+    }
+
+    return {
+      messages: payload.messages ?? [],
+      hasOlderMessages: payload.hasOlderMessages === true,
+    };
+  }
+
   useEffect(() => {
     if (messages.length === 0) {
       return;
@@ -154,7 +185,24 @@ export function ChatRoomPageClient({ room }: Props) {
           return;
         }
 
-        if (hasOlderMessages) {
+        if (hasOlderMessages && !isHydratingHistoryRef.current) {
+          const oldestMessage = messages[0];
+          if (!oldestMessage) {
+            return;
+          }
+
+          isHydratingHistoryRef.current = true;
+          void fetchOlderMessages(oldestMessage.createdAt)
+            .then((result) => {
+              setMessages((current) => [...result.messages, ...current]);
+              setHasOlderMessages(result.hasOlderMessages);
+            })
+            .catch((error) => {
+              setErrorMessage(error instanceof Error ? error.message : "Unable to load older messages.");
+            })
+            .finally(() => {
+              isHydratingHistoryRef.current = false;
+            });
           return;
         }
       }
@@ -171,9 +219,70 @@ export function ChatRoomPageClient({ room }: Props) {
 
     const lastMessage = messages[messages.length - 1];
     if (lastMessage) {
+      latestMessageCreatedAtRef.current = lastMessage.createdAt;
       scheduleLastReadSync(lastMessage.id);
     }
   }, [hasOlderMessages, messages, room.lastReadMessageId]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`chat-room-${room.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `room_id=eq.${room.id}`,
+        },
+        () => {
+          const afterCreatedAt = latestMessageCreatedAtRef.current;
+          if (!afterCreatedAt) {
+            return;
+          }
+
+          const query = new URLSearchParams({
+            afterCreatedAt,
+            limit: "20",
+          });
+
+          void fetch(`/api/chat/rooms/${room.id}/messages?${query.toString()}`, {
+            method: "GET",
+            cache: "no-store",
+          })
+            .then(async (response) => {
+              const payload = (await response.json()) as {
+                error?: string;
+                messages?: ChatRoomDetail["messages"];
+              };
+
+              if (!response.ok) {
+                throw new Error(payload.error ?? "Unable to sync new messages.");
+              }
+
+              const nextMessages = payload.messages ?? [];
+              if (nextMessages.length === 0) {
+                return;
+              }
+
+              setMessages((current) => {
+                const existingIds = new Set(current.map((item) => item.id));
+                const uniqueNext = nextMessages.filter((item) => !existingIds.has(item.id));
+                return uniqueNext.length > 0 ? [...current, ...uniqueNext] : current;
+              });
+            })
+            .catch(() => {
+              // Realtime sync is best effort.
+            });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [room.id]);
 
   const filteredCandidates = candidates.filter((member) =>
     member.displayName.toLowerCase().includes(memberSearch.trim().toLowerCase()),
@@ -271,29 +380,9 @@ export function ChatRoomPageClient({ room }: Props) {
     setIsLoadingOlder(true);
 
     try {
-      const query = new URLSearchParams({
-        beforeCreatedAt: oldestMessage.createdAt,
-        limit: "30",
-      });
-
-      const response = await fetch(`/api/chat/rooms/${room.id}/messages?${query.toString()}`, {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      const payload = (await response.json()) as {
-        error?: string;
-        messages?: ChatRoomDetail["messages"];
-        hasOlderMessages?: boolean;
-      };
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to load older messages.");
-      }
-
-      const nextMessages = payload.messages ?? [];
-      setMessages((current) => [...nextMessages, ...current]);
-      setHasOlderMessages(payload.hasOlderMessages === true);
+      const result = await fetchOlderMessages(oldestMessage.createdAt);
+      setMessages((current) => [...result.messages, ...current]);
+      setHasOlderMessages(result.hasOlderMessages);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to load older messages.");
     } finally {
@@ -335,6 +424,7 @@ export function ChatRoomPageClient({ room }: Props) {
       setMessage("");
       setMessages((current) => [...current, payload.message!]);
       hasRestoredInitialPositionRef.current = true;
+      latestMessageCreatedAtRef.current = payload.message.createdAt;
       requestAnimationFrame(() => {
         const node = messageRefs.current[payload.message!.id];
         node?.scrollIntoView({ block: "end" });
@@ -360,7 +450,7 @@ export function ChatRoomPageClient({ room }: Props) {
         </div>
         <div className="absolute inset-x-16 top-0 flex h-11 items-center justify-center text-center">
           <h1
-            className="m-0 truncate font-sans font-semibold text-foreground"
+            className="m-0 h-11 truncate font-sans font-semibold leading-[44px] text-foreground"
             style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
           >
             {room.title}
