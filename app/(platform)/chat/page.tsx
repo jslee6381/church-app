@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 
+import { ChatPageClient } from "@/components/chat/chat-page-client";
 import { PageHeader } from "@/components/page-header";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
+import { getActiveChatCandidates, getChatRoomsForMember } from "@/lib/chat";
 
 export default async function ChatPage() {
   const session = await getAuthenticatedMemberSession();
@@ -14,12 +16,19 @@ export default async function ChatPage() {
     redirect("/access-required?mode=pending&context=chat&next=%2Fchat");
   }
 
+  const [rooms, candidates] = await Promise.all([
+    getChatRoomsForMember(session.member.church_id, session.member.id),
+    getActiveChatCandidates(session.member.church_id),
+  ]);
+
   return (
     <main className="shell max-w-[560px] py-6">
-      <PageHeader title="Chat" />
-      <section className="pt-6">
-        <p className="ui-text m-0 text-center text-muted-foreground">Chat is currently under development.</p>
-      </section>
+      <PageHeader title="" />
+      <ChatPageClient
+        currentMemberId={session.member.id}
+        initialCandidates={candidates}
+        initialRooms={rooms}
+      />
     </main>
   );
 }
