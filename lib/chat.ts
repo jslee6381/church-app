@@ -30,9 +30,10 @@ export type ChatRoomDetail = {
   title: string;
   description: string | null;
   memberCount: number;
-  members: ChatCandidateMember[];
   messages: ChatRoomMessage[];
 };
+
+const CHAT_ROOM_RECENT_MESSAGE_LIMIT = 80;
 
 function getPreferredName(member: {
   display_name?: string | null;
@@ -170,7 +171,7 @@ export async function getChatRoomDetailForMember(args: {
       return null;
     }
 
-    const [{ data: room }, { data: members }, { data: messages }] = await Promise.all([
+    const [{ data: room }, { count: memberCount }, { data: messages }] = await Promise.all([
       admin
         .from("chat_rooms")
         .select("id, title, description")
@@ -179,34 +180,26 @@ export async function getChatRoomDetailForMember(args: {
         .maybeSingle(),
       admin
         .from("chat_room_members")
-        .select("member_id, member:members!chat_room_members_member_id_fkey(id, display_name, full_name)")
+        .select("*", { count: "exact", head: true })
         .eq("room_id", roomId),
       admin
         .from("chat_messages")
         .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name)")
         .eq("room_id", roomId)
-        .order("created_at", { ascending: true }),
+        .order("created_at", { ascending: false })
+        .limit(CHAT_ROOM_RECENT_MESSAGE_LIMIT),
     ]);
 
     if (!room) {
       return null;
     }
 
-    const roomMembers = (members ?? []).map((item) => {
-      const member = Array.isArray(item.member) ? item.member[0] : item.member;
-      return {
-        id: item.member_id,
-        displayName: member ? getPreferredName(member) : "Member",
-      };
-    });
-
     return {
       id: room.id,
       title: room.title,
       description: room.description ?? null,
-      memberCount: roomMembers.length,
-      members: roomMembers,
-      messages: (messages ?? []).map((message) => {
+      memberCount: memberCount ?? 0,
+      messages: [...(messages ?? [])].reverse().map((message) => {
         const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
         return {
           id: message.id,

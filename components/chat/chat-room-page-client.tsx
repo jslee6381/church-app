@@ -94,7 +94,9 @@ export function ChatRoomPageClient({ room }: Props) {
           </Link>
         </div>
         <div className="min-w-0 flex-1 text-center">
-          <h1 className="ui-text m-0 truncate font-semibold text-foreground">{room.title}</h1>
+          <h1 className="m-0 truncate font-sans text-[1.05rem] leading-tight font-semibold text-foreground">
+            {room.title}
+          </h1>
         </div>
         <div className="flex w-11 shrink-0 justify-end">
           <div className="ui-text inline-flex items-center gap-2 rounded-[14px] border border-input bg-card px-3 py-2 text-muted-foreground">
@@ -144,10 +146,10 @@ export function ChatRoomPageClient({ room }: Props) {
               {errorMessage}
             </p>
           ) : null}
-          <form className="flex items-end gap-2" onSubmit={handleSendMessage}>
+          <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
             <button
               aria-label="More options"
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
+              className="inline-flex size-12 shrink-0 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
               type="button"
             >
               <Plus className="size-5" />
@@ -158,7 +160,7 @@ export function ChatRoomPageClient({ room }: Props) {
                   textareaRef.current = node;
                   resizeTextarea(node);
                 }}
-                className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-card px-4 py-2.5 text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                className="ui-text min-h-12 w-full resize-none rounded-[16px] border border-input bg-card px-4 py-3 text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Write a message..."
                 rows={1}
@@ -167,7 +169,7 @@ export function ChatRoomPageClient({ room }: Props) {
             </div>
             <button
               aria-label={isSubmitting ? "Sending message" : "Send message"}
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+              className="inline-flex size-12 shrink-0 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
               disabled={isSubmitting || !message.trim()}
               type="submit"
             >

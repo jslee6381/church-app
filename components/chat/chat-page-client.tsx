@@ -8,7 +8,6 @@ import type { ChatCandidateMember, ChatRoomListItem } from "@/lib/chat";
 
 type Props = {
   currentMemberId: string;
-  initialCandidates: ChatCandidateMember[];
   initialRooms: ChatRoomListItem[];
 };
 
@@ -35,22 +34,18 @@ function formatChatTimestamp(value: string | null) {
 
 export function ChatPageClient({
   currentMemberId,
-  initialCandidates,
   initialRooms,
 }: Props) {
   const router = useRouter();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [candidates, setCandidates] = useState<ChatCandidateMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [isMemberPickerOpen, setIsMemberPickerOpen] = useState(false);
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
   const [memberSearch, setMemberSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const candidates = useMemo(
-    () => initialCandidates.filter((member) => member.id !== currentMemberId),
-    [currentMemberId, initialCandidates],
-  );
 
   const filteredCandidates = useMemo(() => {
     const normalizedQuery = memberSearch.trim().toLowerCase();
@@ -79,6 +74,39 @@ export function ChatPageClient({
     setIsMemberPickerOpen(false);
     setMemberSearch("");
     setErrorMessage(null);
+  }
+
+  async function openMemberPicker() {
+    setIsMemberPickerOpen(true);
+    setErrorMessage(null);
+
+    if (candidates.length > 0 || isLoadingCandidates) {
+      return;
+    }
+
+    setIsLoadingCandidates(true);
+
+    try {
+      const response = await fetch("/api/chat/candidates", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        candidates?: ChatCandidateMember[];
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to load members.");
+      }
+
+      setCandidates((payload.candidates ?? []).filter((member) => member.id !== currentMemberId));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to load members.");
+    } finally {
+      setIsLoadingCandidates(false);
+    }
   }
 
   async function handleCreateRoom(event: React.FormEvent<HTMLFormElement>) {
@@ -177,7 +205,7 @@ export function ChatPageClient({
                 <p className="ui-text m-0 font-semibold text-foreground">Members</p>
                 <button
                   className="inline-flex size-8 items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground transition hover:bg-primary"
-                  onClick={() => setIsMemberPickerOpen(true)}
+                  onClick={() => void openMemberPicker()}
                   type="button"
                 >
                   <Plus className="size-4" />
@@ -242,6 +270,9 @@ export function ChatPageClient({
             </div>
 
             <div className="max-h-[55vh] space-y-2 overflow-y-auto">
+              {isLoadingCandidates ? (
+                <p className="ui-text m-0 py-6 text-center text-muted-foreground">Loading members...</p>
+              ) : null}
               {filteredCandidates.map((member) => {
                 const isSelected = selectedMemberIds.includes(member.id);
                 return (
@@ -258,7 +289,7 @@ export function ChatPageClient({
                   </label>
                 );
               })}
-              {filteredCandidates.length === 0 ? (
+              {!isLoadingCandidates && filteredCandidates.length === 0 ? (
                 <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
               ) : null}
             </div>
