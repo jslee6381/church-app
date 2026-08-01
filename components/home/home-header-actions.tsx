@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Users } from "lucide-react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { getEasternGreeting } from "@/lib/eastern-time";
 import { createClient } from "@/lib/supabase/client";
 
 const HEADER_AUTH_STORAGE_KEY = "koinonia-header-authenticated";
@@ -10,11 +12,15 @@ const HEADER_ADMIN_STORAGE_KEY = "koinonia-header-can-access-admin";
 type HomeHeaderActionsProps = {
   initialCanAccessAdmin: boolean;
   initialAuthenticated: boolean;
+  initialDisplayName?: string | null;
+  initialProfilePhotoUrl?: string | null;
 };
 
 type HeaderState = {
   authenticated: boolean;
   canAccessAdmin: boolean;
+  displayName: string | null;
+  profilePhotoUrl: string | null;
 };
 
 function readCachedFlag(key: string) {
@@ -53,23 +59,34 @@ async function fetchHeaderState(): Promise<HeaderState> {
     return {
       authenticated: false,
       canAccessAdmin: false,
+      displayName: null,
+      profilePhotoUrl: null,
     };
   }
 
   const data = (await response.json()) as {
     authenticated?: boolean;
     canAccessAdmin?: boolean;
+    profilePhotoUrl?: string | null;
+    member?: {
+      display_name?: string | null;
+      full_name?: string | null;
+    };
   };
 
   return {
     authenticated: data.authenticated === true,
     canAccessAdmin: data.canAccessAdmin === true,
+    displayName: data.member?.display_name ?? data.member?.full_name ?? null,
+    profilePhotoUrl: data.profilePhotoUrl ?? null,
   };
 }
 
 export function HomeHeaderActions({
   initialAuthenticated,
   initialCanAccessAdmin,
+  initialDisplayName = null,
+  initialProfilePhotoUrl = null,
 }: HomeHeaderActionsProps) {
   const [state, setState] = useState<HeaderState>(() => {
     const cachedAuthenticated = readCachedFlag(HEADER_AUTH_STORAGE_KEY);
@@ -78,6 +95,8 @@ export function HomeHeaderActions({
     return {
       authenticated: initialAuthenticated || cachedAuthenticated,
       canAccessAdmin: initialCanAccessAdmin || cachedCanAccessAdmin,
+      displayName: initialDisplayName,
+      profilePhotoUrl: initialProfilePhotoUrl,
     };
   });
 
@@ -99,6 +118,8 @@ export function HomeHeaderActions({
         const optimisticState = {
           authenticated: true,
           canAccessAdmin: readCachedFlag(HEADER_ADMIN_STORAGE_KEY),
+          displayName: state.displayName,
+          profilePhotoUrl: state.profilePhotoUrl,
         };
         setState(optimisticState);
         writeCachedState(optimisticState);
@@ -109,6 +130,8 @@ export function HomeHeaderActions({
         const signedOutState = {
           authenticated: false,
           canAccessAdmin: false,
+          displayName: null,
+          profilePhotoUrl: null,
         };
         setState(signedOutState);
         clearCachedState();
@@ -121,7 +144,26 @@ export function HomeHeaderActions({
   }, []);
 
   if (state.authenticated) {
-    return null;
+    return (
+      <div className="flex items-center gap-3">
+        <div className="text-right">
+          <p className="ui-text m-0 text-foreground">
+            {getEasternGreeting()}, {state.displayName ?? "Member"}
+          </p>
+        </div>
+        {state.profilePhotoUrl ? (
+          <img
+            alt={`${state.displayName ?? "Member"} profile`}
+            className="size-10 rounded-full object-cover"
+            src={state.profilePhotoUrl}
+          />
+        ) : (
+          <div className="inline-flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
+            <Users className="size-5" />
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (

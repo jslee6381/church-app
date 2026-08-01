@@ -14,12 +14,26 @@ export async function GET() {
     }
 
     const roles = await getMemberRoles(session.member.id);
+    let profilePhotoUrl: string | null = null;
+
+    if (hasAdminEnvironment()) {
+      const admin = createAdminClient();
+      const { data } = await admin
+        .from("members")
+        .select("profiles!left(profile_photo_url)")
+        .eq("id", session.member.id)
+        .maybeSingle();
+
+      const profile = Array.isArray(data?.profiles) ? data.profiles[0] : data?.profiles;
+      profilePhotoUrl = profile?.profile_photo_url ?? null;
+    }
 
     return NextResponse.json({
       authenticated: true,
       member: session.member,
       roles,
       canAccessAdmin: roles.includes("admin"),
+      profilePhotoUrl,
     });
   } catch {
     return NextResponse.json({ error: "Unable to load profile." }, { status: 500 });

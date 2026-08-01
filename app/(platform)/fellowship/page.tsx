@@ -69,7 +69,7 @@ export default async function FellowshipPage() {
               Home
             </Link>
             <Link
-              className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+              className="ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-semibold text-primary-foreground transition hover:bg-primary"
               href="/archive"
             >
               More

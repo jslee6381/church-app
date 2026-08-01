@@ -8,15 +8,37 @@ import { getDefaultChurchId } from "@/lib/church-context";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
 import { getUpcomingEventCarouselItem } from "@/lib/events";
+import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+async function getProfilePhotoUrl(memberId: string) {
+  if (!hasAdminEnvironment()) {
+    return null;
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("members")
+      .select("profiles!left(profile_photo_url)")
+      .eq("id", memberId)
+      .maybeSingle();
+
+    const profile = Array.isArray(data?.profiles) ? data.profiles[0] : data?.profiles;
+    return profile?.profile_photo_url ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default async function HomePage() {
   const session = await getMemberSession();
   const authSession = await getAuthenticatedMemberSession();
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
   const canAccessAdmin = roles.includes("admin");
+  const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
   const churchId = authSession?.member.church_id ?? (await getDefaultChurchId());
   const [initialAnnouncement, initialEvent] = await Promise.all([
     getAnnouncementCarouselItem(churchId, 0),
@@ -40,6 +62,8 @@ export default async function HomePage() {
             <HomeHeaderActions
               initialAuthenticated={Boolean(authSession)}
               initialCanAccessAdmin={canAccessAdmin}
+              initialDisplayName={authSession?.member.display_name ?? authSession?.member.full_name ?? null}
+              initialProfilePhotoUrl={currentMemberPhotoUrl}
             />
           )}
           initialAnnouncement={initialAnnouncement}
