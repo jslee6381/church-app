@@ -449,12 +449,12 @@ export function ChatRoomPageClient({ room }: Props) {
           </Link>
         </div>
         <div className="absolute inset-x-16 top-0 flex h-11 items-center justify-center text-center">
-          <h1
-            className="inline-flex h-11 translate-y-[2px] items-center m-0 truncate font-sans font-semibold leading-none text-foreground"
-            style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
+          <p
+            className="ui-text inline-flex h-11 items-center m-0 truncate font-semibold text-foreground"
+            style={{ fontSize: "calc(var(--ui-text-size) * 1.0)", lineHeight: 1 }}
           >
             {room.title}
-          </h1>
+          </p>
         </div>
         <div className="absolute right-0 top-0 flex h-11 items-center justify-end">
           <button
