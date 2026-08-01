@@ -132,7 +132,7 @@ export function ChatPageClient({
           Home
         </Link>
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-input bg-background px-4 font-semibold text-foreground shadow-none transition hover:bg-background"
+          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-input bg-card px-4 font-semibold text-foreground shadow-none transition hover:bg-card"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
@@ -146,14 +146,14 @@ export function ChatPageClient({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-background px-4 font-semibold text-foreground transition hover:bg-background"
+                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-card px-4 font-semibold text-foreground transition hover:bg-card"
                 onClick={closeComposer}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-background px-4 font-semibold text-foreground transition hover:bg-background disabled:opacity-60"
+                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-card px-4 font-semibold text-foreground transition hover:bg-card disabled:opacity-60"
                 disabled={isSubmitting}
                 type="submit"
               >
@@ -176,7 +176,7 @@ export function ChatPageClient({
               <div className="mb-2 flex items-center justify-between gap-3">
                 <p className="ui-text m-0 font-semibold text-foreground">Members</p>
                 <button
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-input bg-background text-foreground transition hover:bg-background"
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-input bg-card text-foreground transition hover:bg-card"
                   onClick={() => setIsMemberPickerOpen(true)}
                   type="button"
                 >
@@ -189,7 +189,7 @@ export function ChatPageClient({
                     .filter((member) => selectedMemberIds.includes(member.id))
                     .map((member) => (
                       <button
-                        className="ui-text inline-flex min-h-9 items-center gap-2 rounded-full border border-input bg-background px-3 text-foreground"
+                        className="ui-text inline-flex min-h-9 items-center gap-2 rounded-full border border-input bg-card px-3 text-foreground"
                         key={member.id}
                         onClick={() => toggleMember(member.id)}
                         type="button"
@@ -220,7 +220,7 @@ export function ChatPageClient({
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="ui-text m-0 font-semibold text-foreground">Members</p>
               <button
-                className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-background text-foreground"
+                className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-card text-foreground"
                 onClick={() => {
                   setIsMemberPickerOpen(false);
                   setMemberSearch("");
@@ -246,7 +246,7 @@ export function ChatPageClient({
                 const isSelected = selectedMemberIds.includes(member.id);
                 return (
                   <label
-                    className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-background px-4 py-2"
+                    className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
                     key={member.id}
                   >
                     <span className="ui-text text-foreground">{member.displayName}</span>
