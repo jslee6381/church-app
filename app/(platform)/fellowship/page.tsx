@@ -100,11 +100,11 @@ export default async function FellowshipPage() {
       </main>
       <style>{`
         :root[data-theme="light"] .moments-more-button {
-          color: #000000;
+          color: #ffffff;
         }
 
         :root[data-theme="dark"] .moments-more-button {
-          color: #ffffff;
+          color: #000000;
         }
       `}</style>
     </PullToRefresh>
