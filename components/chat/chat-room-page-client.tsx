@@ -450,7 +450,7 @@ export function ChatRoomPageClient({ room }: Props) {
         </div>
         <div className="absolute inset-x-16 top-0 flex h-11 items-center justify-center text-center">
           <h1
-            className="inline-flex h-11 items-center m-0 truncate font-sans font-semibold leading-none text-foreground"
+            className="inline-flex h-11 translate-y-[2px] items-center m-0 truncate font-sans font-semibold leading-none text-foreground"
             style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
           >
             {room.title}
@@ -518,7 +518,7 @@ export function ChatRoomPageClient({ room }: Props) {
                       </div>
                       <p
                         className="mb-1 shrink-0 text-muted-foreground"
-                        style={{ fontSize: "calc(var(--ui-text-size) * 0.56)", lineHeight: 1 }}
+                        style={{ fontSize: "calc(var(--ui-text-size) * 0.72)", lineHeight: 1 }}
                       >
                         {formatMessageTime(message.createdAt)}
                       </p>
@@ -544,7 +544,7 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                         <p
                           className="mb-1 shrink-0 text-muted-foreground"
-                          style={{ fontSize: "calc(var(--ui-text-size) * 0.56)", lineHeight: 1 }}
+                          style={{ fontSize: "calc(var(--ui-text-size) * 0.72)", lineHeight: 1 }}
                         >
                           {formatMessageTime(message.createdAt)}
                         </p>
