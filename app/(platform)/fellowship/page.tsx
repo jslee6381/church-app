@@ -69,7 +69,7 @@ export default async function FellowshipPage() {
               Home
             </Link>
             <Link
-              className="ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-semibold text-black transition hover:bg-primary"
+              className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-semibold transition hover:bg-primary"
               href="/archive"
             >
               More
@@ -98,6 +98,15 @@ export default async function FellowshipPage() {
           </section>
         </div>
       </main>
+      <style>{`
+        :root[data-theme="light"] .moments-more-button {
+          color: #000000;
+        }
+
+        :root[data-theme="dark"] .moments-more-button {
+          color: #ffffff;
+        }
+      `}</style>
     </PullToRefresh>
   );
 }

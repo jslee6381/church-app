@@ -221,7 +221,10 @@ export function ChatRoomPageClient({ room }: Props) {
           </Link>
         </div>
         <div className="min-w-0 flex-1 text-center">
-          <h1 className="m-0 truncate font-sans text-[1.05rem] leading-tight font-semibold text-foreground">
+          <h1
+            className="m-0 truncate font-sans leading-tight font-semibold text-foreground"
+            style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
+          >
             {room.title}
           </h1>
         </div>
@@ -262,7 +265,7 @@ export function ChatRoomPageClient({ room }: Props) {
                 <div
                   className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`max-w-[85%] ${message.isOwnMessage ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                  <div className={`flex max-w-[85%] items-end gap-2 ${message.isOwnMessage ? "flex-row-reverse" : "flex-row"}`}>
                     <div
                       className={`rounded-[18px] px-4 py-3 ${
                         message.isOwnMessage
@@ -275,7 +278,7 @@ export function ChatRoomPageClient({ room }: Props) {
                       ) : null}
                       <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
                     </div>
-                    <p className="ui-text m-0 px-1 text-[0.72rem] text-muted-foreground">
+                    <p className="ui-text mb-1 shrink-0 text-[0.65rem] text-muted-foreground">
                       {formatMessageTime(message.createdAt)}
                     </p>
                   </div>

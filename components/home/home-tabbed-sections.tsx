@@ -90,7 +90,7 @@ export function HomeTabbedSections({ headerAction, initialAnnouncement, initialE
     <div className="mt-2 space-y-8">
       <div className="-mx-4 mb-1">
         <div className="px-3">
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-start gap-3">
             {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
           </div>
         </div>
