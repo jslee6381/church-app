@@ -7,6 +7,21 @@ function normalizeText(value: string) {
   return value.trim().replace(/\s+\n/g, "\n").replace(/\n{3,}/g, "\n\n");
 }
 
+function getChatSetupErrorMessage(error?: { message?: string | null } | null) {
+  const message = error?.message ?? "";
+
+  if (
+    message.includes("public.chat_rooms")
+    || message.includes("public.chat_room_members")
+    || message.includes("public.chat_messages")
+    || message.includes("schema cache")
+  ) {
+    return "Chat is not set up in the database yet. Please apply the latest Supabase migration.";
+  }
+
+  return error?.message ?? "Unable to send message.";
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ roomId: string }> },
@@ -61,7 +76,7 @@ export async function POST(
       .single();
 
     if (messageError || !message) {
-      return NextResponse.json({ error: messageError?.message ?? "Unable to send message." }, { status: 500 });
+      return NextResponse.json({ error: getChatSetupErrorMessage(messageError) }, { status: 500 });
     }
 
     await admin

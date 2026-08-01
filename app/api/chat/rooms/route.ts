@@ -10,6 +10,21 @@ function normalizeText(value: string) {
   return value.trim().replace(/\s+\n/g, "\n").replace(/\n{3,}/g, "\n\n");
 }
 
+function getChatSetupErrorMessage(error?: { message?: string | null } | null) {
+  const message = error?.message ?? "";
+
+  if (
+    message.includes("public.chat_rooms")
+    || message.includes("public.chat_room_members")
+    || message.includes("public.chat_messages")
+    || message.includes("schema cache")
+  ) {
+    return "Chat is not set up in the database yet. Please apply the latest Supabase migration.";
+  }
+
+  return error?.message ?? "Unable to create chat room.";
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getAuthenticatedMemberSession();
@@ -82,7 +97,7 @@ export async function POST(request: Request) {
       .single();
 
     if (roomError || !room) {
-      return NextResponse.json({ error: roomError?.message ?? "Unable to create chat room." }, { status: 500 });
+      return NextResponse.json({ error: getChatSetupErrorMessage(roomError) }, { status: 500 });
     }
 
     const roomMembers = participantIds
@@ -99,7 +114,7 @@ export async function POST(request: Request) {
 
     if (membershipError) {
       await admin.from("chat_rooms").delete().eq("id", room.id);
-      return NextResponse.json({ error: membershipError.message ?? "Unable to add room members." }, { status: 500 });
+      return NextResponse.json({ error: getChatSetupErrorMessage(membershipError) }, { status: 500 });
     }
 
     await admin.from("audit_logs").insert({

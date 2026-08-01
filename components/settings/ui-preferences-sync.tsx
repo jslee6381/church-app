@@ -84,10 +84,18 @@ export function UiPreferencesSync() {
       }
     };
 
-    mediaQuery.addEventListener("change", handleThemeChange);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleThemeChange);
+    } else if (typeof mediaQuery.addListener === "function") {
+      mediaQuery.addListener(handleThemeChange);
+    }
 
     return () => {
-      mediaQuery.removeEventListener("change", handleThemeChange);
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", handleThemeChange);
+      } else if (typeof mediaQuery.removeListener === "function") {
+        mediaQuery.removeListener(handleThemeChange);
+      }
     };
   }, []);
 

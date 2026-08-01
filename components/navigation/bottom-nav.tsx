@@ -145,7 +145,6 @@ export function BottomNav() {
   useEffect(() => {
     router.prefetch("/home");
     router.prefetch("/fellowship");
-    router.prefetch("/chat");
     router.prefetch("/archive");
     router.prefetch("/material");
     router.prefetch("/settings");

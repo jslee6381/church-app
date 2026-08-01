@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, MessageSquarePlus, Users } from "lucide-react";
+import { ChevronRight, MessageSquarePlus, Plus, Search, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomListItem } from "@/lib/chat";
 
 type Props = {
@@ -13,7 +13,6 @@ type Props = {
 };
 
 const TITLE_LIMIT = 60;
-const DESCRIPTION_LIMIT = 180;
 
 function formatChatTimestamp(value: string | null) {
   if (!value) {
@@ -42,8 +41,9 @@ export function ChatPageClient({
   const router = useRouter();
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [isMemberPickerOpen, setIsMemberPickerOpen] = useState(false);
+  const [memberSearch, setMemberSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -52,12 +52,33 @@ export function ChatPageClient({
     [currentMemberId, initialCandidates],
   );
 
+  const filteredCandidates = useMemo(() => {
+    const normalizedQuery = memberSearch.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return candidates;
+    }
+
+    return candidates.filter((member) =>
+      member.displayName.toLowerCase().includes(normalizedQuery),
+    );
+  }, [candidates, memberSearch]);
+
   function toggleMember(memberId: string) {
     setSelectedMemberIds((current) =>
       current.includes(memberId)
         ? current.filter((value) => value !== memberId)
         : [...current, memberId],
     );
+  }
+
+  function closeComposer() {
+    setIsComposerOpen(false);
+    setTitle("");
+    setSelectedMemberIds([]);
+    setIsMemberPickerOpen(false);
+    setMemberSearch("");
+    setErrorMessage(null);
   }
 
   async function handleCreateRoom(event: React.FormEvent<HTMLFormElement>) {
@@ -73,7 +94,6 @@ export function ChatPageClient({
         },
         body: JSON.stringify({
           title,
-          description,
           memberIds: selectedMemberIds,
         }),
       });
@@ -88,9 +108,10 @@ export function ChatPageClient({
       }
 
       setTitle("");
-      setDescription("");
       setSelectedMemberIds([]);
       setIsComposerOpen(false);
+      setIsMemberPickerOpen(false);
+      setMemberSearch("");
       router.push(`/chat/${payload.room.id}`);
       router.refresh();
     } catch (error) {
@@ -102,20 +123,37 @@ export function ChatPageClient({
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
+      <div className="-mt-5 mb-1 flex items-center justify-end">
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-input bg-card px-4 font-semibold text-foreground transition hover:bg-card"
+          className="ui-text inline-flex min-h-11 items-center gap-2 border-0 bg-transparent px-0 font-semibold text-foreground shadow-none transition hover:bg-transparent"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
           <MessageSquarePlus className="size-4" />
-          New Room
+          New Chat
         </button>
       </div>
 
       {isComposerOpen ? (
         <form className="home-surface rounded-[18px] border border-border px-4 py-4" onSubmit={handleCreateRoom}>
           <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <button
+                className="ui-text inline-flex min-h-11 items-center justify-center bg-transparent px-0 font-semibold text-foreground transition hover:bg-transparent"
+                onClick={closeComposer}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="ui-text inline-flex min-h-11 items-center justify-center bg-transparent px-0 font-semibold text-foreground transition hover:bg-transparent disabled:opacity-60"
+                disabled={isSubmitting}
+                type="submit"
+              >
+                {isSubmitting ? "Creating..." : "Create"}
+              </button>
+            </div>
+
             <div>
               <p className="ui-text m-0 mb-2 font-semibold text-foreground">Room Name</p>
               <input
@@ -128,36 +166,35 @@ export function ChatPageClient({
             </div>
 
             <div>
-              <p className="ui-text m-0 mb-2 font-semibold text-foreground">Description</p>
-              <textarea
-                className="ui-text min-h-[92px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
-                maxLength={DESCRIPTION_LIMIT}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Optional"
-                value={description}
-              />
-            </div>
-
-            <div>
-              <p className="ui-text m-0 mb-2 font-semibold text-foreground">Members</p>
-              <div className="space-y-2">
-                {candidates.map((member) => {
-                  const isSelected = selectedMemberIds.includes(member.id);
-                  return (
-                    <label
-                      className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-background px-4 py-2"
-                      key={member.id}
-                    >
-                      <span className="ui-text text-foreground">{member.displayName}</span>
-                      <input
-                        checked={isSelected}
-                        onChange={() => toggleMember(member.id)}
-                        type="checkbox"
-                      />
-                    </label>
-                  );
-                })}
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="ui-text m-0 font-semibold text-foreground">Members</p>
+                <button
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-input bg-background text-foreground transition hover:bg-background"
+                  onClick={() => setIsMemberPickerOpen(true)}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                </button>
               </div>
+              {selectedMemberIds.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {candidates
+                    .filter((member) => selectedMemberIds.includes(member.id))
+                    .map((member) => (
+                      <button
+                        className="ui-text inline-flex min-h-9 items-center gap-2 rounded-full border border-input bg-background px-3 text-foreground"
+                        key={member.id}
+                        onClick={() => toggleMember(member.id)}
+                        type="button"
+                      >
+                        <span>{member.displayName}</span>
+                        <X className="size-3.5" />
+                      </button>
+                    ))}
+                </div>
+              ) : (
+                <p className="ui-text m-0 text-muted-foreground">No members selected.</p>
+              )}
             </div>
 
             {errorMessage ? (
@@ -165,18 +202,60 @@ export function ChatPageClient({
                 {errorMessage}
               </p>
             ) : null}
-
-            <div className="flex justify-end">
-              <button
-                className="ui-text inline-flex min-h-11 items-center justify-center rounded-[14px] bg-primary px-4 font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
-                disabled={isSubmitting}
-                type="submit"
-              >
-                {isSubmitting ? "Creating..." : "Create"}
-              </button>
-            </div>
           </div>
         </form>
+      ) : null}
+
+      {isMemberPickerOpen ? (
+        <div className="fixed inset-0 z-[120] flex items-end bg-black/50 sm:items-center sm:justify-center">
+          <div className="w-full rounded-t-[24px] border border-border bg-background px-4 py-4 sm:max-w-[520px] sm:rounded-[24px]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <p className="ui-text m-0 font-semibold text-foreground">Members</p>
+              <button
+                className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-background text-foreground"
+                onClick={() => {
+                  setIsMemberPickerOpen(false);
+                  setMemberSearch("");
+                }}
+                type="button"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="relative mb-4">
+              <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background py-3 pr-4 pl-11 text-foreground"
+                onChange={(event) => setMemberSearch(event.target.value)}
+                placeholder="Search members"
+                value={memberSearch}
+              />
+            </div>
+
+            <div className="max-h-[55vh] space-y-2 overflow-y-auto">
+              {filteredCandidates.map((member) => {
+                const isSelected = selectedMemberIds.includes(member.id);
+                return (
+                  <label
+                    className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-background px-4 py-2"
+                    key={member.id}
+                  >
+                    <span className="ui-text text-foreground">{member.displayName}</span>
+                    <input
+                      checked={isSelected}
+                      onChange={() => toggleMember(member.id)}
+                      type="checkbox"
+                    />
+                  </label>
+                );
+              })}
+              {filteredCandidates.length === 0 ? (
+                <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
+              ) : null}
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {initialRooms.length === 0 ? (

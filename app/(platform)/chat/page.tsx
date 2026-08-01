@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-
 import { ChatPageClient } from "@/components/chat/chat-page-client";
 import { PageHeader } from "@/components/page-header";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
