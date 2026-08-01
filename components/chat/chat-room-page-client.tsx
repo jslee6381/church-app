@@ -512,8 +512,8 @@ export function ChatRoomPageClient({ room }: Props) {
                   className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
                 >
                   {message.isOwnMessage ? (
-                    <div className="flex max-w-[85%] flex-row-reverse items-end gap-2">
-                      <div className="rounded-[18px] bg-primary px-4 py-3 text-primary-foreground">
+                    <div className="flex w-full flex-row-reverse items-end gap-2">
+                      <div className="max-w-[88%] rounded-[18px] bg-primary px-4 py-3 text-primary-foreground">
                         <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
                       </div>
                       <p
@@ -524,7 +524,7 @@ export function ChatRoomPageClient({ room }: Props) {
                       </p>
                     </div>
                   ) : (
-                    <div className="flex max-w-[92%] items-end gap-2">
+                    <div className="flex w-full items-end gap-2">
                       {message.senderPhotoUrl ? (
                         <img
                           alt={`${message.senderName} profile`}
@@ -537,7 +537,7 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       )}
                       <div className="flex items-end gap-2">
-                        <div className="relative rounded-[18px] bg-card px-4 py-3 text-foreground">
+                        <div className="relative max-w-[88%] rounded-[18px] bg-card px-4 py-3 text-foreground">
                           <span className="absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px] bg-card" />
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
