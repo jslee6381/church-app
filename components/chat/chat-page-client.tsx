@@ -311,6 +311,11 @@ export function ChatPageClient({
                   <div className="flex items-center gap-2">
                     <Users className="size-4 shrink-0 text-muted-foreground" />
                     <p className="ui-text m-0 truncate font-semibold text-foreground">{room.title}</p>
+                    {room.unreadCount > 0 ? (
+                      <span className="ui-text inline-flex min-w-[1.3rem] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-white">
+                        {room.unreadCount}
+                      </span>
+                    ) : null}
                   </div>
                   {room.description ? (
                     <p className="ui-text mt-2 mb-0 line-clamp-2 text-muted-foreground">{room.description}</p>

@@ -14,12 +14,15 @@ export type ChatRoomListItem = {
   lastMessageText: string | null;
   lastMessageAt: string | null;
   memberCount: number;
+  unreadCount: number;
 };
 
 export type ChatRoomMessage = {
   id: string;
   body: string;
   createdAt: string;
+  editedAt: string | null;
+  deletedAt: string | null;
   senderId: string | null;
   senderName: string;
   senderPhotoUrl: string | null;
@@ -49,6 +52,42 @@ function getPreferredName(member: {
   full_name?: string | null;
 }) {
   return member.display_name?.trim() || member.full_name?.trim() || "Member";
+}
+
+function mapChatMessage(
+  message: {
+    id: string;
+    body: string;
+    created_at: string;
+    edited_at?: string | null;
+    deleted_at?: string | null;
+    sender_member_id?: string | null;
+    sender?: {
+      display_name?: string | null;
+      full_name?: string | null;
+      profiles?: { profile_photo_url?: string | null }[] | { profile_photo_url?: string | null } | null;
+    } | {
+      display_name?: string | null;
+      full_name?: string | null;
+      profiles?: { profile_photo_url?: string | null }[] | { profile_photo_url?: string | null } | null;
+    }[] | null;
+  },
+  memberId?: string | null,
+): ChatRoomMessage {
+  const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
+  const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
+
+  return {
+    id: message.id,
+    body: message.body,
+    createdAt: message.created_at,
+    editedAt: message.edited_at ?? null,
+    deletedAt: message.deleted_at ?? null,
+    senderId: message.sender_member_id ?? null,
+    senderName: sender ? getPreferredName(sender) : "Member",
+    senderPhotoUrl: profile?.profile_photo_url ?? null,
+    isOwnMessage: message.sender_member_id === memberId,
+  };
 }
 
 export async function getActiveChatCandidates(churchId?: string | null): Promise<ChatCandidateMember[]> {
@@ -88,7 +127,7 @@ export async function getChatRoomsForMember(churchId?: string | null, memberId?:
     const admin = createAdminClient();
     const { data: memberships, error: membershipError } = await admin
       .from("chat_room_members")
-      .select("room_id, room:chat_rooms(id, title, description, last_message_at, created_at)")
+      .select("room_id, unread_count, room:chat_rooms(id, title, description, last_message_text, last_message_at, created_at)")
       .eq("member_id", memberId);
 
     if (membershipError || !memberships?.length) {
@@ -99,27 +138,10 @@ export async function getChatRoomsForMember(churchId?: string | null, memberId?:
       .map((membership) => membership.room_id)
       .filter((value): value is string => Boolean(value));
 
-    const [{ data: messages }, { data: counts }] = await Promise.all([
-      admin
-        .from("chat_messages")
-        .select("id, room_id, body, created_at")
-        .in("room_id", roomIds)
-        .order("created_at", { ascending: false }),
-      admin
-        .from("chat_room_members")
-        .select("room_id")
-        .in("room_id", roomIds),
-    ]);
-
-    const lastMessageByRoom = new Map<string, { body: string; created_at: string }>();
-    for (const message of messages ?? []) {
-      if (!lastMessageByRoom.has(message.room_id)) {
-        lastMessageByRoom.set(message.room_id, {
-          body: message.body,
-          created_at: message.created_at,
-        });
-      }
-    }
+    const { data: counts } = await admin
+      .from("chat_room_members")
+      .select("room_id")
+      .in("room_id", roomIds);
 
     const memberCountByRoom = new Map<string, number>();
     for (const row of counts ?? []) {
@@ -134,14 +156,14 @@ export async function getChatRoomsForMember(churchId?: string | null, memberId?:
           return null;
         }
 
-        const lastMessage = lastMessageByRoom.get(room.id);
         return {
           id: room.id,
           title: room.title,
           description: room.description ?? null,
-          lastMessageText: lastMessage?.body ?? null,
-          lastMessageAt: lastMessage?.created_at ?? room.last_message_at ?? room.created_at ?? null,
+          lastMessageText: room.last_message_text ?? null,
+          lastMessageAt: room.last_message_at ?? room.created_at ?? null,
           memberCount: memberCountByRoom.get(room.id) ?? 0,
+          unreadCount: membership.unread_count ?? 0,
         } satisfies ChatRoomListItem;
       })
       .filter((item): item is ChatRoomListItem => Boolean(item));
@@ -193,7 +215,7 @@ export async function getChatRoomDetailForMember(args: {
         .eq("room_id", roomId),
       admin
         .from("chat_messages")
-        .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
+        .select("id, body, created_at, edited_at, deleted_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
         .eq("room_id", roomId)
         .order("created_at", { ascending: false })
         .limit(CHAT_ROOM_RECENT_MESSAGE_LIMIT),
@@ -210,19 +232,7 @@ export async function getChatRoomDetailForMember(args: {
       memberCount: memberCount ?? 0,
       lastReadMessageId: membership.last_read_message_id ?? null,
       hasOlderMessages: (messages?.length ?? 0) >= CHAT_ROOM_RECENT_MESSAGE_LIMIT,
-      messages: [...(messages ?? [])].reverse().map((message) => {
-        const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
-        const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
-        return {
-          id: message.id,
-          body: message.body,
-          createdAt: message.created_at,
-          senderId: message.sender_member_id ?? null,
-          senderName: sender ? getPreferredName(sender) : "Member",
-          senderPhotoUrl: profile?.profile_photo_url ?? null,
-          isOwnMessage: message.sender_member_id === memberId,
-        };
-      }),
+      messages: [...(messages ?? [])].reverse().map((message) => mapChatMessage(message, memberId)),
     };
   } catch {
     return null;
@@ -257,26 +267,13 @@ export async function getOlderChatMessagesForMember(args: {
 
     const { data } = await admin
       .from("chat_messages")
-      .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
+      .select("id, body, created_at, edited_at, deleted_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
       .eq("room_id", roomId)
       .lt("created_at", beforeCreatedAt)
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    const messages = [...(data ?? [])].reverse().map((message) => {
-      const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
-      const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
-
-      return {
-        id: message.id,
-        body: message.body,
-        createdAt: message.created_at,
-        senderId: message.sender_member_id ?? null,
-        senderName: sender ? getPreferredName(sender) : "Member",
-        senderPhotoUrl: profile?.profile_photo_url ?? null,
-        isOwnMessage: message.sender_member_id === memberId,
-      } satisfies ChatRoomMessage;
-    });
+    const messages = [...(data ?? [])].reverse().map((message) => mapChatMessage(message, memberId));
 
     return {
       messages,
@@ -315,26 +312,13 @@ export async function getNewerChatMessagesForMember(args: {
 
     const { data } = await admin
       .from("chat_messages")
-      .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
+      .select("id, body, created_at, edited_at, deleted_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
       .eq("room_id", roomId)
       .gt("created_at", afterCreatedAt)
       .order("created_at", { ascending: true })
       .limit(limit);
 
-    return (data ?? []).map((message) => {
-      const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
-      const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
-
-      return {
-        id: message.id,
-        body: message.body,
-        createdAt: message.created_at,
-        senderId: message.sender_member_id ?? null,
-        senderName: sender ? getPreferredName(sender) : "Member",
-        senderPhotoUrl: profile?.profile_photo_url ?? null,
-        isOwnMessage: message.sender_member_id === memberId,
-      } satisfies ChatRoomMessage;
-    });
+    return (data ?? []).map((message) => mapChatMessage(message, memberId));
   } catch {
     return [];
   }

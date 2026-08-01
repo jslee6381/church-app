@@ -123,7 +123,7 @@ export async function POST(
         message_type: "text",
         body,
       })
-      .select("id, body, created_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
+      .select("id, body, created_at, edited_at, deleted_at, sender_member_id, sender:members!chat_messages_sender_member_id_fkey(display_name, full_name, profiles!left(profile_photo_url))")
       .single();
 
     if (messageError || !message) {
@@ -134,6 +134,7 @@ export async function POST(
       .from("chat_rooms")
       .update({
         last_message_at: now,
+        last_message_text: body,
       })
       .eq("id", roomId);
 
@@ -141,9 +142,15 @@ export async function POST(
       .from("chat_room_members")
       .update({
         last_read_message_id: message.id,
+        unread_count: 0,
       })
       .eq("room_id", roomId)
       .eq("member_id", session.member.id);
+
+    await admin.rpc("increment_chat_room_unread_counts", {
+      target_room_id: roomId,
+      sender_member_id_input: session.member.id,
+    });
 
     const sender = Array.isArray(message.sender) ? message.sender[0] : message.sender;
     const profile = Array.isArray(sender?.profiles) ? sender.profiles[0] : sender?.profiles;
@@ -154,6 +161,8 @@ export async function POST(
         id: message.id,
         body: message.body,
         createdAt: message.created_at,
+        editedAt: message.edited_at ?? null,
+        deletedAt: message.deleted_at ?? null,
         senderId: message.sender_member_id ?? null,
         senderName: sender?.display_name?.trim() || sender?.full_name?.trim() || "Member",
         senderPhotoUrl: profile?.profile_photo_url ?? null,
@@ -198,6 +207,7 @@ export async function PATCH(
       .from("chat_room_members")
       .update({
         last_read_message_id: lastReadMessageId,
+        unread_count: 0,
       })
       .eq("room_id", roomId)
       .eq("member_id", session.member.id);

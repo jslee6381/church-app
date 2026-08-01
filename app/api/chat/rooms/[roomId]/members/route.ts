@@ -117,6 +117,7 @@ export async function POST(
         room_id: roomId,
         member_id: memberId,
         role: "member" as const,
+        unread_count: 0,
       }));
 
     if (insertRows.length === 0) {

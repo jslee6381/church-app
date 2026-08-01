@@ -77,6 +77,8 @@ export function ChatRoomPageClient({ room }: Props) {
   const [messages, setMessages] = useState(room.messages);
   const [memberCount, setMemberCount] = useState(room.memberCount);
   const [hasOlderMessages, setHasOlderMessages] = useState(room.hasOlderMessages);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [messageMenu, setMessageMenu] = useState<{ messageId: string; x: number; y: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -91,6 +93,8 @@ export function ChatRoomPageClient({ room }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const readSyncTimerRef = useRef<number | null>(null);
+  const messageMenuTimerRef = useRef<number | null>(null);
+  const pendingLongPressRef = useRef<{ messageId: string; x: number; y: number } | null>(null);
   const hasRestoredInitialPositionRef = useRef(false);
   const isHydratingHistoryRef = useRef(false);
   const latestMessageCreatedAtRef = useRef<string | null>(messages[messages.length - 1]?.createdAt ?? null);
@@ -103,10 +107,25 @@ export function ChatRoomPageClient({ room }: Props) {
     setMessages(room.messages);
     setMemberCount(room.memberCount);
     setHasOlderMessages(room.hasOlderMessages);
+    setEditingMessageId(null);
+    setMessageMenu(null);
     hasRestoredInitialPositionRef.current = false;
     isHydratingHistoryRef.current = false;
     latestMessageCreatedAtRef.current = room.messages[room.messages.length - 1]?.createdAt ?? null;
   }, [room]);
+
+  function clearLongPressTimer() {
+    if (messageMenuTimerRef.current) {
+      window.clearTimeout(messageMenuTimerRef.current);
+      messageMenuTimerRef.current = null;
+    }
+  }
+
+  function replaceMessage(nextMessage: ChatRoomDetail["messages"][number]) {
+    setMessages((current) =>
+      current.map((item) => (item.id === nextMessage.id ? nextMessage : item)),
+    );
+  }
 
   async function syncLastReadMessage(lastReadMessageId: string | null) {
     try {
@@ -137,6 +156,7 @@ export function ChatRoomPageClient({ room }: Props) {
       if (readSyncTimerRef.current) {
         window.clearTimeout(readSyncTimerRef.current);
       }
+      clearLongPressTimer();
     };
   }, []);
 
@@ -277,6 +297,36 @@ export function ChatRoomPageClient({ room }: Props) {
             });
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "chat_messages",
+          filter: `room_id=eq.${room.id}`,
+        },
+        (payload) => {
+          const nextRecord = payload.new as {
+            id: string;
+            body: string;
+            edited_at: string | null;
+            deleted_at: string | null;
+          };
+
+          setMessages((current) =>
+            current.map((item) =>
+              item.id === nextRecord.id
+                ? {
+                    ...item,
+                    body: nextRecord.body,
+                    editedAt: nextRecord.edited_at,
+                    deletedAt: nextRecord.deleted_at,
+                  }
+                : item,
+            ),
+          );
+        },
+      )
       .subscribe();
 
     return () => {
@@ -390,6 +440,73 @@ export function ChatRoomPageClient({ room }: Props) {
     }
   }
 
+  function openMessageMenu(messageId: string, x: number, y: number) {
+    setMessageMenu({
+      messageId,
+      x: Math.max(16, Math.min(x, window.innerWidth - 132)),
+      y: Math.max(16, Math.min(y, window.innerHeight - 132)),
+    });
+  }
+
+  function startLongPress(messageId: string, x: number, y: number) {
+    clearLongPressTimer();
+    pendingLongPressRef.current = { messageId, x, y };
+    messageMenuTimerRef.current = window.setTimeout(() => {
+      const pending = pendingLongPressRef.current;
+      if (!pending) {
+        return;
+      }
+      openMessageMenu(pending.messageId, pending.x, pending.y);
+    }, 420);
+  }
+
+  function stopLongPress() {
+    pendingLongPressRef.current = null;
+    clearLongPressTimer();
+  }
+
+  function beginEditing(targetMessage: ChatRoomDetail["messages"][number]) {
+    setEditingMessageId(targetMessage.id);
+    setMessage(targetMessage.body);
+    setMessageMenu(null);
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      const length = textareaRef.current?.value.length ?? 0;
+      textareaRef.current?.setSelectionRange(length, length);
+    });
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setMessageMenu(null);
+
+    try {
+      const response = await fetch(`/api/chat/rooms/${room.id}/messages/${messageId}`, {
+        method: "DELETE",
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        message?: ChatRoomDetail["messages"][number];
+      };
+
+      if (!response.ok || !payload.message) {
+        throw new Error(payload.error ?? "Unable to delete message.");
+      }
+
+      replaceMessage(payload.message);
+      if (editingMessageId === messageId) {
+        setEditingMessageId(null);
+        setMessage("");
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to delete message.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedMessage = message.trim();
@@ -402,15 +519,20 @@ export function ChatRoomPageClient({ room }: Props) {
     setErrorMessage(null);
 
     try {
-      const response = await fetch(`/api/chat/rooms/${room.id}/messages`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
+      const response = await fetch(
+        editingMessageId
+          ? `/api/chat/rooms/${room.id}/messages/${editingMessageId}`
+          : `/api/chat/rooms/${room.id}/messages`,
+        {
+          method: editingMessageId ? "PATCH" : "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            body: trimmedMessage,
+          }),
         },
-        body: JSON.stringify({
-          body: trimmedMessage,
-        }),
-      });
+      );
 
       const payload = (await response.json()) as {
         error?: string;
@@ -418,7 +540,14 @@ export function ChatRoomPageClient({ room }: Props) {
       };
 
       if (!response.ok || !payload.message) {
-        throw new Error(payload.error ?? "Unable to send message.");
+        throw new Error(payload.error ?? (editingMessageId ? "Unable to edit message." : "Unable to send message."));
+      }
+
+      if (editingMessageId) {
+        replaceMessage(payload.message);
+        setEditingMessageId(null);
+        setMessage("");
+        return;
       }
 
       setMessage("");
@@ -431,7 +560,7 @@ export function ChatRoomPageClient({ room }: Props) {
       });
       scheduleLastReadSync(payload.message.id);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to send message.");
+      setErrorMessage(error instanceof Error ? error.message : editingMessageId ? "Unable to edit message." : "Unable to send message.");
     } finally {
       setIsSubmitting(false);
     }
@@ -513,13 +642,37 @@ export function ChatRoomPageClient({ room }: Props) {
                 >
                   {message.isOwnMessage ? (
                     <div className="flex w-full flex-row-reverse items-end gap-2">
-                      <div className="max-w-[76%] rounded-[18px] bg-primary px-4 py-3 text-primary-foreground">
+                      <div
+                        className="max-w-[76%] select-none rounded-[18px] bg-primary px-4 py-3 text-primary-foreground"
+                        onContextMenu={(event) => {
+                          event.preventDefault();
+                          if (message.deletedAt) {
+                            return;
+                          }
+                          openMessageMenu(message.id, event.clientX, event.clientY);
+                        }}
+                        onTouchEnd={stopLongPress}
+                        onTouchMove={stopLongPress}
+                        onTouchStart={(event) => {
+                          if (message.deletedAt) {
+                            return;
+                          }
+                          const touch = event.touches[0];
+                          if (!touch) {
+                            return;
+                          }
+                          startLongPress(message.id, touch.clientX, touch.clientY);
+                        }}
+                      >
                         <p
-                          className="ui-text m-0 whitespace-pre-wrap break-words text-current"
+                          className={`ui-text m-0 whitespace-pre-wrap break-words text-current ${message.deletedAt ? "italic opacity-80" : ""}`}
                           style={{ textWrap: "wrap" }}
                         >
                           {message.body}
                         </p>
+                        {message.editedAt && !message.deletedAt ? (
+                          <p className="m-0 mt-1 text-[0.68rem] text-primary-foreground/75">(edited)</p>
+                        ) : null}
                       </div>
                       <p
                         className="mb-1 shrink-0 text-muted-foreground"
@@ -542,15 +695,18 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       )}
                       <div className="flex items-end gap-2">
-                        <div className="relative max-w-[76%] rounded-[18px] bg-card px-4 py-3 text-foreground">
+                        <div className="relative max-w-[76%] select-none rounded-[18px] bg-card px-4 py-3 text-foreground">
                           <span className="absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px] bg-card" />
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p
-                            className="ui-text m-0 whitespace-pre-wrap break-words text-current"
+                            className={`ui-text m-0 whitespace-pre-wrap break-words text-current ${message.deletedAt ? "italic opacity-80" : ""}`}
                             style={{ textWrap: "wrap" }}
                           >
                             {message.body}
                           </p>
+                          {message.editedAt && !message.deletedAt ? (
+                            <p className="m-0 mt-1 text-[0.68rem] text-muted-foreground">(edited)</p>
+                          ) : null}
                         </div>
                         <p
                           className="mb-1 shrink-0 text-muted-foreground"
@@ -570,6 +726,21 @@ export function ChatRoomPageClient({ room }: Props) {
 
       <div className="chat-composer-shell fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-2 backdrop-blur-2xl">
         <div className="mx-auto max-w-[560px]">
+          {editingMessageId ? (
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-[14px] border border-input bg-card px-4 py-3">
+              <p className="ui-text m-0 text-foreground">Editing message</p>
+              <button
+                className="ui-text inline-flex min-h-9 items-center justify-center rounded-[12px] border border-input bg-background px-3 text-muted-foreground"
+                onClick={() => {
+                  setEditingMessageId(null);
+                  setMessage("");
+                }}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : null}
           {errorMessage ? (
             <p className="ui-text mb-3 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
               {errorMessage}
@@ -591,7 +762,7 @@ export function ChatRoomPageClient({ room }: Props) {
                 }}
                 className="ui-text h-12 min-h-12 w-full resize-none rounded-[16px] border border-input bg-card px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                 onChange={(event) => setMessage(event.target.value)}
-                placeholder="Write a message..."
+                placeholder={editingMessageId ? "Edit message..." : "Write a message..."}
                 rows={1}
                 value={message}
               />
@@ -607,6 +778,40 @@ export function ChatRoomPageClient({ room }: Props) {
           </form>
         </div>
       </div>
+
+      {messageMenu ? (
+        <div
+          className="fixed inset-0 z-[140] bg-black/20"
+          onClick={() => setMessageMenu(null)}
+        >
+          <div
+            className="absolute w-[116px] overflow-hidden rounded-[16px] border border-input bg-card shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+            style={{ left: messageMenu.x, top: messageMenu.y }}
+          >
+            <button
+              className="ui-text flex min-h-11 w-full items-center px-4 text-left text-foreground"
+              onClick={() => {
+                const targetMessage = messages.find((item) => item.id === messageMenu.messageId);
+                if (targetMessage) {
+                  beginEditing(targetMessage);
+                }
+              }}
+              type="button"
+            >
+              Edit
+            </button>
+            <div className="border-t border-border/70" />
+            <button
+              className="ui-text flex min-h-11 w-full items-center px-4 text-left text-destructive"
+              onClick={() => void handleDeleteMessage(messageMenu.messageId)}
+              type="button"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {isMembersOpen ? (
         <div className="fixed inset-0 z-[120] overflow-y-auto bg-black/50">
