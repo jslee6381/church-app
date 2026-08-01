@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, SendHorizonal, Users } from "lucide-react";
-import type { ChatRoomDetail } from "@/lib/chat";
+import { ChevronLeft, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
+import type { ChatCandidateMember, ChatRoomDetail, ChatRoomMember } from "@/lib/chat";
 
 type Props = {
   room: ChatRoomDetail;
@@ -29,11 +29,47 @@ function formatMessageTime(value: string) {
 
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
-    month: "short",
-    day: "numeric",
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatMessageDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function getMessageDateKey(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function ChatRoomPageClient({ room }: Props) {
@@ -41,11 +77,102 @@ export function ChatRoomPageClient({ room }: Props) {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [members, setMembers] = useState<ChatRoomMember[]>([]);
+  const [candidates, setCandidates] = useState<ChatCandidateMember[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [isSavingMembers, setIsSavingMembers] = useState(false);
+  const [membersError, setMembersError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     resizeTextarea(textareaRef.current);
   }, [message]);
+
+  const filteredCandidates = candidates.filter((member) =>
+    member.displayName.toLowerCase().includes(memberSearch.trim().toLowerCase()),
+  );
+
+  function toggleMember(memberId: string) {
+    setSelectedMemberIds((current) =>
+      current.includes(memberId)
+        ? current.filter((value) => value !== memberId)
+        : [...current, memberId],
+    );
+  }
+
+  async function openMembersModal() {
+    setIsMembersOpen(true);
+    setIsLoadingMembers(true);
+    setMembersError(null);
+
+    try {
+      const response = await fetch(`/api/chat/rooms/${room.id}/members`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        members?: ChatRoomMember[];
+        candidates?: ChatCandidateMember[];
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to load members.");
+      }
+
+      setMembers(payload.members ?? []);
+      setCandidates(payload.candidates ?? []);
+      setSelectedMemberIds([]);
+    } catch (error) {
+      setMembersError(error instanceof Error ? error.message : "Unable to load members.");
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  }
+
+  async function handleAddMembers() {
+    if (selectedMemberIds.length === 0) {
+      return;
+    }
+
+    setIsSavingMembers(true);
+    setMembersError(null);
+
+    try {
+      const response = await fetch(`/api/chat/rooms/${room.id}/members`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          memberIds: selectedMemberIds,
+        }),
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        members?: ChatRoomMember[];
+        candidates?: ChatCandidateMember[];
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to update members.");
+      }
+
+      setMembers(payload.members ?? []);
+      setCandidates(payload.candidates ?? []);
+      setSelectedMemberIds([]);
+      router.refresh();
+    } catch (error) {
+      setMembersError(error instanceof Error ? error.message : "Unable to update members.");
+    } finally {
+      setIsSavingMembers(false);
+    }
+  }
 
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -99,10 +226,14 @@ export function ChatRoomPageClient({ room }: Props) {
           </h1>
         </div>
         <div className="flex w-11 shrink-0 justify-end">
-          <div className="ui-text inline-flex items-center gap-2 rounded-[14px] border border-input bg-card px-3 py-2 text-muted-foreground">
+          <button
+            className="ui-text inline-flex items-center gap-2 rounded-[14px] border border-input bg-card px-3 py-2 text-muted-foreground transition hover:bg-card"
+            onClick={() => void openMembersModal()}
+            type="button"
+          >
             <Users className="size-4" />
             {room.memberCount}
-          </div>
+          </button>
         </div>
       </header>
 
@@ -114,28 +245,44 @@ export function ChatRoomPageClient({ room }: Props) {
         {room.messages.length === 0 ? (
           <p className="ui-text m-0 py-10 text-center text-muted-foreground">No messages yet.</p>
         ) : (
-          room.messages.map((message) => (
-            <div
-              className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
-              key={message.id}
-            >
-              <div
-                className={`max-w-[85%] rounded-[18px] px-4 py-3 ${
-                  message.isOwnMessage
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-foreground"
-                }`}
-              >
-                {!message.isOwnMessage ? (
-                  <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
+          room.messages.map((message, index) => {
+            const currentDateKey = getMessageDateKey(message.createdAt);
+            const previousDateKey = index > 0 ? getMessageDateKey(room.messages[index - 1].createdAt) : null;
+            const showDateLabel = currentDateKey !== previousDateKey;
+
+            return (
+              <div className="space-y-2" key={message.id}>
+                {showDateLabel ? (
+                  <div className="flex justify-center pt-2">
+                    <p className="ui-text m-0 text-center text-muted-foreground">
+                      {formatMessageDate(message.createdAt)}
+                    </p>
+                  </div>
                 ) : null}
-                <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
-                <p className="ui-text mt-2 mb-0 text-[0.72rem] opacity-70">
-                  {formatMessageTime(message.createdAt)}
-                </p>
+                <div
+                  className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
+                >
+                  <div className={`max-w-[85%] ${message.isOwnMessage ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                    <div
+                      className={`rounded-[18px] px-4 py-3 ${
+                        message.isOwnMessage
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card text-foreground"
+                      }`}
+                    >
+                      {!message.isOwnMessage ? (
+                        <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
+                      ) : null}
+                      <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
+                    </div>
+                    <p className="ui-text m-0 px-1 text-[0.72rem] text-muted-foreground">
+                      {formatMessageTime(message.createdAt)}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </section>
 
@@ -178,6 +325,99 @@ export function ChatRoomPageClient({ room }: Props) {
           </form>
         </div>
       </div>
+
+      {isMembersOpen ? (
+        <div className="fixed inset-0 z-[120] overflow-y-auto bg-black/50">
+          <div className="mx-auto flex min-h-full w-full max-w-[560px] items-start justify-center px-4 pt-5 pb-6 sm:pt-6">
+            <div className="w-full rounded-[24px] border border-border bg-background px-4 py-4">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="ui-text m-0 font-semibold text-foreground">Members</p>
+                <button
+                  className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-card text-foreground"
+                  onClick={() => {
+                    setIsMembersOpen(false);
+                    setMemberSearch("");
+                    setSelectedMemberIds([]);
+                    setMembersError(null);
+                  }}
+                  type="button"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {isLoadingMembers ? (
+                <p className="ui-text m-0 py-8 text-center text-muted-foreground">Loading members...</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    {members.map((member) => (
+                      <div
+                        className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                        key={member.id}
+                      >
+                        <span className="ui-text text-foreground">{member.displayName}</span>
+                        <span className="ui-text text-muted-foreground">
+                          {member.role === "owner" ? "Owner" : "Member"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background py-3 pr-4 pl-11 text-foreground"
+                      onChange={(event) => setMemberSearch(event.target.value)}
+                      placeholder="Search members"
+                      value={memberSearch}
+                    />
+                  </div>
+
+                  <div className="max-h-[40vh] space-y-2 overflow-y-auto">
+                    {filteredCandidates.map((member) => {
+                      const isSelected = selectedMemberIds.includes(member.id);
+                      return (
+                        <label
+                          className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                          key={member.id}
+                        >
+                          <span className="ui-text text-foreground">{member.displayName}</span>
+                          <input
+                            checked={isSelected}
+                            onChange={() => toggleMember(member.id)}
+                            type="checkbox"
+                          />
+                        </label>
+                      );
+                    })}
+                    {filteredCandidates.length === 0 ? (
+                      <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
+                    ) : null}
+                  </div>
+
+                  {membersError ? (
+                    <p className="ui-text m-0 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
+                      {membersError}
+                    </p>
+                  ) : null}
+
+                  <div className="flex justify-end">
+                    <button
+                      className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60"
+                      disabled={isSavingMembers || selectedMemberIds.length === 0}
+                      onClick={() => void handleAddMembers()}
+                      type="button"
+                    >
+                      {isSavingMembers ? "Adding..." : "Add members"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

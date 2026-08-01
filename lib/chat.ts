@@ -25,6 +25,12 @@ export type ChatRoomMessage = {
   isOwnMessage: boolean;
 };
 
+export type ChatRoomMember = {
+  id: string;
+  displayName: string;
+  role: "owner" | "member";
+};
+
 export type ChatRoomDetail = {
   id: string;
   title: string;
@@ -213,5 +219,108 @@ export async function getChatRoomDetailForMember(args: {
     };
   } catch {
     return null;
+  }
+}
+
+export async function getChatRoomMembersForMember(args: {
+  roomId: string;
+  churchId?: string | null;
+  memberId?: string | null;
+}): Promise<ChatRoomMember[]> {
+  const { roomId, churchId, memberId } = args;
+
+  if (!hasAdminEnvironment() || !churchId || !memberId) {
+    return [];
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data: membership } = await admin
+      .from("chat_room_members")
+      .select("room_id")
+      .eq("room_id", roomId)
+      .eq("member_id", memberId)
+      .maybeSingle();
+
+    if (!membership) {
+      return [];
+    }
+
+    const { data, error } = await admin
+      .from("chat_room_members")
+      .select("member_id, role, member:members!chat_room_members_member_id_fkey(display_name, full_name)")
+      .eq("room_id", roomId);
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((item) => {
+      const member = Array.isArray(item.member) ? item.member[0] : item.member;
+      return {
+        id: item.member_id,
+        displayName: member ? getPreferredName(member) : "Member",
+        role: item.role,
+      };
+    }).sort((a, b) => {
+      if (a.role !== b.role) {
+        return a.role === "owner" ? -1 : 1;
+      }
+
+      return a.displayName.localeCompare(b.displayName);
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getAvailableChatCandidatesForRoom(args: {
+  roomId: string;
+  churchId?: string | null;
+  memberId?: string | null;
+}): Promise<ChatCandidateMember[]> {
+  const { roomId, churchId, memberId } = args;
+
+  if (!hasAdminEnvironment() || !churchId || !memberId) {
+    return [];
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data: membership } = await admin
+      .from("chat_room_members")
+      .select("room_id")
+      .eq("room_id", roomId)
+      .eq("member_id", memberId)
+      .maybeSingle();
+
+    if (!membership) {
+      return [];
+    }
+
+    const [members, candidates] = await Promise.all([
+      admin
+        .from("chat_room_members")
+        .select("member_id")
+        .eq("room_id", roomId),
+      admin
+        .from("members")
+        .select("id, display_name, full_name")
+        .eq("church_id", churchId)
+        .eq("status", "active")
+        .order("display_name", { ascending: true, nullsFirst: false })
+        .order("full_name", { ascending: true }),
+    ]);
+
+    const existingIds = new Set((members.data ?? []).map((row) => row.member_id));
+
+    return (candidates.data ?? [])
+      .filter((candidate) => !existingIds.has(candidate.id))
+      .map((candidate) => ({
+        id: candidate.id,
+        displayName: getPreferredName(candidate),
+      }));
+  } catch {
+    return [];
   }
 }

@@ -146,11 +146,6 @@ export function HomeHeaderActions({
   if (state.authenticated) {
     return (
       <div className="flex items-center gap-3">
-        <div className="text-right">
-          <p className="ui-text m-0 text-foreground">
-            {getEasternGreeting()}, {state.displayName ?? "Member"}
-          </p>
-        </div>
         {state.profilePhotoUrl ? (
           <img
             alt={`${state.displayName ?? "Member"} profile`}
@@ -162,6 +157,11 @@ export function HomeHeaderActions({
             <Users className="size-5" />
           </div>
         )}
+        <div className="text-left">
+          <p className="ui-text m-0 font-semibold text-foreground">
+            {getEasternGreeting()}, {state.displayName ?? "Member"}
+          </p>
+        </div>
       </div>
     );
   }
