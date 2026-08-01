@@ -278,7 +278,7 @@ export function ChatRoomPageClient({ room }: Props) {
                       ) : null}
                       <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
                     </div>
-                    <p className="ui-text mb-1 shrink-0 text-[0.65rem] text-muted-foreground">
+                    <p className="ui-text mb-1 shrink-0 text-[0.52rem] text-muted-foreground">
                       {formatMessageTime(message.createdAt)}
                     </p>
                   </div>
