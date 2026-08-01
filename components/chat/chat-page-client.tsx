@@ -170,11 +170,11 @@ export function ChatPageClient({
       </div>
 
       {isComposerOpen ? (
-        <form className="home-surface rounded-[18px] border border-border px-4 py-4" onSubmit={handleCreateRoom}>
+        <form className="event-form-input rounded-[18px] border border-border/80 bg-white px-4 py-4" onSubmit={handleCreateRoom}>
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <button
-                className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 font-semibold text-foreground transition hover:bg-background"
+                className="event-form-input ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 font-semibold text-foreground transition hover:bg-white"
                 onClick={closeComposer}
                 type="button"
               >
@@ -192,7 +192,7 @@ export function ChatPageClient({
             <div>
               <p className="ui-text m-0 mb-2 font-semibold text-foreground">Room Name</p>
               <input
-                className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
+                className="event-form-input ui-text min-h-12 w-full rounded-[16px] border border-input bg-white px-4 py-3 text-foreground"
                 maxLength={TITLE_LIMIT}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Sunday Leaders"

@@ -10,7 +10,7 @@ type Props = {
   room: ChatRoomDetail;
 };
 
-const MIN_TEXTAREA_HEIGHT = 44;
+const MIN_TEXTAREA_HEIGHT = 48;
 const MAX_TEXTAREA_HEIGHT = 120;
 
 function resizeTextarea(textarea: HTMLTextAreaElement | null) {
@@ -211,16 +211,16 @@ export function ChatRoomPageClient({ room }: Props) {
 
   return (
     <div className="space-y-5 pb-[calc(env(safe-area-inset-bottom)+108px)]">
-      <header className="flex min-h-11 items-center justify-between gap-3">
-        <div className="w-11 shrink-0">
+      <header className="relative flex min-h-11 items-center justify-center">
+        <div className="absolute left-0 top-1/2 flex h-11 -translate-y-1/2 items-center">
           <Link
-            className="inline-flex min-h-11 items-center bg-transparent px-0 text-foreground"
+            className="inline-flex h-11 items-center bg-transparent px-0 text-foreground"
             href="/chat"
           >
             <ChevronLeft className="size-4" />
           </Link>
         </div>
-        <div className="min-w-0 flex-1 text-center">
+        <div className="min-w-0 px-16 text-center">
           <h1
             className="m-0 truncate font-sans leading-tight font-semibold text-foreground"
             style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
@@ -228,9 +228,9 @@ export function ChatRoomPageClient({ room }: Props) {
             {room.title}
           </h1>
         </div>
-        <div className="flex w-11 shrink-0 justify-end">
+        <div className="absolute right-0 top-1/2 flex h-11 -translate-y-1/2 items-center justify-end">
           <button
-            className="ui-text inline-flex items-center gap-2 rounded-[14px] border border-input bg-card px-3 py-2 text-muted-foreground transition hover:bg-card"
+            className="ui-text inline-flex h-11 items-center gap-2 rounded-[14px] border border-input bg-card px-3 text-muted-foreground transition hover:bg-card"
             onClick={() => void openMembersModal()}
             type="button"
           >
@@ -296,21 +296,21 @@ export function ChatRoomPageClient({ room }: Props) {
               {errorMessage}
             </p>
           ) : null}
-          <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
+          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2" onSubmit={handleSendMessage}>
             <button
               aria-label="More options"
-              className="inline-flex size-12 shrink-0 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
               type="button"
             >
               <Plus className="size-5" />
             </button>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 h-12">
               <textarea
                 ref={(node) => {
                   textareaRef.current = node;
                   resizeTextarea(node);
                 }}
-                className="ui-text min-h-12 w-full resize-none rounded-[16px] border border-input bg-card px-4 py-3 text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                className="ui-text h-12 min-h-12 w-full resize-none rounded-[16px] border border-input bg-card px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Write a message..."
                 rows={1}
@@ -319,7 +319,7 @@ export function ChatRoomPageClient({ room }: Props) {
             </div>
             <button
               aria-label={isSubmitting ? "Sending message" : "Send message"}
-              className="inline-flex size-12 shrink-0 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
               disabled={isSubmitting || !message.trim()}
               type="submit"
             >
