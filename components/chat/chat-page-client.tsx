@@ -132,11 +132,11 @@ export function ChatPageClient({
           Home
         </Link>
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 border-0 bg-transparent px-0 font-semibold text-foreground shadow-none transition hover:bg-transparent"
+          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-input bg-background px-4 font-semibold text-foreground shadow-none transition hover:bg-background"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
-          <span className="text-[1.2rem] leading-none">+</span>
+          <span className="relative -top-px text-[1.2rem] leading-none">+</span>
           New Chat
         </button>
       </div>
