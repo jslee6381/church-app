@@ -220,9 +220,9 @@ export function ChatRoomPageClient({ room }: Props) {
             <ChevronLeft className="size-4" />
           </Link>
         </div>
-        <div className="flex h-11 items-center justify-center px-16 text-center">
+        <div className="absolute inset-x-16 top-1/2 flex h-11 -translate-y-1/2 items-center justify-center text-center">
           <h1
-            className="m-0 truncate font-sans leading-none font-semibold text-foreground"
+            className="relative top-px m-0 truncate font-sans leading-none font-semibold text-foreground"
             style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
           >
             {room.title}
