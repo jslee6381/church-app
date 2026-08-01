@@ -516,7 +516,10 @@ export function ChatRoomPageClient({ room }: Props) {
                       <div className="rounded-[18px] bg-primary px-4 py-3 text-primary-foreground">
                         <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
                       </div>
-                      <p className="ui-text mb-1 shrink-0 text-[0.46rem] text-muted-foreground">
+                      <p
+                        className="mb-1 shrink-0 text-muted-foreground"
+                        style={{ fontSize: "calc(var(--ui-text-size) * 0.42)", lineHeight: 1 }}
+                      >
                         {formatMessageTime(message.createdAt)}
                       </p>
                     </div>
@@ -539,7 +542,10 @@ export function ChatRoomPageClient({ room }: Props) {
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
                         </div>
-                        <p className="ui-text mb-1 shrink-0 text-[0.46rem] text-muted-foreground">
+                        <p
+                          className="mb-1 shrink-0 text-muted-foreground"
+                          style={{ fontSize: "calc(var(--ui-text-size) * 0.42)", lineHeight: 1 }}
+                        >
                           {formatMessageTime(message.createdAt)}
                         </p>
                       </div>
