@@ -73,9 +73,12 @@ function getMessageDateKey(value: string) {
 }
 
 export function ChatRoomPageClient({ room }: Props) {
-  const router = useRouter();
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState(room.messages);
+  const [memberCount, setMemberCount] = useState(room.memberCount);
+  const [hasOlderMessages, setHasOlderMessages] = useState(room.hasOlderMessages);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
   const [members, setMembers] = useState<ChatRoomMember[]>([]);
@@ -86,10 +89,91 @@ export function ChatRoomPageClient({ room }: Props) {
   const [isSavingMembers, setIsSavingMembers] = useState(false);
   const [membersError, setMembersError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const readSyncTimerRef = useRef<number | null>(null);
+  const hasRestoredInitialPositionRef = useRef(false);
 
   useEffect(() => {
     resizeTextarea(textareaRef.current);
   }, [message]);
+
+  useEffect(() => {
+    setMessages(room.messages);
+    setMemberCount(room.memberCount);
+    setHasOlderMessages(room.hasOlderMessages);
+    hasRestoredInitialPositionRef.current = false;
+  }, [room]);
+
+  async function syncLastReadMessage(lastReadMessageId: string | null) {
+    try {
+      await fetch(`/api/chat/rooms/${room.id}/messages`, {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ lastReadMessageId }),
+      });
+    } catch {
+      // Best effort only.
+    }
+  }
+
+  function scheduleLastReadSync(lastReadMessageId: string | null) {
+    if (readSyncTimerRef.current) {
+      window.clearTimeout(readSyncTimerRef.current);
+    }
+
+    readSyncTimerRef.current = window.setTimeout(() => {
+      void syncLastReadMessage(lastReadMessageId);
+    }, 250);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (readSyncTimerRef.current) {
+        window.clearTimeout(readSyncTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      return;
+    }
+
+    const targetId = room.lastReadMessageId;
+
+    if (!hasRestoredInitialPositionRef.current) {
+      if (targetId) {
+        const targetNode = messageRefs.current[targetId];
+
+        if (targetNode) {
+          targetNode.scrollIntoView({ block: "center" });
+          hasRestoredInitialPositionRef.current = true;
+          scheduleLastReadSync(targetId);
+          return;
+        }
+
+        if (hasOlderMessages) {
+          return;
+        }
+      }
+
+      const lastMessage = messages[messages.length - 1];
+      const lastNode = lastMessage ? messageRefs.current[lastMessage.id] : null;
+      if (lastNode) {
+        lastNode.scrollIntoView({ block: "end" });
+      }
+      hasRestoredInitialPositionRef.current = true;
+      scheduleLastReadSync(lastMessage?.id ?? null);
+      return;
+    }
+
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage) {
+      scheduleLastReadSync(lastMessage.id);
+    }
+  }, [hasOlderMessages, messages, room.lastReadMessageId]);
 
   const filteredCandidates = candidates.filter((member) =>
     member.displayName.toLowerCase().includes(memberSearch.trim().toLowerCase()),
@@ -166,7 +250,7 @@ export function ChatRoomPageClient({ room }: Props) {
       setMembers(payload.members ?? []);
       setCandidates(payload.candidates ?? []);
       setSelectedMemberIds([]);
-      router.refresh();
+      setMemberCount(payload.members?.length ?? memberCount);
     } catch (error) {
       setMembersError(error instanceof Error ? error.message : "Unable to update members.");
     } finally {
@@ -174,9 +258,54 @@ export function ChatRoomPageClient({ room }: Props) {
     }
   }
 
+  async function loadOlderMessages() {
+    if (isLoadingOlder || !hasOlderMessages || messages.length === 0) {
+      return;
+    }
+
+    const oldestMessage = messages[0];
+    if (!oldestMessage) {
+      return;
+    }
+
+    setIsLoadingOlder(true);
+
+    try {
+      const query = new URLSearchParams({
+        beforeCreatedAt: oldestMessage.createdAt,
+        limit: "30",
+      });
+
+      const response = await fetch(`/api/chat/rooms/${room.id}/messages?${query.toString()}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        messages?: ChatRoomDetail["messages"];
+        hasOlderMessages?: boolean;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to load older messages.");
+      }
+
+      const nextMessages = payload.messages ?? [];
+      setMessages((current) => [...nextMessages, ...current]);
+      setHasOlderMessages(payload.hasOlderMessages === true);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to load older messages.");
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }
+
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!message.trim()) {
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) {
       return;
     }
 
@@ -190,18 +319,27 @@ export function ChatRoomPageClient({ room }: Props) {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          body: message,
+          body: trimmedMessage,
         }),
       });
 
-      const payload = (await response.json()) as { error?: string };
+      const payload = (await response.json()) as {
+        error?: string;
+        message?: ChatRoomDetail["messages"][number];
+      };
 
-      if (!response.ok) {
+      if (!response.ok || !payload.message) {
         throw new Error(payload.error ?? "Unable to send message.");
       }
 
       setMessage("");
-      router.refresh();
+      setMessages((current) => [...current, payload.message!]);
+      hasRestoredInitialPositionRef.current = true;
+      requestAnimationFrame(() => {
+        const node = messageRefs.current[payload.message!.id];
+        node?.scrollIntoView({ block: "end" });
+      });
+      scheduleLastReadSync(payload.message.id);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to send message.");
     } finally {
@@ -212,7 +350,7 @@ export function ChatRoomPageClient({ room }: Props) {
   return (
     <div className="space-y-5 pb-[calc(env(safe-area-inset-bottom)+108px)]">
       <header className="relative h-11">
-        <div className="absolute left-0 top-1/2 flex h-11 -translate-y-1/2 items-center">
+        <div className="absolute left-0 top-0 flex h-11 items-center">
           <Link
             className="inline-flex h-11 items-center bg-transparent px-0 text-foreground"
             href="/chat"
@@ -220,22 +358,22 @@ export function ChatRoomPageClient({ room }: Props) {
             <ChevronLeft className="size-4" />
           </Link>
         </div>
-        <div className="absolute inset-x-16 top-1/2 flex h-11 -translate-y-1/2 items-center justify-center text-center">
+        <div className="absolute inset-x-16 top-0 flex h-11 items-center justify-center text-center">
           <h1
-            className="relative top-px m-0 truncate font-sans leading-none font-semibold text-foreground"
+            className="m-0 truncate font-sans font-semibold text-foreground"
             style={{ fontSize: "calc(var(--ui-text-size) * 1.15)" }}
           >
             {room.title}
           </h1>
         </div>
-        <div className="absolute right-0 top-1/2 flex h-11 -translate-y-1/2 items-center justify-end">
+        <div className="absolute right-0 top-0 flex h-11 items-center justify-end">
           <button
             className="ui-text inline-flex h-11 items-center gap-2 rounded-[14px] border border-input bg-card px-3 text-muted-foreground transition hover:bg-card"
             onClick={() => void openMembersModal()}
             type="button"
           >
             <Users className="size-4" />
-            {room.memberCount}
+            {memberCount}
           </button>
         </div>
       </header>
@@ -245,16 +383,34 @@ export function ChatRoomPageClient({ room }: Props) {
       ) : null}
 
       <section className="space-y-3">
-        {room.messages.length === 0 ? (
+        {hasOlderMessages ? (
+          <div className="flex justify-center">
+            <button
+              className="ui-text inline-flex min-h-10 items-center justify-center rounded-[14px] border border-input bg-card px-4 text-muted-foreground transition hover:bg-card disabled:opacity-60"
+              disabled={isLoadingOlder}
+              onClick={() => void loadOlderMessages()}
+              type="button"
+            >
+              {isLoadingOlder ? "Loading..." : "Load earlier messages"}
+            </button>
+          </div>
+        ) : null}
+        {messages.length === 0 ? (
           <p className="ui-text m-0 py-10 text-center text-muted-foreground">No messages yet.</p>
         ) : (
-          room.messages.map((message, index) => {
+          messages.map((message, index) => {
             const currentDateKey = getMessageDateKey(message.createdAt);
-            const previousDateKey = index > 0 ? getMessageDateKey(room.messages[index - 1].createdAt) : null;
+            const previousDateKey = index > 0 ? getMessageDateKey(messages[index - 1].createdAt) : null;
             const showDateLabel = currentDateKey !== previousDateKey;
 
             return (
-              <div className="space-y-2" key={message.id}>
+              <div
+                className="space-y-2"
+                key={message.id}
+                ref={(node) => {
+                  messageRefs.current[message.id] = node;
+                }}
+              >
                 {showDateLabel ? (
                   <div className="flex justify-center pt-2">
                     <p className="ui-text m-0 text-center text-muted-foreground">
@@ -265,23 +421,40 @@ export function ChatRoomPageClient({ room }: Props) {
                 <div
                   className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`flex max-w-[85%] items-end gap-2 ${message.isOwnMessage ? "flex-row-reverse" : "flex-row"}`}>
-                    <div
-                      className={`rounded-[18px] px-4 py-3 ${
-                        message.isOwnMessage
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card text-foreground"
-                      }`}
-                    >
-                      {!message.isOwnMessage ? (
-                        <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
-                      ) : null}
-                      <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
+                  {message.isOwnMessage ? (
+                    <div className="flex max-w-[85%] flex-row-reverse items-end gap-2">
+                      <div className="rounded-[18px] bg-primary px-4 py-3 text-primary-foreground">
+                        <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
+                      </div>
+                      <p className="ui-text mb-1 shrink-0 text-[0.46rem] text-muted-foreground">
+                        {formatMessageTime(message.createdAt)}
+                      </p>
                     </div>
-                    <p className="ui-text mb-1 shrink-0 text-[0.46rem] text-muted-foreground">
-                      {formatMessageTime(message.createdAt)}
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="flex max-w-[92%] items-end gap-2">
+                      {message.senderPhotoUrl ? (
+                        <img
+                          alt={`${message.senderName} profile`}
+                          className="mb-1 size-8 shrink-0 rounded-full object-cover"
+                          src={message.senderPhotoUrl}
+                        />
+                      ) : (
+                        <div className="mb-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                          <Users className="size-4" />
+                        </div>
+                      )}
+                      <div className="flex items-end gap-2">
+                        <div className="relative rounded-[18px] bg-card px-4 py-3 text-foreground">
+                          <span className="absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px] bg-card" />
+                          <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
+                          <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
+                        </div>
+                        <p className="ui-text mb-1 shrink-0 text-[0.46rem] text-muted-foreground">
+                          {formatMessageTime(message.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
