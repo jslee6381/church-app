@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, SendHorizonal, Users } from "lucide-react";
+import { ChevronLeft, Plus, SendHorizonal, Users } from "lucide-react";
 import type { ChatRoomDetail } from "@/lib/chat";
 
 type Props = {
   room: ChatRoomDetail;
 };
+
+const MIN_TEXTAREA_HEIGHT = 44;
+const MAX_TEXTAREA_HEIGHT = 120;
+
+function resizeTextarea(textarea: HTMLTextAreaElement | null) {
+  if (!textarea) return;
+
+  textarea.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+  textarea.style.height = `${Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+}
 
 function formatMessageTime(value: string) {
   const date = new Date(value);
@@ -31,6 +41,11 @@ export function ChatRoomPageClient({ room }: Props) {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    resizeTextarea(textareaRef.current);
+  }, [message]);
 
   async function handleSendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,24 +83,20 @@ export function ChatRoomPageClient({ room }: Props) {
   }
 
   return (
-    <div className="space-y-5">
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+    <div className="space-y-5 pb-[calc(env(safe-area-inset-bottom)+108px)]">
+      <header className="flex min-h-11 items-center justify-between gap-3">
+        <div className="w-11 shrink-0">
           <Link
-            className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+            className="inline-flex min-h-11 items-center bg-transparent px-0 text-foreground"
             href="/chat"
           >
             <ChevronLeft className="size-4" />
-            Chat
           </Link>
-          <div className="mt-3">
-            <h1 className="m-0 font-sans text-[1.55rem] leading-tight text-foreground">{room.title}</h1>
-            {room.description ? (
-              <p className="ui-text mt-2 mb-0 text-muted-foreground">{room.description}</p>
-            ) : null}
-          </div>
         </div>
-        <div className="shrink-0 pt-2">
+        <div className="min-w-0 flex-1 text-center">
+          <h1 className="ui-text m-0 truncate font-semibold text-foreground">{room.title}</h1>
+        </div>
+        <div className="flex w-11 shrink-0 justify-end">
           <div className="ui-text inline-flex items-center gap-2 rounded-[14px] border border-input bg-card px-3 py-2 text-muted-foreground">
             <Users className="size-4" />
             {room.memberCount}
@@ -93,62 +104,78 @@ export function ChatRoomPageClient({ room }: Props) {
         </div>
       </header>
 
-      <section className="home-surface rounded-[20px] border border-border px-4 py-4">
-        <div className="space-y-3">
-          {room.messages.length === 0 ? (
-            <p className="ui-text m-0 text-center text-muted-foreground">No messages yet.</p>
-          ) : (
-            room.messages.map((message) => (
+      {room.description ? (
+        <p className="ui-text m-0 text-center text-muted-foreground">{room.description}</p>
+      ) : null}
+
+      <section className="space-y-3">
+        {room.messages.length === 0 ? (
+          <p className="ui-text m-0 py-10 text-center text-muted-foreground">No messages yet.</p>
+        ) : (
+          room.messages.map((message) => (
+            <div
+              className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
+              key={message.id}
+            >
               <div
-                className={`flex ${message.isOwnMessage ? "justify-end" : "justify-start"}`}
-                key={message.id}
+                className={`max-w-[85%] rounded-[18px] px-4 py-3 ${
+                  message.isOwnMessage
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-foreground"
+                }`}
               >
-                <div
-                  className={`max-w-[85%] rounded-[18px] px-4 py-3 ${
-                    message.isOwnMessage
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background text-foreground"
-                  }`}
-                >
-                  {!message.isOwnMessage ? (
-                    <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
-                  ) : null}
-                  <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
-                  <p className="ui-text mt-2 mb-0 text-[0.72rem] opacity-70">
-                    {formatMessageTime(message.createdAt)}
-                  </p>
-                </div>
+                {!message.isOwnMessage ? (
+                  <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
+                ) : null}
+                <p className="ui-text m-0 whitespace-pre-wrap break-words text-current">{message.body}</p>
+                <p className="ui-text mt-2 mb-0 text-[0.72rem] opacity-70">
+                  {formatMessageTime(message.createdAt)}
+                </p>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ))
+        )}
       </section>
 
-      <section className="home-surface rounded-[20px] border border-border px-4 py-4">
-        <form className="space-y-3" onSubmit={handleSendMessage}>
-          <textarea
-            className="ui-text min-h-[92px] w-full resize-none rounded-[16px] border border-input bg-background px-4 py-3 text-foreground"
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="Write a message..."
-            value={message}
-          />
+      <div className="chat-composer-shell fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-2 backdrop-blur-2xl">
+        <div className="mx-auto max-w-[560px]">
           {errorMessage ? (
-            <p className="ui-text m-0 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
+            <p className="ui-text mb-3 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
               {errorMessage}
             </p>
           ) : null}
-          <div className="flex justify-end">
+          <form className="flex items-end gap-2" onSubmit={handleSendMessage}>
             <button
-              className="ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] bg-primary px-4 font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+              aria-label="More options"
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
+              type="button"
+            >
+              <Plus className="size-5" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <textarea
+                ref={(node) => {
+                  textareaRef.current = node;
+                  resizeTextarea(node);
+                }}
+                className="ui-text min-h-[44px] w-full resize-none rounded-[16px] border border-input bg-card px-4 py-2.5 text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder="Write a message..."
+                rows={1}
+                value={message}
+              />
+            </div>
+            <button
+              aria-label={isSubmitting ? "Sending message" : "Send message"}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
               disabled={isSubmitting || !message.trim()}
               type="submit"
             >
               <SendHorizonal className="size-4" />
-              {isSubmitting ? "Sending..." : "Send"}
             </button>
-          </div>
-        </form>
-      </section>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

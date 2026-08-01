@@ -123,7 +123,7 @@ export function ChatPageClient({
 
   return (
     <div className="space-y-5">
-      <div className="mb-1 flex min-h-11 items-center justify-between gap-3">
+      <div className="mb-3 flex min-h-11 items-center justify-between gap-3">
         <Link
           className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground"
           href="/home"
@@ -132,7 +132,7 @@ export function ChatPageClient({
           Home
         </Link>
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-input bg-card px-4 font-semibold text-foreground shadow-none transition hover:bg-card"
+          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-transparent bg-primary px-4 font-semibold text-primary-foreground shadow-none transition hover:bg-primary"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
@@ -146,14 +146,14 @@ export function ChatPageClient({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-card px-4 font-semibold text-foreground transition hover:bg-card"
+                className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] border border-border/80 bg-background px-5 font-semibold text-foreground transition hover:bg-background"
                 onClick={closeComposer}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="ui-text inline-flex min-h-11 items-center justify-center rounded-full border border-input bg-card px-4 font-semibold text-foreground transition hover:bg-card disabled:opacity-60"
+                className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
                 disabled={isSubmitting}
                 type="submit"
               >
@@ -176,7 +176,7 @@ export function ChatPageClient({
               <div className="mb-2 flex items-center justify-between gap-3">
                 <p className="ui-text m-0 font-semibold text-foreground">Members</p>
                 <button
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-input bg-card text-foreground transition hover:bg-card"
+                  className="inline-flex size-8 items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground transition hover:bg-primary"
                   onClick={() => setIsMemberPickerOpen(true)}
                   type="button"
                 >
@@ -189,7 +189,7 @@ export function ChatPageClient({
                     .filter((member) => selectedMemberIds.includes(member.id))
                     .map((member) => (
                       <button
-                        className="ui-text inline-flex min-h-9 items-center gap-2 rounded-full border border-input bg-card px-3 text-foreground"
+                        className="ui-text inline-flex min-h-9 items-center gap-2 rounded-full border border-transparent bg-primary px-3 text-primary-foreground"
                         key={member.id}
                         onClick={() => toggleMember(member.id)}
                         type="button"
@@ -220,7 +220,7 @@ export function ChatPageClient({
             <div className="mb-4 flex items-center justify-between gap-3">
               <p className="ui-text m-0 font-semibold text-foreground">Members</p>
               <button
-                className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-card text-foreground"
+                className="inline-flex size-9 items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground"
                 onClick={() => {
                   setIsMemberPickerOpen(false);
                   setMemberSearch("");
@@ -274,11 +274,7 @@ export function ChatPageClient({
       ) : (
         <div className="space-y-3">
           {initialRooms.map((room) => (
-            <Link
-              className="home-surface block rounded-[18px] border border-border px-4 py-4 transition hover:bg-card"
-              href={`/chat/${room.id}`}
-              key={room.id}
-            >
+            <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -299,6 +295,7 @@ export function ChatPageClient({
                   <ChevronRight className="size-4 text-muted-foreground" />
                 </div>
               </div>
+              <div className="mt-4 border-b border-border/70" />
             </Link>
           ))}
         </div>
