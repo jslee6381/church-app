@@ -47,7 +47,7 @@ export function HomeAnnouncementsCarousel({ initialState }: Props) {
 
   if (!state?.item) {
     return (
-      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
+      <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-card">
         <div className="pt-4 pb-4">
           <Link
             className="ui-text block text-center text-muted-foreground underline decoration-border underline-offset-4 transition hover:text-primary"
@@ -65,7 +65,7 @@ export function HomeAnnouncementsCarousel({ initialState }: Props) {
   const canGoNext = state.hasNext && !isChanging;
 
   return (
-    <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-white/72">
+    <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-card">
       <div className="pt-4 pb-4">
         <div className="grid grid-cols-[32px_minmax(0,1fr)_32px] items-start gap-1">
           <div className="flex justify-start">

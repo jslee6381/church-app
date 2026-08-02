@@ -667,7 +667,7 @@ h2 {
 }
 
 :root[data-theme="dark"] .home-surface {
-  background: #1E1E1E;
+  background: #121212;
 }
 
 :root[data-theme="light"] .chat-incoming-surface {
@@ -953,15 +953,21 @@ h2 {
 :root[data-theme="dark"] .event-card-surface,
 :root[data-theme="dark"] .gallery-card-surface,
 :root[data-theme="dark"] .material-card-surface,
+:root[data-theme="dark"] .prayer-card-surface {
+  background: #121212;
+}
+
 :root[data-theme="dark"] .event-form-surface,
 :root[data-theme="dark"] .gallery-form-surface,
 :root[data-theme="dark"] .prayer-form-surface,
-:root[data-theme="dark"] .prayer-card-surface,
-:root[data-theme="dark"] .community-form-surface,
+:root[data-theme="dark"] .community-form-surface {
+  background: #121212;
+}
+
 :root[data-theme="dark"] .event-form-input,
 :root[data-theme="dark"] .prayer-form-input,
 :root[data-theme="dark"] .community-form-input {
-  background: #1E1E1E;
+  background: #E0E0E0;
 }
 
 :root[data-theme="dark"] .gallery-card-header,
@@ -978,7 +984,7 @@ h2 {
 }
 
 :root[data-theme="dark"] .prayer-composer-shell {
-  background: linear-gradient(180deg, rgba(18,18,18,0.56) 0%, rgba(18,18,18,0.92) 18%, rgba(18,18,18,1) 100%);
+  background: linear-gradient(180deg, rgba(5,5,5,0.56) 0%, rgba(5,5,5,0.92) 18%, rgba(5,5,5,1) 100%);
 }
 
 :root[data-theme="dark"] .admin-card-surface,
