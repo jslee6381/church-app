@@ -858,20 +858,6 @@ export function ChatRoomPageClient({ room }: Props) {
                 <p className="ui-text m-0 py-8 text-center text-muted-foreground">Loading members...</p>
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    {members.map((member) => (
-                      <div
-                        className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
-                        key={member.id}
-                      >
-                        <span className="ui-text text-foreground">{member.displayName}</span>
-                        <span className="ui-text text-muted-foreground">
-                          {member.role === "owner" ? "Owner" : "Member"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
                   {isAddMembersOpen ? (
                     <>
                       <div className="relative">
@@ -906,6 +892,20 @@ export function ChatRoomPageClient({ room }: Props) {
                         ) : null}
                       </div>
                     </>
+                  ) : (
+                    <div className="space-y-2">
+                      {members.map((member) => (
+                        <div
+                          className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                          key={member.id}
+                        >
+                          <span className="ui-text text-foreground">{member.displayName}</span>
+                          <span className="ui-text text-muted-foreground">
+                            {member.role === "owner" ? "Owner" : "Member"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   ) : null}
 
                   {membersError ? (
