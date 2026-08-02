@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus, Search, Users, X } from "lucide-react";
+import { ChevronLeft, Plus, Search, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomListItem } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,12 +24,32 @@ function formatChatTimestamp(value: string | null) {
     return "";
   }
 
+  const currentEasternDayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  const valueEasternDayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+
+  if (currentEasternDayKey === valueEasternDayKey) {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+  }
+
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
     month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
   }).format(date);
 }
 
@@ -358,28 +378,31 @@ export function ChatPageClient({
           {rooms.map((room) => (
             <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Users className="size-4 shrink-0 text-muted-foreground" />
-                    <p className="ui-text m-0 truncate font-semibold text-foreground">{room.title}</p>
-                    {room.unreadCount > 0 ? (
-                      <span className="ui-text inline-flex min-w-[1.3rem] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-white">
-                        {room.unreadCount}
-                      </span>
-                    ) : null}
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <div className="home-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border">
+                    <Users className="size-5 text-muted-foreground" />
                   </div>
-                  {room.description ? (
-                    <p className="ui-text mt-2 mb-0 line-clamp-2 text-muted-foreground">{room.description}</p>
-                  ) : null}
-                  <p className="ui-text mt-2 mb-0 truncate text-muted-foreground">
-                    {room.lastMessageText ?? `${room.memberCount} members`}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="ui-text m-0 truncate text-[1.06em] font-semibold text-foreground">{room.title}</p>
+                      {room.unreadCount > 0 ? (
+                        <span className="ui-text inline-flex min-w-[1.3rem] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-white">
+                          {room.unreadCount}
+                        </span>
+                      ) : null}
+                    </div>
+                    {room.description ? (
+                      <p className="ui-text mt-2 mb-0 line-clamp-2 text-muted-foreground">{room.description}</p>
+                    ) : null}
+                    <p className="ui-text mt-2 mb-0 truncate text-muted-foreground">
+                      {room.lastMessageText ?? `${room.memberCount} members`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 items-center">
                   <span className="ui-text text-right text-muted-foreground">
                     {formatChatTimestamp(room.lastMessageAt)}
                   </span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
                 </div>
               </div>
               <div className="mt-4 border-b border-border/70" />

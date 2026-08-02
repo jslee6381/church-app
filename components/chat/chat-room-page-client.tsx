@@ -749,35 +749,39 @@ export function ChatRoomPageClient({ room }: Props) {
               {errorMessage}
             </p>
           ) : null}
-          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2" onSubmit={handleSendMessage}>
-            <button
-              aria-label="More options"
-              className="home-surface inline-flex h-12 w-12 items-center justify-center rounded-[16px] border border-input text-foreground transition hover:bg-transparent"
-              type="button"
-            >
-              <Plus className="size-5" />
-            </button>
-            <div className="min-w-0">
+          <form className="flex items-end gap-2" onSubmit={handleSendMessage}>
+            <div className="flex h-12 shrink-0 items-center">
+              <button
+                aria-label="More options"
+                className="home-surface inline-flex h-12 w-12 items-center justify-center rounded-[16px] border border-input text-foreground transition hover:bg-transparent"
+                type="button"
+              >
+                <Plus className="size-5" />
+              </button>
+            </div>
+            <div className="min-w-0 flex-1">
               <textarea
                 ref={(node) => {
                   textareaRef.current = node;
                   resizeTextarea(node);
                 }}
-                className="home-surface ui-text h-12 min-h-12 w-full resize-none rounded-[16px] border border-input px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                className="home-surface ui-text block h-12 min-h-12 w-full resize-none rounded-[16px] border border-input px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder={editingMessageId ? "Edit message..." : "Write a message..."}
                 rows={1}
                 value={message}
               />
             </div>
-            <button
-              aria-label={isSubmitting ? "Sending message" : "Send message"}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
-              disabled={isSubmitting || !message.trim()}
-              type="submit"
-            >
-              <SendHorizonal className="size-5" />
-            </button>
+            <div className="flex h-12 shrink-0 items-center">
+              <button
+                aria-label={isSubmitting ? "Sending message" : "Send message"}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+                disabled={isSubmitting || !message.trim()}
+                type="submit"
+              >
+                <SendHorizonal className="size-5" />
+              </button>
+            </div>
           </form>
         </div>
       </div>
