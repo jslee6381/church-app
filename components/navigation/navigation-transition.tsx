@@ -29,15 +29,21 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
     targetPath?: string;
   } | null>(null);
   const hideTimerRef = useRef<number | null>(null);
+  const failSafeTimerRef = useRef<number | null>(null);
 
-  const clearHideTimer = useCallback(() => {
+  const clearTimers = useCallback(() => {
     if (hideTimerRef.current) {
       window.clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
+    if (failSafeTimerRef.current) {
+      window.clearTimeout(failSafeTimerRef.current);
+      failSafeTimerRef.current = null;
+    }
   }, []);
 
   const showTemporaryLaunch = useCallback((targetPath?: string, minimumMs = 350) => {
+    clearTimers();
     setTransitionState({
       visible: true,
       startedAt: Date.now(),
@@ -45,11 +51,14 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
       startPath: window.location.pathname,
       targetPath,
     });
-  }, []);
+    failSafeTimerRef.current = window.setTimeout(() => {
+      setTransitionState(null);
+    }, 10000);
+  }, [clearTimers]);
 
   useEffect(() => {
     if (!transitionState?.visible) {
-      clearHideTimer();
+      clearTimers();
       return;
     }
 
@@ -57,7 +66,7 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
       return;
     }
 
-    clearHideTimer();
+    clearTimers();
 
     const remainingMs = Math.max(
       transitionState.minimumMs - (Date.now() - transitionState.startedAt),
@@ -68,10 +77,10 @@ export function NavigationTransitionProvider({ children }: { children: ReactNode
       setTransitionState(null);
     }, remainingMs);
 
-    return clearHideTimer;
-  }, [clearHideTimer, pathname, transitionState]);
+    return clearTimers;
+  }, [clearTimers, pathname, transitionState]);
 
-  useEffect(() => clearHideTimer, [clearHideTimer]);
+  useEffect(() => clearTimers, [clearTimers]);
 
   const value = useMemo(() => ({ showTemporaryLaunch }), [showTemporaryLaunch]);
 
