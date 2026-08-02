@@ -37,7 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background font-sans text-foreground antialiased" suppressHydrationWarning>
+      <body
+        className="bg-background font-sans text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <Script id="koinonia-theme-init" strategy="beforeInteractive">
           {`try {
   var size = localStorage.getItem("koinonia-ui-text-size") || "1rem";

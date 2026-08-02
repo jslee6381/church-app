@@ -145,7 +145,7 @@ export function HomeHeaderActions({
 
   if (state.authenticated) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-3 text-center">
         {state.profilePhotoUrl ? (
           <img
             alt={`${state.displayName ?? "Member"} profile`}
@@ -157,7 +157,7 @@ export function HomeHeaderActions({
             <Users className="size-5" />
           </div>
         )}
-        <div className="text-left">
+        <div className="text-center">
           <p className="ui-text m-0 font-semibold text-foreground">
             {getEasternGreeting()}, {state.displayName ?? "Member"}
           </p>
@@ -168,7 +168,7 @@ export function HomeHeaderActions({
 
   return (
     <GoogleSignInButton
-      className="min-h-9 rounded-[14px] border-0 bg-transparent pr-3 pl-0 text-sm font-semibold shadow-none hover:bg-transparent hover:shadow-none"
+      className="mx-auto min-h-9 rounded-[14px] border-0 bg-transparent px-0 text-sm font-semibold shadow-none hover:bg-transparent hover:shadow-none"
       compact
       label="Sign in"
       nextPath="/home"

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomDetail, ChatRoomMember } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/client";
 
@@ -83,6 +83,7 @@ export function ChatRoomPageClient({ room }: Props) {
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [isMemberListExpanded, setIsMemberListExpanded] = useState(false);
   const [members, setMembers] = useState<ChatRoomMember[]>([]);
   const [candidates, setCandidates] = useState<ChatCandidateMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -109,6 +110,7 @@ export function ChatRoomPageClient({ room }: Props) {
     setHasOlderMessages(room.hasOlderMessages);
     setEditingMessageId(null);
     setMessageMenu(null);
+    setIsMemberListExpanded(false);
     hasRestoredInitialPositionRef.current = false;
     isHydratingHistoryRef.current = false;
     latestMessageCreatedAtRef.current = room.messages[room.messages.length - 1]?.createdAt ?? null;
@@ -593,6 +595,7 @@ export function ChatRoomPageClient({ room }: Props) {
           >
             <Users className="size-4" />
             {memberCount}
+            <ChevronRight className="size-4" />
           </button>
         </div>
       </header>
@@ -695,8 +698,8 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       )}
                       <div className="flex items-end gap-2">
-                        <div className="relative max-w-[76%] select-none rounded-[18px] bg-card px-4 py-3 text-foreground">
-                          <span className="absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px] bg-card" />
+                        <div className="home-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3 text-foreground">
+                          <span className="home-surface absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px]" />
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p
                             className={`ui-text m-0 whitespace-pre-wrap break-words text-current ${message.deletedAt ? "italic opacity-80" : ""}`}
@@ -724,7 +727,7 @@ export function ChatRoomPageClient({ room }: Props) {
         )}
       </section>
 
-      <div className="chat-composer-shell fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(env(safe-area-inset-bottom)+20px)] pt-2 backdrop-blur-2xl">
+      <div className="chat-composer-shell fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+24px)] z-30 px-3 pb-3 pt-2 backdrop-blur-2xl">
         <div className="mx-auto max-w-[560px]">
           {editingMessageId ? (
             <div className="mb-3 flex items-center justify-between gap-3 rounded-[14px] border border-input bg-card px-4 py-3">
@@ -746,21 +749,21 @@ export function ChatRoomPageClient({ room }: Props) {
               {errorMessage}
             </p>
           ) : null}
-          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2" onSubmit={handleSendMessage}>
+          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-end gap-2" onSubmit={handleSendMessage}>
             <button
               aria-label="More options"
-              className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] border border-input bg-card text-foreground transition hover:bg-card"
+              className="home-surface inline-flex h-12 w-12 self-end items-center justify-center rounded-[16px] border border-input text-foreground transition hover:bg-transparent"
               type="button"
             >
               <Plus className="size-5" />
             </button>
-            <div className="min-w-0 h-12">
+            <div className="min-w-0 self-end">
               <textarea
                 ref={(node) => {
                   textareaRef.current = node;
                   resizeTextarea(node);
                 }}
-                className="ui-text h-12 min-h-12 w-full resize-none rounded-[16px] border border-input bg-card px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
+                className="home-surface ui-text h-12 min-h-12 w-full resize-none rounded-[16px] border border-input px-4 py-[11px] text-foreground outline-none transition focus:border-primary focus:shadow-[0_0_0_4px_rgba(31,92,84,0.12)]"
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder={editingMessageId ? "Edit message..." : "Write a message..."}
                 rows={1}
@@ -769,11 +772,11 @@ export function ChatRoomPageClient({ room }: Props) {
             </div>
             <button
               aria-label={isSubmitting ? "Sending message" : "Send message"}
-              className="inline-flex h-12 w-12 items-center justify-center rounded-[16px] bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+              className="inline-flex h-12 w-12 self-end items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
               disabled={isSubmitting || !message.trim()}
               type="submit"
             >
-              <SendHorizonal className="size-4" />
+              <SendHorizonal className="size-5" />
             </button>
           </form>
         </div>
@@ -836,22 +839,38 @@ export function ChatRoomPageClient({ room }: Props) {
               {isLoadingMembers ? (
                 <p className="ui-text m-0 py-8 text-center text-muted-foreground">Loading members...</p>
               ) : (
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <div className="space-y-2">
-                    {members.map((member) => (
-                      <div
-                        className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
-                        key={member.id}
-                      >
-                        <span className="ui-text text-foreground">{member.displayName}</span>
-                        <span className="ui-text text-muted-foreground">
-                          {member.role === "owner" ? "Owner" : "Member"}
-                        </span>
+                    <button
+                      className="ui-text inline-flex min-h-10 items-center gap-2 text-foreground"
+                      onClick={() => setIsMemberListExpanded((current) => !current)}
+                      type="button"
+                    >
+                      <span>Members</span>
+                      <ChevronDown
+                        className={`size-4 transition-transform ${isMemberListExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {isMemberListExpanded ? (
+                      <div className="space-y-2">
+                        {members.map((member) => (
+                          <div
+                            className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                            key={member.id}
+                          >
+                            <span className="ui-text text-foreground">{member.displayName}</span>
+                            <span className="ui-text text-muted-foreground">
+                              {member.role === "owner" ? "Owner" : "Member"}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : null}
                   </div>
 
-                  <div className="relative">
+                  <div className="space-y-2">
+                    <p className="ui-text m-0 font-semibold text-foreground">Add member</p>
+                    <div className="relative">
                     <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                       className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background py-3 pr-4 pl-11 text-foreground"
@@ -859,6 +878,7 @@ export function ChatRoomPageClient({ room }: Props) {
                       placeholder="Search members"
                       value={memberSearch}
                     />
+                  </div>
                   </div>
 
                   <div className="max-h-[40vh] space-y-2 overflow-y-auto">

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, FileText, ImagePlus, LoaderCircle, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatEasternDateTimeLocalValue, formatEasternEventDate, formatEasternEventTime, formatEasternWeekday } from "@/lib/eastern-time";
+import { formatEasternDateTimeLocalValue, formatEasternEventDate, formatEasternEventTime, formatEasternWeekday, getCurrentEasternDateValue } from "@/lib/eastern-time";
 import type { EventListItem } from "@/lib/events";
 
 const TITLE_LIMIT = 50;
@@ -187,9 +187,6 @@ function getInitialMonthIndex(events: EventListItem[]) {
     return 0;
   }
 
-  const now = Date.now();
-  const firstActiveEvent = events.find((event) => getEventReferenceTime(event) >= now) ?? events[events.length - 1];
-  const targetKey = getMonthKey(firstActiveEvent.startsAt);
   const uniqueKeys: string[] = [];
 
   for (const event of events) {
@@ -198,6 +195,15 @@ function getInitialMonthIndex(events: EventListItem[]) {
       uniqueKeys.push(key);
     }
   }
+
+  const currentMonthKey = getMonthKey(getCurrentEasternDateValue());
+  if (uniqueKeys.includes(currentMonthKey)) {
+    return uniqueKeys.indexOf(currentMonthKey);
+  }
+
+  const now = Date.now();
+  const firstActiveEvent = events.find((event) => getEventReferenceTime(event) >= now) ?? events[events.length - 1];
+  const targetKey = getMonthKey(firstActiveEvent.startsAt);
 
   return Math.max(0, uniqueKeys.indexOf(targetKey));
 }
@@ -307,7 +313,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
   const visibleEvents = selectedMonth ? displayItems.filter((item) => item.monthKey === selectedMonth.key) : displayItems;
   const canGoPreviousMonth = selectedMonthIndex > 0;
   const canGoNextMonth = selectedMonthIndex < monthGroups.length - 1;
-  const currentMonthKey = getMonthKey(new Date().toISOString());
+  const currentMonthKey = getMonthKey(getCurrentEasternDateValue());
   const isCurrentMonthView = Boolean(selectedMonth && selectedMonth.key === currentMonthKey);
   const hasPastEventsInSelectedMonth = isCurrentMonthView && visibleEvents.some((item) => isPastEvent(item.event));
 

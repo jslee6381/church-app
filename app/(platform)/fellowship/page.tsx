@@ -69,7 +69,7 @@ export default async function FellowshipPage() {
               Home
             </Link>
             <Link
-              className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-semibold transition hover:bg-primary"
+              className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-normal transition hover:bg-primary"
               href="/archive"
             >
               More
