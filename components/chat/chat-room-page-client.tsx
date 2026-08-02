@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, SendHorizonal, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomDetail, ChatRoomMember } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/client";
 
@@ -83,7 +83,7 @@ export function ChatRoomPageClient({ room }: Props) {
   const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
-  const [isMemberListExpanded, setIsMemberListExpanded] = useState(false);
+  const [isAddMembersOpen, setIsAddMembersOpen] = useState(false);
   const [members, setMembers] = useState<ChatRoomMember[]>([]);
   const [candidates, setCandidates] = useState<ChatCandidateMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -110,7 +110,7 @@ export function ChatRoomPageClient({ room }: Props) {
     setHasOlderMessages(room.hasOlderMessages);
     setEditingMessageId(null);
     setMessageMenu(null);
-    setIsMemberListExpanded(false);
+    setIsAddMembersOpen(false);
     hasRestoredInitialPositionRef.current = false;
     isHydratingHistoryRef.current = false;
     latestMessageCreatedAtRef.current = room.messages[room.messages.length - 1]?.createdAt ?? null;
@@ -350,6 +350,7 @@ export function ChatRoomPageClient({ room }: Props) {
 
   async function openMembersModal() {
     setIsMembersOpen(true);
+    setIsAddMembersOpen(false);
     setIsLoadingMembers(true);
     setMembersError(null);
 
@@ -825,11 +826,11 @@ export function ChatRoomPageClient({ room }: Props) {
           <div className="mx-auto flex min-h-full w-full max-w-[560px] items-start justify-center px-4 pt-5 pb-6 sm:pt-6">
             <div className="w-full rounded-[24px] border border-border bg-background px-4 py-4">
               <div className="mb-4 flex items-center justify-between gap-3">
-                <p className="ui-text m-0 font-semibold text-foreground">Members</p>
                 <button
                   className="inline-flex size-9 items-center justify-center rounded-full border border-input bg-card text-foreground"
                   onClick={() => {
                     setIsMembersOpen(false);
+                    setIsAddMembersOpen(false);
                     setMemberSearch("");
                     setSelectedMemberIds([]);
                     setMembersError(null);
@@ -838,74 +839,74 @@ export function ChatRoomPageClient({ room }: Props) {
                 >
                   <X className="size-4" />
                 </button>
+                <p className="ui-text m-0 flex-1 text-center font-semibold text-foreground">Members</p>
+                <button
+                  className="inline-flex size-9 items-center justify-center rounded-full border border-transparent bg-primary text-primary-foreground transition hover:bg-primary"
+                  onClick={() => {
+                    setIsAddMembersOpen((current) => !current);
+                    setMemberSearch("");
+                    setSelectedMemberIds([]);
+                    setMembersError(null);
+                  }}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                </button>
               </div>
 
               {isLoadingMembers ? (
                 <p className="ui-text m-0 py-8 text-center text-muted-foreground">Loading members...</p>
               ) : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <button
-                      className="ui-text inline-flex min-h-10 items-center gap-2 text-foreground"
-                      onClick={() => setIsMemberListExpanded((current) => !current)}
-                      type="button"
-                    >
-                      <span>Members</span>
-                      <ChevronDown
-                        className={`size-4 transition-transform ${isMemberListExpanded ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {isMemberListExpanded ? (
-                      <div className="space-y-2">
-                        {members.map((member) => (
-                          <div
-                            className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
-                            key={member.id}
-                          >
-                            <span className="ui-text text-foreground">{member.displayName}</span>
-                            <span className="ui-text text-muted-foreground">
-                              {member.role === "owner" ? "Owner" : "Member"}
-                            </span>
-                          </div>
-                        ))}
+                    {members.map((member) => (
+                      <div
+                        className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                        key={member.id}
+                      >
+                        <span className="ui-text text-foreground">{member.displayName}</span>
+                        <span className="ui-text text-muted-foreground">
+                          {member.role === "owner" ? "Owner" : "Member"}
+                        </span>
                       </div>
-                    ) : null}
+                    ))}
                   </div>
 
-                  <div className="space-y-2">
-                    <p className="ui-text m-0 font-semibold text-foreground">Add member</p>
-                    <div className="relative">
-                    <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background py-3 pr-4 pl-11 text-foreground"
-                      onChange={(event) => setMemberSearch(event.target.value)}
-                      placeholder="Search members"
-                      value={memberSearch}
-                    />
-                  </div>
-                  </div>
+                  {isAddMembersOpen ? (
+                    <>
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                          className="ui-text min-h-12 w-full rounded-[16px] border border-input bg-background py-3 pr-4 pl-11 text-foreground"
+                          onChange={(event) => setMemberSearch(event.target.value)}
+                          placeholder="Search members"
+                          value={memberSearch}
+                        />
+                      </div>
 
-                  <div className="max-h-[40vh] space-y-2 overflow-y-auto">
-                    {filteredCandidates.map((member) => {
-                      const isSelected = selectedMemberIds.includes(member.id);
-                      return (
-                        <label
-                          className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
-                          key={member.id}
-                        >
-                          <span className="ui-text text-foreground">{member.displayName}</span>
-                          <input
-                            checked={isSelected}
-                            onChange={() => toggleMember(member.id)}
-                            type="checkbox"
-                          />
-                        </label>
-                      );
-                    })}
-                    {filteredCandidates.length === 0 ? (
-                      <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
-                    ) : null}
-                  </div>
+                      <div className="max-h-[40vh] space-y-2 overflow-y-auto">
+                        {filteredCandidates.map((member) => {
+                          const isSelected = selectedMemberIds.includes(member.id);
+                          return (
+                            <label
+                              className="flex min-h-11 items-center justify-between rounded-[14px] border border-input bg-card px-4 py-2"
+                              key={member.id}
+                            >
+                              <span className="ui-text text-foreground">{member.displayName}</span>
+                              <input
+                                checked={isSelected}
+                                onChange={() => toggleMember(member.id)}
+                                type="checkbox"
+                              />
+                            </label>
+                          );
+                        })}
+                        {filteredCandidates.length === 0 ? (
+                          <p className="ui-text m-0 py-6 text-center text-muted-foreground">No members found.</p>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : null}
 
                   {membersError ? (
                     <p className="ui-text m-0 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
@@ -913,16 +914,30 @@ export function ChatRoomPageClient({ room }: Props) {
                     </p>
                   ) : null}
 
-                  <div className="flex justify-end">
-                    <button
-                      className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60"
-                      disabled={isSavingMembers || selectedMemberIds.length === 0}
-                      onClick={() => void handleAddMembers()}
-                      type="button"
-                    >
-                      {isSavingMembers ? "Adding..." : "Add members"}
-                    </button>
-                  </div>
+                  {isAddMembersOpen ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <button
+                        className="event-form-input ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] border border-border/80 bg-white px-5 font-semibold text-foreground transition hover:bg-white dark:bg-card"
+                        onClick={() => {
+                          setIsAddMembersOpen(false);
+                          setMemberSearch("");
+                          setSelectedMemberIds([]);
+                          setMembersError(null);
+                        }}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="ui-text inline-flex min-h-12 items-center justify-center rounded-[16px] bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60"
+                        disabled={isSavingMembers || selectedMemberIds.length === 0}
+                        onClick={() => void handleAddMembers()}
+                        type="button"
+                      >
+                        {isSavingMembers ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
