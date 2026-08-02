@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Plus, Search, Users, X } from "lucide-react";
 import type { ChatCandidateMember, ChatRoomListItem } from "@/lib/chat";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   currentMemberId: string;
@@ -37,6 +38,7 @@ export function ChatPageClient({
   initialRooms,
 }: Props) {
   const router = useRouter();
+  const [rooms, setRooms] = useState(initialRooms);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [candidates, setCandidates] = useState<ChatCandidateMember[]>([]);
@@ -46,6 +48,56 @@ export function ChatPageClient({
   const [memberSearch, setMemberSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRooms(initialRooms);
+  }, [initialRooms]);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function refreshRooms() {
+      try {
+        const response = await fetch("/api/chat/rooms", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const payload = (await response.json()) as {
+          error?: string;
+          rooms?: ChatRoomListItem[];
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? "Unable to load chat rooms.");
+        }
+
+        setRooms(payload.rooms ?? []);
+      } catch {
+        // Realtime room list sync is best effort.
+      }
+    }
+
+    const channel = supabase
+      .channel(`chat-rooms-${currentMemberId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "chat_room_members",
+          filter: `member_id=eq.${currentMemberId}`,
+        },
+        () => {
+          void refreshRooms();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [currentMemberId]);
 
   const filteredCandidates = useMemo(() => {
     const normalizedQuery = memberSearch.trim().toLowerCase();
@@ -141,7 +193,6 @@ export function ChatPageClient({
       setIsMemberPickerOpen(false);
       setMemberSearch("");
       router.push(`/chat/${payload.room.id}`);
-      router.refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to create chat room.");
     } finally {
@@ -298,13 +349,13 @@ export function ChatPageClient({
         </div>
       ) : null}
 
-      {initialRooms.length === 0 ? (
+      {rooms.length === 0 ? (
         <div className="home-surface rounded-[18px] border border-border px-4 py-5">
           <p className="ui-text m-0 text-center text-muted-foreground">No chat rooms yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {initialRooms.map((room) => (
+          {rooms.map((room) => (
             <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">

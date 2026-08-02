@@ -749,15 +749,15 @@ export function ChatRoomPageClient({ room }: Props) {
               {errorMessage}
             </p>
           ) : null}
-          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-end gap-2" onSubmit={handleSendMessage}>
+          <form className="grid grid-cols-[48px_minmax(0,1fr)_48px] items-center gap-2" onSubmit={handleSendMessage}>
             <button
               aria-label="More options"
-              className="home-surface inline-flex h-12 w-12 self-end items-center justify-center rounded-[16px] border border-input text-foreground transition hover:bg-transparent"
+              className="home-surface inline-flex h-12 w-12 items-center justify-center rounded-[16px] border border-input text-foreground transition hover:bg-transparent"
               type="button"
             >
               <Plus className="size-5" />
             </button>
-            <div className="min-w-0 self-end">
+            <div className="min-w-0">
               <textarea
                 ref={(node) => {
                   textareaRef.current = node;
@@ -772,7 +772,7 @@ export function ChatRoomPageClient({ room }: Props) {
             </div>
             <button
               aria-label={isSubmitting ? "Sending message" : "Send message"}
-              className="inline-flex h-12 w-12 self-end items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary disabled:opacity-60"
               disabled={isSubmitting || !message.trim()}
               type="submit"
             >

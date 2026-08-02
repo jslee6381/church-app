@@ -88,7 +88,7 @@ function getMonthParts(value: string) {
     timeZone: EASTERN_TIME_ZONE,
     month: "long",
     year: "numeric",
-  }).formatToParts(new Date(value));
+  }).formatToParts(/^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00Z`) : new Date(value));
 
   return Object.fromEntries(
     parts
@@ -102,7 +102,7 @@ function getMonthKey(value: string) {
     timeZone: EASTERN_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
-  }).formatToParts(new Date(value));
+  }).formatToParts(/^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00Z`) : new Date(value));
 
   const values = Object.fromEntries(
     parts
@@ -122,7 +122,7 @@ function getNumericMonthDay(value: string) {
     timeZone: EASTERN_TIME_ZONE,
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(new Date(value));
+  }).formatToParts(/^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00Z`) : new Date(value));
 
   const values = Object.fromEntries(
     parts
@@ -137,7 +137,7 @@ function getDayNumber(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: EASTERN_TIME_ZONE,
     day: "numeric",
-  }).format(new Date(value));
+  }).format(/^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T12:00:00Z`) : new Date(value));
 }
 
 function hasDifferentStartAndEndDate(event: EventListItem) {

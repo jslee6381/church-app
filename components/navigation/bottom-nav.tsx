@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { FileText, House, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useBottomNavVisibility } from "@/components/navigation/bottom-nav-visibility";
+import { useNavigationTransition } from "@/components/navigation/navigation-transition";
 
 function FellowshipIcon({ className }: { className?: string }) {
   return (
@@ -127,6 +128,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const visibility = useBottomNavVisibility();
+  const navigationTransition = useNavigationTransition();
   const [isAndroid, setIsAndroid] = useState(false);
   const [fellowshipAccessState, setFellowshipAccessState] = useState<FellowshipAccessState>("unknown");
   const [optimisticNavKey, setOptimisticNavKey] = useState<NavKey | null>(null);
@@ -183,6 +185,9 @@ export function BottomNav() {
     event.preventDefault();
     if (currentNavKey === navKey) return;
     setOptimisticNavKey(navKey);
+    if (navKey === "home" || navKey === "chat") {
+      navigationTransition?.showTemporaryLaunch(href, 350);
+    }
     router.push(href);
   }
 
