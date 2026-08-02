@@ -906,7 +906,7 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       ))}
                     </div>
-                  ) : null}
+                  )}
 
                   {membersError ? (
                     <p className="ui-text m-0 rounded-[14px] border border-destructive/20 bg-destructive/8 px-4 py-3 text-destructive">
