@@ -47,7 +47,7 @@ export default function RootLayout({
   document.documentElement.style.setProperty("--ui-text-size", size);
   var mode = localStorage.getItem("koinonia-theme-mode") || "system";
   var resolved = mode === "dark" || (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-  var background = resolved === "dark" ? "#121212" : "#f6f4e1";
+  var background = resolved === "dark" ? "#050505" : "#f6f4e1";
   var foreground = resolved === "dark" ? "#FFFFFF" : "#1e2a2a";
   document.documentElement.dataset.theme = resolved;
   document.documentElement.dataset.themeMode = mode;

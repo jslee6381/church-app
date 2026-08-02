@@ -425,45 +425,43 @@ export function ChatPageClient({
       ) : (
         <div className="space-y-3">
           {rooms.map((room) => (
-            <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <div className="shrink-0">
-                    <input
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(event) => {
-                        const nextFile = event.target.files?.[0] ?? null;
-                        void handleRoomImageChange(room.id, nextFile);
-                      }}
-                      ref={(node) => {
-                        roomImageInputRefs.current[room.id] = node;
-                      }}
-                      type="file"
+            <div className="flex items-start gap-3 py-2" key={room.id}>
+              <div className="shrink-0">
+                <input
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] ?? null;
+                    void handleRoomImageChange(room.id, nextFile);
+                  }}
+                  ref={(node) => {
+                    roomImageInputRefs.current[room.id] = node;
+                  }}
+                  type="file"
+                />
+                <button
+                  className="home-surface relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border"
+                  onClick={() => {
+                    roomImageInputRefs.current[room.id]?.click();
+                  }}
+                  type="button"
+                >
+                  {room.imageUrl ? (
+                    <img
+                      alt={`${room.title} room`}
+                      className="h-full w-full object-cover"
+                      src={room.imageUrl}
                     />
-                    <button
-                      className="home-surface relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        roomImageInputRefs.current[room.id]?.click();
-                      }}
-                      type="button"
-                    >
-                      {room.imageUrl ? (
-                        <img
-                          alt={`${room.title} room`}
-                          className="h-full w-full object-cover"
-                          src={room.imageUrl}
-                        />
-                      ) : (
-                        <Users className="size-5 text-muted-foreground" />
-                      )}
-                      {isUploadingRoomImageId === room.id ? (
-                        <span className="absolute inset-0 bg-black/20" />
-                      ) : null}
-                    </button>
-                  </div>
+                  ) : (
+                    <Users className="size-5 text-muted-foreground" />
+                  )}
+                  {isUploadingRoomImageId === room.id ? (
+                    <span className="absolute inset-0 bg-black/20" />
+                  ) : null}
+                </button>
+              </div>
+              <Link className="block min-w-0 flex-1 transition" href={`/chat/${room.id}`}>
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="ui-text m-0 truncate text-[1.22em] font-semibold text-foreground">{room.title}</p>
@@ -480,15 +478,15 @@ export function ChatPageClient({
                       {room.lastMessageText ?? `${room.memberCount} members`}
                     </p>
                   </div>
+                  <div className="flex shrink-0 items-center">
+                    <span className="ui-text text-right text-muted-foreground">
+                      {formatChatTimestamp(room.lastMessageAt)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center">
-                  <span className="ui-text text-right text-muted-foreground">
-                    {formatChatTimestamp(room.lastMessageAt)}
-                  </span>
-                </div>
-              </div>
-              <div className="mt-4 border-b border-border/70" />
-            </Link>
+                <div className="mt-4 border-b border-border/70" />
+              </Link>
+            </div>
           ))}
         </div>
       )}

@@ -37,7 +37,7 @@ export function applyUiTheme(mode: ThemeMode) {
   }
 
   const resolvedTheme = getResolvedTheme(mode);
-  const background = resolvedTheme === "dark" ? "#121212" : "#f6f4e1";
+  const background = resolvedTheme === "dark" ? "#050505" : "#f6f4e1";
   const foreground = resolvedTheme === "dark" ? "#DDDDDD" : "#1e2a2a";
 
   document.documentElement.dataset.theme = resolvedTheme;

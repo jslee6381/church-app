@@ -682,6 +682,11 @@ h2 {
   color: #000000;
 }
 
+:root[data-theme="dark"] .text-destructive,
+:root[data-theme="dark"] .text-red-500 {
+  color: #E0E0E0 !important;
+}
+
 .bottom-nav-surface {
   background: rgba(255, 255, 255, 0.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.18);
@@ -801,7 +806,7 @@ h2 {
 
 @media (prefers-color-scheme: dark) {
   .launch-screen {
-    background: #121212;
+    background: #050505;
     color: #DDDDDD;
   }
 
@@ -843,7 +848,7 @@ h2 {
 }
 
 :root[data-theme="dark"] .launch-screen {
-  background: #121212;
+  background: #050505;
   color: #DDDDDD;
 }
 
