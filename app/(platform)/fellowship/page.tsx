@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 import { MemberLocalSync } from "@/components/auth/member-local-sync";
 import { PullToRefresh } from "@/components/common/pull-to-refresh";
@@ -13,6 +13,26 @@ import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function ArchiveButtonIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="h-[1rem] w-[1rem] shrink-0"
+      style={{
+        backgroundColor: "currentColor",
+        maskImage: "url('/archive-button-icon.png')",
+        maskPosition: "center",
+        maskRepeat: "no-repeat",
+        maskSize: "contain",
+        WebkitMaskImage: "url('/archive-button-icon.png')",
+        WebkitMaskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
+      }}
+    />
+  );
+}
 
 async function getProfilePhotoUrl(memberId: string) {
   if (!hasAdminEnvironment()) {
@@ -72,8 +92,8 @@ export default async function FellowshipPage() {
               className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-normal transition hover:bg-primary"
               href="/archive"
             >
-              More
-              <ChevronRight className="size-4" />
+              <ArchiveButtonIcon />
+              Archive
             </Link>
           </header>
 
