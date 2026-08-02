@@ -106,7 +106,7 @@ export function validateDocumentFile(file: File) {
   }
 }
 
-export async function uploadPublicImage(file: File, folder: "community-updates" | "events" | "profiles") {
+export async function uploadPublicImage(file: File, folder: "community-updates" | "events" | "profiles" | "chat-rooms") {
   validateImageFile(file);
   const arrayBuffer = await file.arrayBuffer();
   const originalBuffer = Buffer.from(arrayBuffer);

@@ -11,6 +11,7 @@ export type ChatRoomListItem = {
   id: string;
   title: string;
   description: string | null;
+  imageUrl: string | null;
   lastMessageText: string | null;
   lastMessageAt: string | null;
   memberCount: number;
@@ -127,7 +128,7 @@ export async function getChatRoomsForMember(churchId?: string | null, memberId?:
     const admin = createAdminClient();
     const { data: memberships, error: membershipError } = await admin
       .from("chat_room_members")
-      .select("room_id, unread_count, room:chat_rooms(id, title, description, last_message_text, last_message_at, created_at)")
+      .select("room_id, unread_count, room:chat_rooms(id, title, description, image_url, last_message_text, last_message_at, created_at)")
       .eq("member_id", memberId);
 
     if (membershipError || !memberships?.length) {
@@ -160,6 +161,7 @@ export async function getChatRoomsForMember(churchId?: string | null, memberId?:
           id: room.id,
           title: room.title,
           description: room.description ?? null,
+          imageUrl: room.image_url ?? null,
           lastMessageText: room.last_message_text ?? null,
           lastMessageAt: room.last_message_at ?? room.created_at ?? null,
           memberCount: memberCountByRoom.get(room.id) ?? 0,

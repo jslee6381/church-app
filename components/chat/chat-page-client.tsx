@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Plus, Search, Users, X } from "lucide-react";
@@ -67,7 +67,9 @@ export function ChatPageClient({
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
   const [memberSearch, setMemberSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingRoomImageId, setIsUploadingRoomImageId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const roomImageInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     setRooms(initialRooms);
@@ -217,6 +219,53 @@ export function ChatPageClient({
       setErrorMessage(error instanceof Error ? error.message : "Unable to create chat room.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleRoomImageChange(roomId: string, file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingRoomImageId(roomId);
+    setErrorMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`/api/chat/rooms/${roomId}/image`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        imageUrl?: string | null;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to update chat image.");
+      }
+
+      setRooms((current) =>
+        current.map((room) =>
+          room.id === roomId
+            ? {
+                ...room,
+                imageUrl: payload.imageUrl ?? null,
+              }
+            : room,
+        ),
+      );
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Unable to update chat image.");
+    } finally {
+      setIsUploadingRoomImageId(null);
+      const input = roomImageInputRefs.current[roomId];
+      if (input) {
+        input.value = "";
+      }
     }
   }
 
@@ -379,12 +428,45 @@ export function ChatPageClient({
             <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <div className="home-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border">
-                    <Users className="size-5 text-muted-foreground" />
+                  <div className="shrink-0">
+                    <input
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        const nextFile = event.target.files?.[0] ?? null;
+                        void handleRoomImageChange(room.id, nextFile);
+                      }}
+                      ref={(node) => {
+                        roomImageInputRefs.current[room.id] = node;
+                      }}
+                      type="file"
+                    />
+                    <button
+                      className="home-surface relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-border"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        roomImageInputRefs.current[room.id]?.click();
+                      }}
+                      type="button"
+                    >
+                      {room.imageUrl ? (
+                        <img
+                          alt={`${room.title} room`}
+                          className="h-full w-full object-cover"
+                          src={room.imageUrl}
+                        />
+                      ) : (
+                        <Users className="size-5 text-muted-foreground" />
+                      )}
+                      {isUploadingRoomImageId === room.id ? (
+                        <span className="absolute inset-0 bg-black/20" />
+                      ) : null}
+                    </button>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="ui-text m-0 truncate text-[1.06em] font-semibold text-foreground">{room.title}</p>
+                      <p className="ui-text m-0 truncate text-[1.22em] font-semibold text-foreground">{room.title}</p>
                       {room.unreadCount > 0 ? (
                         <span className="ui-text inline-flex min-w-[1.3rem] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[0.72rem] font-semibold leading-none text-white">
                           {room.unreadCount}

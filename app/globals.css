@@ -39,7 +39,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #121212;
+  --background: #050505;
   --foreground: #DDDDDD;
   --card: rgba(9, 18, 27, 0.9);
   --card-foreground: #DDDDDD;
@@ -60,7 +60,7 @@
   --ring: rgba(143, 184, 172, 0.26);
   --shadow-soft: 0 26px 68px rgba(0, 0, 0, 0.34);
   --shadow-card: 0 12px 26px rgba(0, 0, 0, 0.22), 0 24px 48px rgba(0, 0, 0, 0.28);
-  --bg: #121212;
+  --bg: #050505;
   --paper: #10151e;
   --paper-strong: #121821;
   --ink: #DDDDDD;
@@ -668,6 +668,18 @@ h2 {
 
 :root[data-theme="dark"] .home-surface {
   background: #1E1E1E;
+}
+
+:root[data-theme="light"] .chat-incoming-surface {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="dark"] .chat-incoming-surface {
+  background: #1E1E1E;
+}
+
+:root[data-theme="dark"] .chat-members-trigger {
+  color: #000000;
 }
 
 .bottom-nav-surface {

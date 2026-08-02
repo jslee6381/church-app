@@ -590,7 +590,7 @@ export function ChatRoomPageClient({ room }: Props) {
         </div>
         <div className="absolute right-0 top-0 flex h-11 items-center justify-end">
           <button
-            className="ui-text inline-flex h-11 items-center gap-2 rounded-[14px] border border-input bg-card px-3 text-muted-foreground transition hover:bg-card"
+            className="chat-members-trigger ui-text inline-flex h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-3 text-primary-foreground transition hover:bg-primary"
             onClick={() => void openMembersModal()}
             type="button"
           >
@@ -699,8 +699,8 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       )}
                       <div className="flex items-end gap-2">
-                        <div className="home-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3 text-foreground">
-                          <span className="home-surface absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px]" />
+                        <div className="chat-incoming-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3 text-foreground">
+                          <span className="chat-incoming-surface absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px]" />
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p
                             className={`ui-text m-0 whitespace-pre-wrap break-words text-current ${message.deletedAt ? "italic opacity-80" : ""}`}
