@@ -967,7 +967,7 @@ h2 {
 :root[data-theme="dark"] .event-form-input,
 :root[data-theme="dark"] .prayer-form-input,
 :root[data-theme="dark"] .community-form-input {
-  background: #E0E0E0;
+  background: #282828;
 }
 
 :root[data-theme="dark"] .gallery-card-header,
