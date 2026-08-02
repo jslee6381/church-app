@@ -376,12 +376,8 @@ export function ChatPageClient({
       ) : (
         <div className="space-y-3">
           {rooms.map((room) => (
-            <Link
-              className="block w-full rounded-[18px] px-2 py-2 transition active:scale-[0.985]"
-              href={`/chat/${room.id}`}
-              key={room.id}
-            >
-              <div className="flex items-start justify-between gap-3 rounded-[16px] px-2 py-2 transition-colors duration-150 active:bg-foreground/5">
+            <Link className="block w-full py-2 transition" href={`/chat/${room.id}`} key={room.id}>
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <div className="home-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border">
                     <Users className="size-5 text-muted-foreground" />
