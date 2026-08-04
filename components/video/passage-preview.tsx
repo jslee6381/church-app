@@ -77,7 +77,7 @@ export function PassagePreview({
   }, [isLoading, isOpen, reference, verses.length]);
 
   return (
-    <div className="border-b border-input pb-3">
+    <div>
       <button
         className="flex min-h-12 w-full items-center gap-2 px-0 text-left text-foreground"
         onClick={() => setIsOpen((current) => !current)}
@@ -87,8 +87,10 @@ export function PassagePreview({
         {isOpen ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
 
+      <div className="border-b border-input" />
+
       {isOpen ? (
-        <div className="px-0 pt-2">
+        <div className="px-0 pt-3">
           {isLoading ? (
             <div
               className="flex items-center gap-2 text-muted-foreground"

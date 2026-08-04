@@ -691,6 +691,10 @@ h2 {
   color: #000000;
 }
 
+.group-chat-fallback {
+  filter: none;
+}
+
 :root[data-theme="light"] .chat-outgoing-meta,
 :root[data-theme="dark"] .chat-outgoing-meta {
   color: rgba(13, 21, 25, 0.72);
@@ -716,6 +720,10 @@ h2 {
 
 :root[data-theme="dark"] .chat-new-button {
   color: #E0E0E0;
+}
+
+:root[data-theme="dark"] .group-chat-fallback {
+  filter: brightness(0) saturate(100%) invert(100%);
 }
 
 :root[data-theme="dark"] .chat-members-trigger {

@@ -86,7 +86,7 @@ export default async function FellowshipPage() {
               <ChevronLeft className="size-6" />
             </Link>
             <Link
-              className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border-0 bg-transparent px-4 font-bold transition hover:bg-transparent dark:border-0 dark:bg-transparent dark:hover:bg-transparent"
+              className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border-0 bg-transparent px-4 transition hover:bg-transparent dark:border-0 dark:bg-transparent dark:hover:bg-transparent"
               href="/archive"
             >
               <ArchiveButtonIcon />
