@@ -675,7 +675,7 @@ export function ChatRoomPageClient({ room }: Props) {
                           {message.body}
                         </p>
                         {message.editedAt && !message.deletedAt ? (
-                          <p className="m-0 mt-1 text-[0.68rem] text-primary-foreground/75">(edited)</p>
+                          <p className="chat-outgoing-meta m-0 mt-1 text-[0.68rem]">(edited)</p>
                         ) : null}
                       </div>
                       <p
@@ -699,7 +699,7 @@ export function ChatRoomPageClient({ room }: Props) {
                         </div>
                       )}
                       <div className="flex items-end gap-2">
-                        <div className="chat-incoming-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3 text-foreground">
+                        <div className="chat-incoming-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3">
                           <span className="chat-incoming-surface absolute left-[-6px] bottom-3 h-3 w-3 rotate-45 rounded-[2px]" />
                           <p className="ui-text m-0 mb-1 font-semibold text-current">{message.senderName}</p>
                           <p
@@ -709,7 +709,7 @@ export function ChatRoomPageClient({ room }: Props) {
                             {message.body}
                           </p>
                           {message.editedAt && !message.deletedAt ? (
-                            <p className="m-0 mt-1 text-[0.68rem] text-muted-foreground">(edited)</p>
+                            <p className="chat-incoming-meta m-0 mt-1 text-[0.68rem]">(edited)</p>
                           ) : null}
                         </div>
                         <p

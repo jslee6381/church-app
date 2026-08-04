@@ -687,10 +687,20 @@ h2 {
   color: #0d1519;
 }
 
+:root[data-theme="light"] .chat-outgoing-meta,
+:root[data-theme="dark"] .chat-outgoing-meta {
+  color: rgba(13, 21, 25, 0.72);
+}
+
 :root[data-theme="light"] .chat-incoming-surface,
 :root[data-theme="dark"] .chat-incoming-surface {
   background: #1E1E1E;
   color: #E0E0E0;
+}
+
+:root[data-theme="light"] .chat-incoming-meta,
+:root[data-theme="dark"] .chat-incoming-meta {
+  color: rgba(224, 224, 224, 0.72);
 }
 
 :root[data-theme="dark"] .chat-members-trigger {
