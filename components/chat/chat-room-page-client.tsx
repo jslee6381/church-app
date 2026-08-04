@@ -647,7 +647,7 @@ export function ChatRoomPageClient({ room }: Props) {
                   {message.isOwnMessage ? (
                     <div className="flex w-full flex-row-reverse items-end gap-2">
                       <div
-                        className="max-w-[76%] select-none rounded-[18px] bg-primary px-4 py-3 text-primary-foreground"
+                        className="chat-outgoing-surface max-w-[76%] select-none rounded-[18px] px-4 py-3"
                         onContextMenu={(event) => {
                           event.preventDefault();
                           if (message.deletedAt) {

@@ -681,13 +681,16 @@ h2 {
   box-shadow: 0 8px 20px rgba(68, 52, 35, 0.045), 0 18px 40px rgba(68, 52, 35, 0.055);
 }
 
-
-:root[data-theme="light"] .chat-incoming-surface {
-  background: rgba(255, 255, 255, 0.95);
+:root[data-theme="light"] .chat-outgoing-surface,
+:root[data-theme="dark"] .chat-outgoing-surface {
+  background: #90b7ad;
+  color: #0d1519;
 }
 
+:root[data-theme="light"] .chat-incoming-surface,
 :root[data-theme="dark"] .chat-incoming-surface {
   background: #1E1E1E;
+  color: #E0E0E0;
 }
 
 :root[data-theme="dark"] .chat-members-trigger {
@@ -915,23 +918,23 @@ h2 {
 :root[data-theme="light"] .prayer-form-surface,
 :root[data-theme="light"] .community-form-surface,
 :root[data-theme="light"] .settings-action-surface {
-  background: #f8f3e7;
+  background: #fffdf8;
 }
 
 :root[data-theme="light"] .event-form-input,
 :root[data-theme="light"] .prayer-form-input,
 :root[data-theme="light"] .community-form-input,
 :root[data-theme="light"] .admin-role-input {
-  background: #efe7dc;
+  background: #fffdf8;
 }
 
 :root[data-theme="light"] .gallery-card-header,
 :root[data-theme="light"] .gallery-card-frame {
-  background: #fffaf0;
+  background: #fffdf8;
 }
 
 :root[data-theme="light"] .material-frame-surface {
-  background: #fffaf0;
+  background: #fffdf8;
 }
 
 :root[data-theme="light"] .material-action-button {
@@ -1014,8 +1017,8 @@ h2 {
 
 :root[data-theme="dark"] .dark-wordmark {
   display: block;
-  margin-top: -14px;
-  margin-bottom: -20px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 :root[data-theme="dark"] .hero,
