@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LoaderCircle, RotateCcw, Users } from "lucide-react";
+import { LoaderCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -240,9 +240,7 @@ export function ProfilePhotoEditor({ initialPhotoUrl, displayName }: Props) {
           {photoUrl ? (
             <img alt={`${displayName} profile`} className="size-16 rounded-full object-cover" src={photoUrl} />
           ) : (
-            <div className="inline-flex size-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
-              <Users className="size-7" />
-            </div>
+            <img alt="Default profile" className="size-16 rounded-full object-cover" src="/profile.png" />
           )}
         </button>
         <div>

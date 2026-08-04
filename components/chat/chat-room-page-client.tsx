@@ -577,7 +577,7 @@ export function ChatRoomPageClient({ room }: Props) {
             className="inline-flex h-11 items-center bg-transparent px-0 text-foreground"
             href="/chat"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-6" />
           </Link>
         </div>
         <div className="absolute inset-x-16 top-0 flex h-11 items-center justify-center text-center">
@@ -694,9 +694,11 @@ export function ChatRoomPageClient({ room }: Props) {
                           src={message.senderPhotoUrl}
                         />
                       ) : (
-                        <div className="mb-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                          <Users className="size-4" />
-                        </div>
+                        <img
+                          alt="Default profile"
+                          className="mb-1 size-8 shrink-0 rounded-full object-cover"
+                          src="/profile.png"
+                        />
                       )}
                       <div className="flex items-end gap-2">
                         <div className="chat-incoming-surface relative max-w-[76%] select-none rounded-[18px] px-4 py-3">

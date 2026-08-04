@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LoaderCircle, QrCode, UserRound } from "lucide-react";
+import { LoaderCircle, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MEMBER_LOCAL_STORAGE_KEY } from "@/lib/auth/constants";
@@ -123,9 +123,13 @@ export function InvitationFlow() {
 
         <Card className="fade-up self-center">
           <CardHeader className="gap-3">
-            <div className="inline-flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
-              {validation ? <UserRound className="size-6" /> : <QrCode className="size-6" />}
-            </div>
+            {validation ? (
+              <img alt="Default profile" className="size-14 rounded-full object-cover" src="/profile.png" />
+            ) : (
+              <div className="inline-flex size-14 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                <QrCode className="size-6" />
+              </div>
+            )}
             <CardTitle>{validation ? "Enter your display name" : "Verify invitation"}</CardTitle>
             <CardDescription>
               {validation

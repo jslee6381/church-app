@@ -1,4 +1,4 @@
-import { Phone, Mail, ShieldCheck, Users } from "lucide-react";
+import { Phone, Mail, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DirectoryMember } from "@/lib/directory";
 
@@ -47,9 +47,11 @@ export function MemberDirectory({ members }: Props) {
                           src={member.photoUrl}
                         />
                       ) : (
-                        <div className="inline-flex size-16 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                          <Users className="size-7" />
-                        </div>
+                        <img
+                          alt="Default profile"
+                          className="size-16 rounded-full object-cover"
+                          src="/profile.png"
+                        />
                       )}
 
                       <div>

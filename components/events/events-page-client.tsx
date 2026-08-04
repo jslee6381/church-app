@@ -800,8 +800,9 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
       ) : null}
 
       {selectedMonth ? (
-        <div className="grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-2">
-          <div className="flex justify-start">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div />
+          <div className="flex items-center justify-center gap-1">
             <button
               aria-label="Previous month"
               className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
@@ -811,9 +812,18 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
             >
               <ChevronLeft className="size-4" />
             </button>
-          </div>
-          <div className="flex items-center justify-center gap-2">
             <div className="ui-text py-1 text-center font-sans font-semibold text-foreground">{selectedMonth.label}</div>
+            <button
+              aria-label="Next month"
+              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
+              disabled={!canGoNextMonth}
+              onClick={() => setSelectedMonthIndex((current) => Math.min(monthGroups.length - 1, current + 1))}
+              type="button"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+          <div className="flex justify-end">
             {hasPastEventsInSelectedMonth ? (
               <button
                 aria-label={arePastEventsCollapsed ? "Expand past events" : "Collapse past events"}
@@ -824,17 +834,6 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
                 <ChevronDown className={`size-4 transition-transform ${arePastEventsCollapsed ? "rotate-0" : "rotate-180"}`} />
               </button>
             ) : null}
-          </div>
-          <div className="flex justify-end">
-            <button
-              aria-label="Next month"
-              className="inline-flex size-8 items-center justify-center bg-transparent text-foreground disabled:opacity-35"
-              disabled={!canGoNextMonth}
-              onClick={() => setSelectedMonthIndex((current) => Math.min(monthGroups.length - 1, current + 1))}
-              type="button"
-            >
-              <ChevronRight className="size-4" />
-            </button>
           </div>
         </div>
       ) : null}
@@ -857,7 +856,7 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
         <article
           key={`${eventItem.id}-${item.monthKey}-${index}`}
           id={`event-${eventItem.id}`}
-          className={`event-surface relative isolate scroll-mt-6 rounded-[18px] border border-border/80 bg-[linear-gradient(180deg,rgba(255,254,251,0.96),rgba(255,252,247,0.9))] px-4 pt-4 shadow-[0_8px_20px_rgba(68,52,35,0.045),0_18px_40px_rgba(68,52,35,0.055)] ${eventItem.imageUrl ? "pb-0" : "pb-4"} ${openMenuEventId === eventItem.id ? "z-[80] overflow-visible" : "z-0 overflow-hidden"}`}
+          className={`relative isolate scroll-mt-6 border-b border-border/70 px-0 pt-1 pb-3 last:border-b-0 ${openMenuEventId === eventItem.id ? "z-[80] overflow-visible" : "z-0 overflow-hidden"}`}
         >
           <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
             {canManage && editingEventId !== eventItem.id ? (
@@ -1050,13 +1049,13 @@ export function EventsPageClient({ canManage, initialEvents }: Props) {
           </div>
 
           {eventItem.imageUrl ? (
-            <div className="mt-4 -mx-4">
+            <div className="mt-4">
               {eventItem.isLiveStream && eventItem.liveStreamUrl ? (
                 <a href={eventItem.liveStreamUrl} rel="noreferrer" target="_blank">
-                  <img alt={eventItem.title} className="block w-full rounded-b-[18px]" src={eventItem.imageUrl} />
+                  <img alt={eventItem.title} className="block w-full" src={eventItem.imageUrl} />
                 </a>
               ) : (
-                <img alt={eventItem.title} className="block w-full rounded-b-[18px]" src={eventItem.imageUrl} />
+                <img alt={eventItem.title} className="block w-full" src={eventItem.imageUrl} />
               )}
             </div>
           ) : null}

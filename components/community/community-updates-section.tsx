@@ -640,9 +640,11 @@ export function CommunityUpdatesSection({
     }
 
     return (
-      <div className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
-        <Users className="size-4" />
-      </div>
+      <img
+        alt="Default profile"
+        className="size-8 rounded-full object-cover"
+        src="/profile.png"
+      />
     );
   }
 
@@ -658,9 +660,11 @@ export function CommunityUpdatesSection({
     }
 
     return (
-      <div className="inline-flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
-        <Users className="size-4" />
-      </div>
+      <img
+        alt="Default profile"
+        className="size-8 rounded-full object-cover"
+        src="/profile.png"
+      />
     );
   }
 
@@ -1219,9 +1223,7 @@ export function CommunityUpdatesSection({
                 currentMemberPhotoUrl ? (
                   <img alt="Your profile" className="shrink-0 self-center size-10 rounded-full object-cover" src={currentMemberPhotoUrl} />
                 ) : (
-                  <div className="inline-flex shrink-0 self-center size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                    <Users className="size-5" />
-                  </div>
+                  <img alt="Default profile" className="shrink-0 self-center size-10 rounded-full object-cover" src="/profile.png" />
                 )
               ) : null}
               <div
@@ -1407,9 +1409,11 @@ export function CommunityUpdatesSection({
                       src={update.authorPhotoUrl}
                     />
                   ) : (
-                    <div className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                      <Users className="size-4" />
-                    </div>
+                    <img
+                      alt="Default profile"
+                      className="size-9 rounded-full object-cover"
+                      src="/profile.png"
+                    />
                   )}
                   <p className="m-0 text-sm font-semibold text-foreground">{update.authorName}</p>
                 </div>

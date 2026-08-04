@@ -280,12 +280,12 @@ export function ChatPageClient({
           <ChevronLeft className="size-6" />
         </Link>
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border-0 bg-transparent px-4 font-bold text-foreground shadow-none transition hover:bg-transparent dark:border-0 dark:bg-transparent dark:text-[#E0E0E0] dark:hover:bg-transparent"
+          className="chat-new-button ui-text inline-flex min-h-11 items-center gap-2 rounded-full border-0 bg-transparent px-4 font-bold shadow-none transition hover:bg-transparent dark:border-0 dark:bg-transparent dark:hover:bg-transparent"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >
-          <span className="relative -top-px text-[1.2rem] leading-none">+</span>
-          New Chat
+          <span className="relative -top-px text-[1.2rem] font-bold leading-none">+</span>
+          <span className="font-bold">New Chat</span>
         </button>
       </div>
 
@@ -453,7 +453,11 @@ export function ChatPageClient({
                       src={room.imageUrl}
                     />
                   ) : (
-                    <Users className="size-5 text-muted-foreground" />
+                    <img
+                      alt="Default chat room"
+                      className="h-full w-full object-cover"
+                      src="/group-chat.png"
+                    />
                   )}
                   {isUploadingRoomImageId === room.id ? (
                     <span className="absolute inset-0 bg-black/20" />

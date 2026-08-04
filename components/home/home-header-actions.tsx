@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users } from "lucide-react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { getEasternGreeting } from "@/lib/eastern-time";
 import { createClient } from "@/lib/supabase/client";
@@ -153,9 +152,11 @@ export function HomeHeaderActions({
             src={state.profilePhotoUrl}
           />
         ) : (
-          <div className="inline-flex size-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-            <Users className="size-5" />
-          </div>
+          <img
+            alt="Default profile"
+            className="size-10 rounded-full object-cover"
+            src="/profile.png"
+          />
         )}
         <div className="text-center">
           <p className="ui-text m-0 font-semibold text-foreground">

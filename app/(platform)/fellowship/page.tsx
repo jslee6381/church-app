@@ -8,7 +8,6 @@ import { getMemberRoles } from "@/lib/auth/authorization";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { getMemberSession } from "@/lib/auth/session";
 import { getCommunityUpdateFeedPage } from "@/lib/community-updates";
-import { getEasternGreeting } from "@/lib/eastern-time";
 import { createAdminClient, hasAdminEnvironment } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -60,8 +59,6 @@ export default async function FellowshipPage() {
   const roles = authSession ? await getMemberRoles(authSession.member.id) : [];
   const canAccessAdmin = roles.includes("admin");
   const currentMemberPhotoUrl = authSession ? await getProfilePhotoUrl(authSession.member.id) : null;
-  const currentMemberName = authSession?.member.display_name ?? authSession?.member.full_name ?? null;
-  const communityGreeting = authSession?.member.status === "active" ? getEasternGreeting() : null;
   const initialFeedPage = authSession?.member.church_id
     ? await getCommunityUpdateFeedPage(authSession.member.church_id, authSession.member.id, 0, 3)
     : { items: [], hasMore: false, nextOffset: 0 };
@@ -98,13 +95,6 @@ export default async function FellowshipPage() {
           </header>
 
           <section className="fade-up mt-3 -mx-4">
-            {communityGreeting && currentMemberName ? (
-              <div className="px-4 pb-3">
-                <p className="ui-text m-0 font-semibold text-foreground">
-                  {communityGreeting}, {currentMemberName}
-                </p>
-              </div>
-            ) : null}
             <CommunityUpdatesSection
               canManage={canAccessAdmin}
               canReact={authSession?.member.status === "active"}

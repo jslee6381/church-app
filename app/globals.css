@@ -687,20 +687,35 @@ h2 {
   color: #0d1519;
 }
 
+:root[data-theme="light"] .chat-new-button {
+  color: #000000;
+}
+
 :root[data-theme="light"] .chat-outgoing-meta,
 :root[data-theme="dark"] .chat-outgoing-meta {
   color: rgba(13, 21, 25, 0.72);
 }
 
-:root[data-theme="light"] .chat-incoming-surface,
+:root[data-theme="light"] .chat-incoming-surface {
+  background: #EDEFF4;
+  color: #000000;
+}
+
 :root[data-theme="dark"] .chat-incoming-surface {
-  background: #1E1E1E;
+  background: #212529;
   color: #E0E0E0;
 }
 
-:root[data-theme="light"] .chat-incoming-meta,
+:root[data-theme="light"] .chat-incoming-meta {
+  color: rgba(0, 0, 0, 0.68);
+}
+
 :root[data-theme="dark"] .chat-incoming-meta {
   color: rgba(224, 224, 224, 0.72);
+}
+
+:root[data-theme="dark"] .chat-new-button {
+  color: #E0E0E0;
 }
 
 :root[data-theme="dark"] .chat-members-trigger {
@@ -931,6 +946,10 @@ h2 {
   background: #fffdf8;
 }
 
+:root[data-theme="light"] .settings-action-surface {
+  box-shadow: 0 8px 20px rgba(68, 52, 35, 0.045), 0 18px 40px rgba(68, 52, 35, 0.055);
+}
+
 :root[data-theme="light"] .event-form-input,
 :root[data-theme="light"] .prayer-form-input,
 :root[data-theme="light"] .community-form-input,
@@ -949,6 +968,10 @@ h2 {
 
 :root[data-theme="light"] .material-action-button {
   color: #ffffff;
+}
+
+:root[data-theme="light"] .material-link-button {
+  box-shadow: 0 4px 10px rgba(68, 52, 35, 0.03), 0 10px 18px rgba(68, 52, 35, 0.035);
 }
 
 :root[data-theme="dark"] .announcement-card-surface {
