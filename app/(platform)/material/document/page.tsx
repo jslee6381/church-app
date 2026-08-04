@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { PassagePreview } from "@/components/video/passage-preview";
 import { getAuthenticatedMemberSession } from "@/lib/auth/supabase-member";
 import { fetchPassageVerses } from "@/lib/bible";
@@ -56,9 +56,8 @@ export default async function MaterialDocumentPage({
   return (
     <main className="shell max-w-none py-6">
       <header className="mb-5">
-        <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/material">
-          <ArrowLeft className="size-4" />
-          Material
+        <Link className="inline-flex min-h-11 items-center text-base font-semibold text-foreground" href="/material" aria-label="Back to Material">
+          <ChevronLeft className="size-6" />
         </Link>
       </header>
 

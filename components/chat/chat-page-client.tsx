@@ -273,11 +273,11 @@ export function ChatPageClient({
     <div className="space-y-5">
       <div className="mb-3 flex min-h-11 items-center justify-between gap-3">
         <Link
-          className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground"
+          className="inline-flex min-h-11 items-center bg-transparent px-0 text-base font-semibold text-foreground"
           href="/home"
+          aria-label="Back to Home"
         >
-          <ChevronLeft className="size-4" />
-          Home
+          <ChevronLeft className="size-6" />
         </Link>
         <button
           className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-transparent bg-primary px-4 font-semibold text-primary-foreground shadow-none transition hover:bg-primary"

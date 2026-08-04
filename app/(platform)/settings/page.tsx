@@ -37,11 +37,11 @@ export default async function SettingsPage() {
     <main className="shell max-w-[560px] py-6">
       <div className="mb-5">
         <Link
-          className="inline-flex min-h-11 items-center gap-2 bg-transparent px-0 text-base font-semibold text-foreground"
+          className="inline-flex min-h-11 items-center bg-transparent px-0 text-base font-semibold text-foreground"
           href="/home"
+          aria-label="Back to Home"
         >
-          <ChevronLeft className="size-4" />
-          Home
+          <ChevronLeft className="size-6" />
         </Link>
       </div>
 

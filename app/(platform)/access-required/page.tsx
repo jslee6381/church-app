@@ -54,9 +54,8 @@ export default async function AccessRequiredPage({ searchParams }: { searchParam
   return (
     <main className="shell max-w-[560px] py-6">
       <header className="mb-5">
-        <Link className="inline-flex items-center gap-2 text-base font-semibold text-foreground" href="/home">
-          <ChevronLeft className="size-4" />
-          Home
+        <Link className="inline-flex items-center text-base font-semibold text-foreground" href="/home" aria-label="Back to Home">
+          <ChevronLeft className="size-6" />
         </Link>
       </header>
 

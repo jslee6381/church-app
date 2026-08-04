@@ -48,11 +48,11 @@ export default async function DailyBreadPage({
     <main className="shell max-w-[560px] py-6">
       <header className="mb-6 flex items-center justify-between gap-4">
         <Link
-          className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+          className="ui-text inline-flex min-h-11 items-center bg-transparent px-0 font-semibold text-foreground"
           href="/home"
+          aria-label="Back to Home"
         >
-          <ChevronLeft className="size-4" />
-          Home
+          <ChevronLeft className="size-6" />
         </Link>
         <p className="ui-text m-0 text-right text-foreground">{formatEasternEventDate(content.dateValue)}</p>
       </header>

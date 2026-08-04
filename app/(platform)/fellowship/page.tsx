@@ -82,11 +82,11 @@ export default async function FellowshipPage() {
         <div className="mt-2">
           <header className="mb-5 flex items-center justify-between gap-4">
             <Link
-              className="ui-text inline-flex min-h-11 items-center gap-2 bg-transparent px-0 font-semibold text-foreground"
+              className="ui-text inline-flex min-h-11 items-center bg-transparent px-0 font-semibold text-foreground"
               href="/home"
+              aria-label="Back to Home"
             >
-              <ChevronLeft className="size-4" />
-              Home
+              <ChevronLeft className="size-6" />
             </Link>
             <Link
               className="moments-more-button ui-text inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-transparent bg-primary px-4 font-normal transition hover:bg-primary"
