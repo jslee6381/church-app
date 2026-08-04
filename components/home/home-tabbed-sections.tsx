@@ -112,7 +112,7 @@ export function HomeTabbedSections({ headerAction, initialAnnouncement, initialE
               return action.external ? (
                 <Link
                   key={action.href}
-                  className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 transition hover:bg-card"
+                  className="home-surface home-panel-surface rounded-[16px] border border-border px-4 py-3 transition hover:bg-transparent dark:bg-card dark:hover:bg-card"
                   href={action.href}
                   rel="noreferrer"
                   target="_blank"
@@ -127,7 +127,7 @@ export function HomeTabbedSections({ headerAction, initialAnnouncement, initialE
               ) : (
                 <button
                   key={action.href}
-                  className="home-surface rounded-[16px] border border-border bg-card px-4 py-3 text-left transition hover:bg-card"
+                  className="home-surface home-panel-surface rounded-[16px] border border-border px-4 py-3 text-left transition hover:bg-transparent dark:bg-card dark:hover:bg-card"
                   onClick={() => router.push(action.href)}
                   type="button"
                 >

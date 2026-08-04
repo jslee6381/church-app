@@ -280,7 +280,7 @@ export function ChatPageClient({
           <ChevronLeft className="size-6" />
         </Link>
         <button
-          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-transparent bg-primary px-4 font-semibold text-primary-foreground shadow-none transition hover:bg-primary"
+          className="ui-text inline-flex min-h-11 items-center gap-2 rounded-full border border-transparent bg-primary px-4 font-semibold text-primary-foreground shadow-none transition hover:bg-primary dark:border-0 dark:bg-transparent dark:text-[#E0E0E0] dark:hover:bg-transparent"
           onClick={() => setIsComposerOpen((current) => !current)}
           type="button"
         >

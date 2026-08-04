@@ -4,17 +4,17 @@
   color-scheme: light;
   --ui-text-size: 0.875rem;
   --ui-text-line-height: 1.35;
-  --background: #f6f4e1;
+  --background: rgba(255, 253, 249, 0.82);
   --foreground: #1e2a2a;
-  --card: rgba(255, 253, 249, 0.82);
+  --card: #fffdf8;
   --card-foreground: #1d2a2a;
   --popover: rgba(255, 253, 249, 0.96);
   --popover-foreground: #1d2a2a;
   --primary: #204f49;
   --primary-foreground: #f8faf8;
-  --secondary: #efe7dc;
+  --secondary: #f8f3e7;
   --secondary-foreground: #2e3d3d;
-  --muted: #f0e9df;
+  --muted: #efe7dc;
   --muted-foreground: #657170;
   --accent: #dcebe6;
   --accent-foreground: #173f39;
@@ -26,7 +26,7 @@
   --radius: 0.9rem;
   --shadow-soft: 0 22px 64px rgba(68, 52, 35, 0.06);
   --shadow-card: 0 8px 20px rgba(68, 52, 35, 0.045), 0 18px 40px rgba(68, 52, 35, 0.055);
-  --bg: #f6f4e1;
+  --bg: rgba(255, 253, 249, 0.82);
   --paper: #fffdf8;
   --paper-strong: #ffffff;
   --ink: #1e2a2a;
@@ -668,7 +668,19 @@ h2 {
 
 :root[data-theme="dark"] .home-surface {
   background: #121212;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18), 0 14px 30px rgba(0, 0, 0, 0.16);
 }
+
+:root[data-theme="light"] .home-surface {
+  background: #fffdf8;
+}
+
+:root[data-theme="light"] .home-panel-surface {
+  background: #fffdf8;
+  border-color: rgba(129, 119, 101, 0.16);
+  box-shadow: 0 8px 20px rgba(68, 52, 35, 0.045), 0 18px 40px rgba(68, 52, 35, 0.055);
+}
+
 
 :root[data-theme="light"] .chat-incoming-surface {
   background: rgba(255, 255, 255, 0.95);
@@ -754,7 +766,7 @@ h2 {
 }
 
 .launch-screen {
-  background: #f6f4e1;
+  background: rgba(255, 253, 249, 0.82);
   color: #1e2a2a;
 }
 .launch-screen-initial {
@@ -830,7 +842,7 @@ h2 {
 }
 
 .launch-screen {
-  background: #f6f4e1;
+  background: rgba(255, 253, 249, 0.82);
   color: #1e2a2a;
 }
 .launch-screen-initial {
@@ -884,42 +896,42 @@ h2 {
 }
 
 :root[data-theme="light"] .announcement-card-surface {
-  background: linear-gradient(180deg, rgba(255,254,251,0.96), rgba(255,252,247,0.9));
+  background: #fffdf8;
 }
 
 :root[data-theme="light"] .event-surface,
 :root[data-theme="light"] .event-surface-sub,
 :root[data-theme="light"] .event-card-surface,
+:root[data-theme="light"] .gallery-card-surface,
+:root[data-theme="light"] .material-card-surface,
+:root[data-theme="light"] .prayer-card-surface,
+:root[data-theme="light"] .admin-card-surface,
+:root[data-theme="light"] .settings-card-surface {
+  background: #fffdf8;
+}
+
 :root[data-theme="light"] .event-form-surface,
 :root[data-theme="light"] .gallery-form-surface,
 :root[data-theme="light"] .prayer-form-surface,
-:root[data-theme="light"] .prayer-card-surface,
 :root[data-theme="light"] .community-form-surface,
+:root[data-theme="light"] .settings-action-surface {
+  background: #f8f3e7;
+}
+
 :root[data-theme="light"] .event-form-input,
 :root[data-theme="light"] .prayer-form-input,
 :root[data-theme="light"] .community-form-input,
-:root[data-theme="light"] .admin-card-surface,
-:root[data-theme="light"] .settings-card-surface,
-:root[data-theme="light"] .settings-action-surface,
 :root[data-theme="light"] .admin-role-input {
-  background: rgba(255, 255, 255, 0.82);
-}
-
-:root[data-theme="light"] .gallery-card-surface {
-  background: linear-gradient(180deg, rgba(255, 254, 251, 0.96), rgba(255, 252, 247, 0.9));
-}
-
-:root[data-theme="light"] .material-card-surface {
-  background: linear-gradient(180deg, rgba(255, 254, 251, 0.96), rgba(255, 252, 247, 0.9));
+  background: #efe7dc;
 }
 
 :root[data-theme="light"] .gallery-card-header,
 :root[data-theme="light"] .gallery-card-frame {
-  background: rgba(255, 255, 255, 0.95);
+  background: #fffaf0;
 }
 
 :root[data-theme="light"] .material-frame-surface {
-  background: rgba(255, 255, 255, 0.95);
+  background: #fffaf0;
 }
 
 :root[data-theme="light"] .material-action-button {
@@ -931,7 +943,7 @@ h2 {
 }
 
 :root[data-theme="light"] .menu-surface {
-  background: #ffffff;
+  background: #fffdf8;
   opacity: 1;
 }
 

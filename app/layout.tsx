@@ -26,6 +26,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   colorScheme: "light dark",
   themeColor: "#001F3F",
 };
@@ -43,11 +45,50 @@ export default function RootLayout({
       >
         <Script id="koinonia-theme-init" strategy="beforeInteractive">
           {`try {
+  var isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches || window.navigator.standalone === true;
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (viewportMeta && isStandalone) {
+    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+  }
+  if (isStandalone) {
+    document.documentElement.style.touchAction = 'manipulation';
+    if (document.body) {
+      document.body.style.touchAction = 'manipulation';
+    } else {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (document.body) {
+          document.body.style.touchAction = 'manipulation';
+        }
+      }, { once: true });
+    }
+    document.addEventListener('touchmove', function (event) {
+      if (event.touches && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('gesturestart', function (event) {
+      event.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gesturechange', function (event) {
+      event.preventDefault();
+    }, { passive: false });
+    document.addEventListener('gestureend', function (event) {
+      event.preventDefault();
+    }, { passive: false });
+    var lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      var now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+  }
   var size = localStorage.getItem("koinonia-ui-text-size") || "1rem";
   document.documentElement.style.setProperty("--ui-text-size", size);
   var mode = localStorage.getItem("koinonia-theme-mode") || "system";
   var resolved = mode === "dark" || (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-  var background = resolved === "dark" ? "#050505" : "#f6f4e1";
+  var background = resolved === "dark" ? "#050505" : "rgba(255, 253, 249, 0.82)";
   var foreground = resolved === "dark" ? "#FFFFFF" : "#1e2a2a";
   document.documentElement.dataset.theme = resolved;
   document.documentElement.dataset.themeMode = mode;

@@ -9,7 +9,7 @@ const INITIAL_LAUNCH_FOREGROUND = "#DDDDDD";
 
 function resolveThemeBackground() {
   const theme = document.documentElement.dataset.theme;
-  return theme === "dark" ? "#050505" : "#f6f4e1";
+  return theme === "dark" ? "#050505" : "rgba(255, 253, 249, 0.82)";
 }
 
 function resolveThemeForeground() {

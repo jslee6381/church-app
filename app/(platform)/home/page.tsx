@@ -70,9 +70,9 @@ export default async function HomePage() {
           initialEvent={initialEvent}
           wordmark={{
             light: {
-              src: "/aaa.png",
-              width: 4295,
-              height: 1116,
+              src: "/aaa-light-transparent.png",
+              width: 2149,
+              height: 732,
             },
             dark: {
               src: "/aaa-dark-transparent.png",

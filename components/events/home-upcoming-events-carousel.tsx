@@ -123,7 +123,7 @@ export function HomeUpcomingEventsCarousel({ initialState }: Props) {
   }
 
   return (
-    <article className="home-surface overflow-hidden rounded-[16px] border border-border bg-card">
+    <article className="home-surface home-panel-surface overflow-hidden rounded-[16px] border border-border bg-card">
       <div className="px-4 pt-4 pb-4">
         <div className="mb-0">
           <div className="grid grid-cols-[32px_minmax(0,1fr)_32px] items-center gap-1">
